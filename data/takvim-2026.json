@@ -1,0 +1,25 @@
+{
+  "kaynak": "ÖSYM 2026 Yılı Sınav Takvimi (14.11.2025) ve MEB LGS duyurusu",
+  "guncelleme": "2026-05-30",
+  "sinavlar": [
+    {"ad": "YDS/1 (İlkbahar)", "tur": "other", "basvuru": "21 Oca - 4 Şub 2026", "sinav": "2026-04-05", "sonuc": "30 Nis 2026", "not": "e-YDS dönemleri ayrıca açıklanır"},
+    {"ad": "YÖKDİL/1", "tur": "other", "basvuru": "28 Oca - 11 Şub 2026", "sinav": "2026-03-08", "sonuc": "2 Nis 2026", "not": "Akademik amaçlı yabancı dil"},
+    {"ad": "TUS/1 (Tıpta Uzmanlık)", "tur": "other", "basvuru": "Şubat 2026", "sinav": "2026-03-15", "sonuc": "9 Nis 2026", "not": "Temel + Klinik Bilimler"},
+    {"ad": "DUS/1 (Diş Hekimliği Uzmanlık)", "tur": "other", "basvuru": "Mart 2026", "sinav": "2026-04-26", "sonuc": "21 May 2026", "not": ""},
+    {"ad": "ALES/1", "tur": "other", "basvuru": "25 Mar - 2 Nis 2026", "sinav": "2026-05-10", "sonuc": "5 Haz 2026", "not": "Lisansüstü / akademik kadro"},
+    {"ad": "LGS (Liselere Geçiş)", "tur": "lgs", "basvuru": "MEB tarafından okul üzerinden", "sinav": "2026-06-14", "sonuc": "Temmuz 2026", "not": "MEB · 8. sınıf · merkezi sınav"},
+    {"ad": "YKS — TYT", "tur": "yks", "basvuru": "6 Şub - 2 Mar 2026", "sinav": "2026-06-20", "sonuc": "2026-07-22", "not": "Temel Yeterlilik Testi"},
+    {"ad": "YKS — AYT & YDT", "tur": "yks", "basvuru": "6 Şub - 2 Mar 2026", "sinav": "2026-06-21", "sonuc": "2026-07-22", "not": "Alan Yeterlilik + Yabancı Dil"},
+    {"ad": "DGS (Dikey Geçiş)", "tur": "other", "basvuru": "15 May - 2 Haz 2026", "sinav": "2026-07-19", "sonuc": "13 Ağu 2026", "not": "Önlisans → Lisans"},
+    {"ad": "ALES/2", "tur": "other", "basvuru": "Haziran 2026", "sinav": "2026-07-26", "sonuc": "Ağustos 2026", "not": ""},
+    {"ad": "YÖKDİL/2", "tur": "other", "basvuru": "Temmuz 2026", "sinav": "2026-08-02", "sonuc": "Ağustos 2026", "not": ""},
+    {"ad": "TUS/2", "tur": "other", "basvuru": "Temmuz 2026", "sinav": "2026-08-23", "sonuc": "Eylül 2026", "not": ""},
+    {"ad": "KPSS Lisans (GY-GK)", "tur": "kpss", "basvuru": "Temmuz 2026", "sinav": "2026-09-06", "sonuc": "Ekim 2026", "not": "Genel Yetenek - Genel Kültür"},
+    {"ad": "KPSS Lisans (ÖABT)", "tur": "kpss", "basvuru": "Temmuz 2026", "sinav": "2026-09-12", "sonuc": "Ekim 2026", "not": "Öğretmenlik Alan Bilgisi (12-13 Eylül)"},
+    {"ad": "KPSS Ön Lisans", "tur": "kpss", "basvuru": "Ağustos 2026", "sinav": "2026-10-04", "sonuc": "Kasım 2026", "not": ""},
+    {"ad": "KPSS Ortaöğretim", "tur": "kpss", "basvuru": "Eylül 2026", "sinav": "2026-10-25", "sonuc": "Aralık 2026", "not": ""},
+    {"ad": "DUS/2", "tur": "other", "basvuru": "Eylül 2026", "sinav": "2026-11-01", "sonuc": "Kasım 2026", "not": ""},
+    {"ad": "YDS/2 (Sonbahar)", "tur": "other", "basvuru": "Eylül 2026", "sinav": "2026-11-22", "sonuc": "Aralık 2026", "not": ""},
+    {"ad": "ALES/3", "tur": "other", "basvuru": "Ekim 2026", "sinav": "2026-11-29", "sonuc": "Aralık 2026", "not": ""}
+  ]
+}

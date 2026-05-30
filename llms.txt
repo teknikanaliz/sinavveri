@@ -1,0 +1,24 @@
+# SınavVeri.com
+> Türkiye sınav verileri platformu — YKS, LGS, KPSS, DGS, ALES
+
+## Hakkında
+SınavVeri, TrVeri ailesi bünyesinde Türkiye'deki merkezi sınavlar için takvim, puan hesaplama ve rehber sunan bir bilgi platformudur.
+
+## İçerik
+- Taban puanları merkezi (tüm sınavlar): /taban-puanlari.html
+- Üniversite taban puanları 2025 (YÖK Atlas, 21.602 program): /universite-taban-puanlari.html
+- LGS lise taban puanları 2025 (81 il, 3000+ lise): /lise-taban-puanlari.html
+- TUS taban puanları 2025 (40 uzmanlık dalı): /tus-taban-puanlari.html
+- DUS taban puanları 2025 (8 diş hekimliği uzmanlık dalı): /dus-taban-puanlari.html
+- DGS taban puanları 2025 (7000+ üniversite programı, ÖSYM): /dgs-taban-puanlari.html
+- KPSS atama taban puanları 2025 (kadro bazında, ÖSYM): /kpss-atama-taban-puanlari.html
+- Tercih robotu (sıralamaya göre program): /tercih-robotu.html
+- Bölümlere göre taban puanları: /bolumler.html
+- Üniversitelere göre taban puanları: /universiteler.html
+- 2026 sınav takvimi (ÖSYM + MEB): /takvim.html
+- Puan hesaplama (YKS/LGS/KPSS/DGS/ALES): /puan-hesaplama.html
+- Sınav rehberleri: /rehberler.html
+
+## İletişim
+- Web: https://sinavveri.com
+- Ana platform: https://trveri.com

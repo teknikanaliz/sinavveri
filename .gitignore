@@ -1,0 +1,35 @@
+# Server-özgü symlink'ler (deploy.yml runtime'da kuruyor)
+_shared
+
+# Server-özgü auth token'ı (Cloudflare ownership / DNS challenge)
+e77c22b97eb527506d152246be339059.txt
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+.venv/
+venv/
+
+# Build artefakt
+.last_build
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Editor
+.vscode/
+.idea/
+
+# Geçici/yedek
+*.bak-*
+*.log
+
+# İç dokümanlar (yayınlanmaz)
+TODO.md
+RD-*.md
+RESEARCH.md
+ARGE-RAPOR.md
+.env
+.env.local
