@@ -1604,6 +1604,21 @@ def _load_osym(name):
     return json.loads(p.read_text(encoding="utf-8")) if p.exists() else None
 
 
+def _osym_trend(r):
+    """Çok-yıllık taban trendi: 2025 vs en yakın önceki yıl (2024, yoksa 2023).
+    '↑ +X,XX' / '↓ -X,XX' / '→ 0' / '' (geçmiş yoksa)."""
+    cur = r["tp"]
+    prev = r.get("tp24") if r.get("tp24") is not None else r.get("tp23")
+    if cur is None or prev is None:
+        return ""
+    diff = round(cur - prev, 2)
+    if diff > 0.005:
+        return "↑ +%s" % ("%.2f" % diff).replace(".", ",")
+    if diff < -0.005:
+        return "↓ %s" % ("%.2f" % diff).replace(".", ",")
+    return "→ 0"
+
+
 def write_osym_veri():
     """Resmî ÖSYM verisinden istemci JSON'ları üret. Döndürür: mevcut sınavların sayıları."""
     veri = ROOT / "veri"
@@ -1616,30 +1631,20 @@ def write_osym_veri():
         counts[name] = len(rows)
         print(f"  [veri] {name}.json  {len(rows)} satır, {path.stat().st_size // 1024} KB")
 
-    # TUS/DUS: [kurum, dal, tur, kont, tp, tavan]
+    # TUS/DUS: [kurum, dal, tur, kont, tp(2025), tavan, tp24, tp23, trend] — çok-yıllık
     for ex in ("tus", "dus"):
         d = _load_osym(ex)
         if not d:
             continue
-        rows = [[r["kurum"], r["dal"], r["tur"], r["kont"], r["tp"], r["tavan"]] for r in d]
+        rows = [[r["kurum"], r["dal"], r["tur"], r["kont"], r["tp"], r["tavan"],
+                 r.get("tp24"), r.get("tp23"), _osym_trend(r)] for r in d]
         rows.sort(key=lambda x: (x[4] is None, -(x[4] or 0)))
         dump(ex, rows)
     # DGS: [uni, bolum, kont, tp(2025), tavan, tp24, tp23, trend] — çok-yıllık
     d = _load_osym("dgs")
     if d:
-        def _dgs_trend(r):
-            cur = r["tp"]
-            prev = r.get("tp24") if r.get("tp24") is not None else r.get("tp23")
-            if cur is None or prev is None:
-                return ""
-            diff = round(cur - prev, 2)
-            if diff > 0.005:
-                return "↑ +%s" % ("%.2f" % diff).replace(".", ",")
-            if diff < -0.005:
-                return "↓ %s" % ("%.2f" % diff).replace(".", ",")
-            return "→ 0"
         rows = [[r["uni"], r["bolum"], r["kont"], r["tp"], r["tavan"],
-                 r.get("tp24"), r.get("tp23"), _dgs_trend(r)] for r in d]
+                 r.get("tp24"), r.get("tp23"), _osym_trend(r)] for r in d]
         rows.sort(key=lambda x: (x[3] is None, -(x[3] or 0)))
         dump("dgs", rows)
     # KPSS: [kurum, kadro, il, duzey, donem, kont, tp, tavan]
@@ -1655,29 +1660,35 @@ def page_tus():
     if not (ROOT / "veri" / "tus.json").exists():
         return None
     return minmax_page(
-        "tus-taban-puanlari.html", "TUS Taban Puanları 2025 — Kurum ve Uzmanlık Dalı | SınavVeri",
-        "2025 TUS taban ve tavan puanları, her hastane/üniversite ve uzmanlık dalı için. ÖSYM resmî verisi. Kardiyoloji, radyoloji, genel cerrahi ve tüm branşlar.",
-        "TUS Taban Puanları 2025", "Tıpta Uzmanlık · kurum × uzmanlık dalı bazında · ÖSYM resmî 2025/1",
+        "tus-taban-puanlari.html", "TUS Taban Puanları 2023-2025 — Kurum ve Uzmanlık Dalı | SınavVeri",
+        "TUS taban ve tavan puanları (2025/1) + 2024 ve 2023 karşılaştırması, her hastane/üniversite ve uzmanlık dalı için. ÖSYM resmî, 3 yıllık trend. Kardiyoloji, radyoloji, genel cerrahi ve tüm branşlar.",
+        "TUS Taban Puanları (3 Yıllık Trend)", "Tıpta Uzmanlık · kurum × uzmanlık dalı · ÖSYM resmî 1. dönem 2023→2025",
         "/veri/tus.json",
-        [(1, "Uzmanlık Dalı", "b"), (0, "Kurum", "t"), (3, "Kont.", "n"), (4, "Taban", "p"), (5, "Tavan", "pv")],
+        [(1, "Uzmanlık Dalı", "b"), (0, "Kurum", "t"), (3, "Kont.", "n"),
+         (4, "2025 Taban", "p"), (6, "2024", "pv"), (7, "2023", "pv"), (8, "Trend", "t"), (5, "Tavan", "pv")],
         [(1, "Uzmanlık Dalı"), (2, "Kontenjan Türü")], [0, 1],
-        "TUS'ta her kurum ve uzmanlık dalı için ÖSYM'nin açıkladığı en düşük (taban) ve en yüksek (tavan) puanlar. "
+        "TUS'ta her kurum ve uzmanlık dalı için ÖSYM'nin açıkladığı en düşük (taban) ve en yüksek (tavan) puanlar, "
+        "<b>son 3 yılın (2023-2024-2025, 1. dönem) karşılaştırmasıyla</b>. Trend sütunu 2025 tabanının bir önceki yıla göre değişimini gösterir. "
         "Dal veya kurum/şehir arayın, uzmanlık dalına göre filtreleyin.",
-        OSYM_KAYNAK, ph="Dal / kurum / şehir ara…")
+        "ÖSYM 2023, 2024 ve 2025 TUS 1. Dönem 'En Küçük ve En Büyük Puanlar' resmî yayınları (dokuman.osym.gov.tr).",
+        ph="Dal / kurum / şehir ara…")
 
 
 def page_dus():
     if not (ROOT / "veri" / "dus.json").exists():
         return None
     return minmax_page(
-        "dus-taban-puanlari.html", "DUS Taban Puanları 2025 — Kurum ve Uzmanlık Dalı | SınavVeri",
-        "2025 DUS taban ve tavan puanları, her diş hekimliği fakültesi ve uzmanlık dalı için. ÖSYM resmî verisi.",
-        "DUS Taban Puanları 2025", "Diş Hekimliği Uzmanlık · kurum × dal bazında · ÖSYM resmî 2025/1",
+        "dus-taban-puanlari.html", "DUS Taban Puanları 2023-2025 — Kurum ve Uzmanlık Dalı | SınavVeri",
+        "DUS taban ve tavan puanları (2025/1) + 2024 ve 2023 karşılaştırması, her diş hekimliği fakültesi ve uzmanlık dalı için. ÖSYM resmî, 3 yıllık trend.",
+        "DUS Taban Puanları (3 Yıllık Trend)", "Diş Hekimliği Uzmanlık · kurum × dal · ÖSYM resmî 1. dönem 2023→2025",
         "/veri/dus.json",
-        [(1, "Uzmanlık Dalı", "b"), (0, "Kurum", "t"), (3, "Kont.", "n"), (4, "Taban", "p"), (5, "Tavan", "pv")],
+        [(1, "Uzmanlık Dalı", "b"), (0, "Kurum", "t"), (3, "Kont.", "n"),
+         (4, "2025 Taban", "p"), (6, "2024", "pv"), (7, "2023", "pv"), (8, "Trend", "t"), (5, "Tavan", "pv")],
         [(1, "Uzmanlık Dalı")], [0, 1],
-        "DUS'ta her kurum ve diş hekimliği uzmanlık dalı için ÖSYM'nin açıkladığı taban ve tavan puanlar.",
-        OSYM_KAYNAK, ph="Dal / kurum ara…")
+        "DUS'ta her kurum ve diş hekimliği uzmanlık dalı için ÖSYM'nin açıkladığı taban ve tavan puanlar, "
+        "<b>son 3 yılın (2023-2024-2025) karşılaştırmasıyla</b>. Trend sütunu 2025 tabanının bir önceki yıla göre değişimini gösterir.",
+        "ÖSYM 2023, 2024 ve 2025 DUS 'En Küçük ve En Büyük Puanlar' resmî yayınları (dokuman.osym.gov.tr).",
+        ph="Dal / kurum ara…")
 
 
 def page_dgs_taban():
