@@ -1090,6 +1090,7 @@ def page_tercih_robotu():
     body = """
 <div class="crumb"><a href="/index.html">Ana Sayfa</a> / Tercih Robotu</div>
 <div class="page-title"><h1>YKS Tercih Robotu 2025</h1><span class="sub">Başarı sıranı gir, yerleşebileceğin programları gör · YÖK Atlas 2025 verisi</span></div>
+""" + robot_nav("tercih-robotu.html") + """
 
 <div class="calc-card" style="margin-bottom:18px">
   <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;align-items:end">
@@ -1142,6 +1143,144 @@ Bu bir tahmindir; 2026 taban puanları kontenjan ve tercih yoğunluğuna göre d
 
 
 # ───────────────────────── BÖLÜM (program grubu) SAYFALARI ─────────────────────────
+PUAN_ROBOT_JS = r"""<script nonce="__NONCE__">
+(function(){
+  var CFG=__CFG__;
+  var data=[];
+  function el(id){return document.getElementById(id);}
+  var pf=function(n){return n==null?'—':Number(n).toLocaleString('tr-TR',{minimumFractionDigits:2,maximumFractionDigits:2});};
+  el('rstatus').textContent='Veriler yükleniyor…';
+  fetch(CFG.file).then(function(r){return r.json();}).then(function(j){data=j;initFilters();el('rstatus').textContent='';})
+    .catch(function(){el('rstatus').textContent='Veri yüklenemedi.';});
+  function initFilters(){
+    CFG.filters.forEach(function(f,n){
+      var set={};data.forEach(function(r){if(r[f[0]]!=null&&r[f[0]]!=='')set[r[f[0]]]=1;});
+      var vals=Object.keys(set).sort(function(a,b){return a.localeCompare(b,'tr');});
+      var sel=el('rf'+n);if(!sel)return;
+      vals.forEach(function(v){var o=document.createElement('option');o.value=v;o.textContent=v;sel.appendChild(o);});
+    });
+  }
+  function run(){
+    var p=parseFloat((el('rPuan').value||'').replace(',','.').replace(/[^0-9.]/g,''));
+    if(isNaN(p)||p<=0){el('rstatus').textContent='Lütfen geçerli bir puan girin.';el('rbody').innerHTML='';return;}
+    var reach=data.filter(function(r){
+      for(var k=0;k<CFG.filters.length;k++){var s=el('rf'+k);if(s&&s.value&&String(r[CFG.filters[k][0]])!==s.value)return false;}
+      var t=r[CFG.taban];return t!=null&&t<=p;
+    });
+    reach.sort(function(a,b){return (b[CFG.taban]||0)-(a[CFG.taban]||0);}); // en yüksek taban (en zor) önce
+    el('rstatus').innerHTML='<b>'+reach.length.toLocaleString('tr-TR')+'</b> '+CFG.noun+' yerleşebilirsin (puanın: '+pf(p)+')';
+    var tb=el('rbody');tb.innerHTML='';
+    reach.slice(0,200).forEach(function(r){
+      var m=p-r[CFG.taban];
+      var safe=m>=CFG.t1?'<span class="tag tag-lgs">Rahat</span>':(m>=CFG.t2?'<span class="tag tag-kpss">Olası</span>':'<span class="tag tag-other">Sınırda</span>');
+      var name='<td><strong>'+(r[CFG.nb]||'')+'</strong>'+(CFG.ns!=null?'<br><small>'+(r[CFG.ns]||'')+'</small>':'')+'</td>';
+      var show='';CFG.show.forEach(function(c){show+='<td>'+(r[c[0]]==null||r[c[0]]===''?'—':r[c[0]])+'</td>';});
+      var tr=document.createElement('tr');
+      tr.innerHTML=name+show+'<td><strong>'+pf(r[CFG.taban])+'</strong></td><td>'+safe+'</td>';
+      tb.appendChild(tr);
+    });
+    el('rhint').style.display=reach.length>200?'block':'none';
+    el('rhint').textContent='İlk 200 sonuç (en yüksek tabandan) gösteriliyor. Daha hassas için filtre kullanın.';
+  }
+  el('rBtn').addEventListener('click',run);
+  el('rPuan').addEventListener('keydown',function(e){if(e.key==='Enter')run();});
+})();
+</script>"""
+
+
+def robot_nav(active):
+    items = [("tercih-robotu.html", "YKS"), ("dgs-tercih-robotu.html", "DGS"),
+             ("lgs-tercih-robotu.html", "LGS"), ("kpss-tercih-robotu.html", "KPSS")]
+    out = []
+    for slug, lbl in items:
+        if slug == active:
+            out.append(f'<span class="btn btn-primary" style="pointer-events:none">{lbl} Robotu</span>')
+        else:
+            out.append(f'<a class="btn btn-ghost" href="/{slug}">{lbl} Robotu</a>')
+    return '<div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px">' + "".join(out) + "</div>"
+
+
+def puan_robot_page(slug, title, desc, h1, sub, veri_file, nb, ns, show, taban, filters,
+                    noun, t1, t2, intro, kaynak, puan_label, ph):
+    """Generic puan-bazlı tercih robotu. nb/ns: ad sütun idx (bold/alt). show: [(idx,label)] ek sütun.
+    taban: taban puan idx. filters: [(idx,label)]. t1/t2: 'Rahat'/'Olası' eşik (puan farkı)."""
+    fhtml = ""
+    for n, (idx, label) in enumerate(filters):
+        fhtml += (f'<div><label style="font-size:12px;color:var(--fg-faded);font-weight:700">{label}</label>'
+                  f'<select id="rf{n}" class="btn btn-ghost" style="text-align:left;width:100%;margin-top:4px">'
+                  f'<option value="">Tümü</option></select></div>')
+    thead = "<th>" + ("Program" if ns is not None else "Ad") + "</th>" + "".join(f"<th>{l}</th>" for _, l in show) + "<th>Taban</th><th>Şans</th>"
+    cfg = {"file": veri_file, "nb": nb, "ns": ns, "show": [[i, l] for i, l in show],
+           "taban": taban, "filters": [[i, l] for i, l in filters], "noun": noun, "t1": t1, "t2": t2}
+    js = PUAN_ROBOT_JS.replace("__CFG__", json.dumps(cfg, ensure_ascii=False))
+    body = f"""
+<div class="crumb"><a href="/index.html">Ana Sayfa</a> / <a href="/tercih-robotu.html">Tercih Robotu</a> / {h1}</div>
+<div class="page-title"><h1>{h1}</h1><span class="sub">{sub}</span></div>
+{robot_nav(slug)}
+<div class="info-box">{intro}</div>
+<div class="calc-card" style="margin-bottom:18px">
+  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;align-items:end">
+    <div><label style="font-size:12px;color:var(--fg-faded);font-weight:700">{puan_label}</label>
+      <input id="rPuan" type="text" inputmode="decimal" placeholder="{ph}" style="width:100%;margin-top:4px;padding:9px 10px;border:1px solid var(--border);border-radius:8px;background:var(--bg-card-alt);color:var(--fg);font-family:inherit;font-size:14px"></div>
+    {fhtml}
+    <button type="button" class="btn btn-primary" id="rBtn">Yerleşebileceklerimi Göster</button>
+  </div>
+  <div id="rstatus" style="margin-top:14px;font-size:14px;color:var(--accent);font-weight:700"></div>
+</div>
+<div class="data-table-wrap">
+<table class="data-table"><thead><tr>{thead}</tr></thead><tbody id="rbody"></tbody></table>
+</div>
+<div id="rhint" style="display:none;font-size:12px;color:var(--fg-faded);margin-top:10px;text-align:center"></div>
+<div class="notice"><b>Nasıl çalışır?</b> Puanın bir programın/kadronun taban puanından <b>yüksek veya eşitse</b> oraya yerleşebilirsin.
+"Şans" payı güvenliği gösterir: <b>Rahat</b> (geniş pay), <b>Olası</b>, <b>Sınırda</b>. Bu bir tahmindir; gelecek yıl taban puanları
+kontenjan ve tercih yoğunluğuna göre değişir. <b>Kaynak:</b> {kaynak} Resmî tercih için <a href="https://www.osym.gov.tr" target="_blank" rel="noopener">ÖSYM</a> esastır.</div>
+{js}
+"""
+    return base(slug, title, desc, body)
+
+
+def page_dgs_robot():
+    if not (ROOT / "veri" / "dgs.json").exists():
+        return None
+    return puan_robot_page(
+        "dgs-tercih-robotu.html", "DGS Tercih Robotu 2025 — Puanına Göre Bölüm Bul | SınavVeri",
+        "DGS puanını gir, 2025 ÖSYM verisiyle yerleşebileceğin lisans programlarını anında gör. Ücretsiz DGS tercih robotu.",
+        "DGS Tercih Robotu", "Dikey Geçiş · DGS puanını gir, yerleşebileceğin programları gör · ÖSYM 2025",
+        "/veri/dgs.json", 1, 0, [], 3, [],
+        "programa", 15, 4,
+        "DGS puanını girin; o puanla yerleşebileceğin (taban puanı ≤ senin puanın) tüm lisans programlarını en yüksek tabandan başlayarak listeler. "
+        "DGS net hesaplama için <a href='/dgs-puan-hesaplama.html'>DGS puan hesaplama</a>.",
+        "ÖSYM 2025 DGS resmî yerleştirme verisi.", "DGS Puanın", "örn. 290,5")
+
+
+def page_kpss_robot():
+    if not (ROOT / "veri" / "kpss.json").exists():
+        return None
+    return puan_robot_page(
+        "kpss-tercih-robotu.html", "KPSS Tercih Robotu 2025 — Puanına Göre Kadro Bul | SınavVeri",
+        "KPSS puanını gir, 2025 ÖSYM atama verisiyle yerleşebileceğin kadro/pozisyonları gör. Ücretsiz KPSS tercih robotu (Lisans/Önlisans/Ortaöğretim).",
+        "KPSS Tercih Robotu", "KPSS puanını gir, atanabileceğin kadroları gör · ÖSYM 2025 yerleştirmeleri",
+        "/veri/kpss.json", 1, 0, [(2, "İl"), (3, "Düzey")], 6, [(2, "İl"), (3, "Düzey"), (4, "Dönem")],
+        "kadroya", 4, 1,
+        "KPSS puanını girin ve öğrenim düzeyinizi (Lisans/Önlisans/Ortaöğretim) seçin; o puanla atanabileceğin (taban ≤ puanın) kadroları listeler. "
+        "İl ve döneme göre de filtreleyebilirsin. KPSS hesaplama için <a href='/kpss-puan-hesaplama.html'>KPSS puan hesaplama</a>.",
+        "ÖSYM 2025 KPSS resmî yerleştirme verisi (2025/1–2025/5).", "KPSS Puanın", "örn. 85,40")
+
+
+def page_lgs_robot(lgs):
+    if not lgs or not (ROOT / "veri" / "liseler.json").exists():
+        return None
+    return puan_robot_page(
+        "lgs-tercih-robotu.html", "LGS Tercih Robotu 2025 — Puanına Göre Lise Bul | SınavVeri",
+        "LGS puanını gir, 2025 verisiyle yerleşebileceğin liseleri il ve ilçeye göre gör. Ücretsiz LGS tercih robotu.",
+        "LGS Tercih Robotu", "LGS puanını gir, yerleşebileceğin liseleri gör · 2025 yerleştirme",
+        "/veri/liseler.json", 2, None, [(0, "İl"), (1, "İlçe")], 5, [(0, "İl"), (1, "İlçe")],
+        "liseye", 15, 4,
+        "LGS puanını girin ve ilini seçin; o puanla yerleşebileceğin (taban ≤ puanın) liseleri en yüksek tabandan başlayarak listeler. "
+        "LGS hesaplama için <a href='/lgs-puan-hesaplama.html'>LGS puan hesaplama</a>.",
+        "MEB 2025 LGS yerleştirme verisi.", "LGS Puanın", "örn. 420,5")
+
+
 def gen_bolum_pages(programs):
     from collections import defaultdict
     groups = defaultdict(list)
@@ -2064,6 +2203,10 @@ def main():
             W(slug, html)
     print(f"  → toplam {len(hub_slugs)} ÖSYM hub sayfası")
     W("tercih-robotu.html", page_tercih_robotu())
+    for slug, fn in [("dgs-tercih-robotu.html", page_dgs_robot), ("kpss-tercih-robotu.html", page_kpss_robot)]:
+        html = fn()
+        if html:
+            W(slug, html)
     W("puan-hesaplama.html", page_puan_hesaplama_hub())
     W("rehberler.html", page_rehberler_hub())
     W("yks.html", page_yks())
@@ -2106,6 +2249,9 @@ def main():
         for s in il_slugs:
             slugs.append(f"lise/{s}.html")
         W("lise-taban-puanlari.html", page_lise_taban_index(lgs, il_slugs))
+        h = page_lgs_robot(lgs)
+        if h:
+            W("lgs-tercih-robotu.html", h)
         print(f"  → {len(il_slugs)} il lise sayfası")
     else:
         print("  ! LGS verisi yok (pipeline/fetch_lgs.py çalıştırılmalı)")
