@@ -1624,10 +1624,22 @@ def write_osym_veri():
         rows = [[r["kurum"], r["dal"], r["tur"], r["kont"], r["tp"], r["tavan"]] for r in d]
         rows.sort(key=lambda x: (x[4] is None, -(x[4] or 0)))
         dump(ex, rows)
-    # DGS: [uni, bolum, kont, tp, tavan]
+    # DGS: [uni, bolum, kont, tp(2025), tavan, tp24, tp23, trend] — çok-yıllık
     d = _load_osym("dgs")
     if d:
-        rows = [[r["uni"], r["bolum"], r["kont"], r["tp"], r["tavan"]] for r in d]
+        def _dgs_trend(r):
+            cur = r["tp"]
+            prev = r.get("tp24") if r.get("tp24") is not None else r.get("tp23")
+            if cur is None or prev is None:
+                return ""
+            diff = round(cur - prev, 2)
+            if diff > 0.005:
+                return "↑ +%s" % ("%.2f" % diff).replace(".", ",")
+            if diff < -0.005:
+                return "↓ %s" % ("%.2f" % diff).replace(".", ",")
+            return "→ 0"
+        rows = [[r["uni"], r["bolum"], r["kont"], r["tp"], r["tavan"],
+                 r.get("tp24"), r.get("tp23"), _dgs_trend(r)] for r in d]
         rows.sort(key=lambda x: (x[3] is None, -(x[3] or 0)))
         dump("dgs", rows)
     # KPSS: [kurum, kadro, il, duzey, donem, kont, tp, tavan]
@@ -1672,15 +1684,19 @@ def page_dgs_taban():
     if not (ROOT / "veri" / "dgs.json").exists():
         return None
     return minmax_page(
-        "dgs-taban-puanlari.html", "DGS Taban Puanları 2025 — Üniversite ve Program | SınavVeri",
-        "2025 DGS taban ve tavan puanları, her üniversite programı için. Dikey geçiş ÖSYM resmî verisi, 7000+ program.",
-        "DGS Taban Puanları 2025", "Dikey Geçiş · üniversite × program bazında · ÖSYM resmî 2025",
+        "dgs-taban-puanlari.html", "DGS Taban Puanları 2023-2025 — Üniversite ve Program | SınavVeri",
+        "DGS taban ve tavan puanları (2025) + 2024 ve 2023 karşılaştırması, her üniversite programı için. Dikey geçiş ÖSYM resmî verisi, 7000+ program, 3 yıllık trend.",
+        "DGS Taban Puanları (3 Yıllık Trend)", "Dikey Geçiş · üniversite × program · ÖSYM resmî 2023→2025",
         "/veri/dgs.json",
-        [(1, "Program", "b"), (0, "Üniversite", "t"), (2, "Kont.", "n"), (3, "Taban", "p"), (4, "Tavan", "pv")],
+        [(1, "Program", "b"), (0, "Üniversite", "t"), (2, "Kont.", "n"),
+         (3, "2025 Taban", "p"), (5, "2024", "pv"), (6, "2023", "pv"), (7, "Trend", "t"), (4, "Tavan", "pv")],
         [], [0, 1],
-        "DGS ile ön lisanstan lisansa geçişte her üniversite programının ÖSYM'nin açıkladığı taban ve tavan puanları. "
+        "DGS ile ön lisanstan lisansa geçişte her üniversite programının ÖSYM'nin açıkladığı taban ve tavan puanları, "
+        "<b>son 3 yılın (2023-2024-2025) karşılaştırmasıyla</b>. Trend sütunu 2025 tabanının bir önceki yıla göre değişimini gösterir "
+        "(↑ yükseliş, ↓ düşüş). Program kodu yıllar arası eşleştirilir; yeni açılan programlarda geçmiş boştur. "
         "Program veya üniversite adı arayın. DGS net hesaplama için <a href='/dgs-puan-hesaplama.html'>DGS puan hesaplama</a>.",
-        OSYM_KAYNAK, ph="Program / üniversite ara…")
+        "ÖSYM 2023, 2024 ve 2025 'DGS Yerleştirme Sonuçlarına İlişkin En Küçük ve En Büyük Puanlar' resmî yayınları (dokuman.osym.gov.tr).",
+        ph="Program / üniversite ara…")
 
 
 def page_kpss_atama():
