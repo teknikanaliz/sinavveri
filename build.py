@@ -815,6 +815,8 @@ def write_support(pages=None):
             return "daily", "0.9"
         if p.startswith(("bolum/", "universite/", "lise/")):
             return "monthly", "0.6"
+        if p.startswith(("tus-taban/", "dus-taban/", "dgs-taban/", "kpss-taban/")):
+            return "monthly", "0.7"
         return "weekly", "0.7"
 
     rows = []
@@ -1561,7 +1563,7 @@ GENERIC_SEARCH_JS = r"""<script nonce="__NONCE__">
 </script>"""
 
 
-def minmax_page(slug, title, desc, h1, sub, file, cols, filters, search_idx, intro, kaynak, ph="Ara…"):
+def minmax_page(slug, title, desc, h1, sub, file, cols, filters, search_idx, intro, kaynak, ph="Ara…", hub_html=""):
     """Generic ÖSYM taban puanı interaktif arama sayfası.
     cols: [(dataIdx, label, kind)] kind: b=kalın metin, t=metin, n=tamsayı, p=taban(kalın), pv=tavan
     filters: [(dataIdx, label)] → dropdown
@@ -1591,6 +1593,7 @@ def minmax_page(slug, title, desc, h1, sub, file, cols, filters, search_idx, int
 </div>
 <div class="notice"><b>Kaynak:</b> {kaynak} Taban = o programa/kadroya yerleşen <b>en düşük</b>, tavan = <b>en yüksek</b> puan.
 Yerleşen olmayan satırlarda değer boştur (—). Resmî bilgi için <a href="https://www.osym.gov.tr" target="_blank" rel="noopener">ÖSYM</a> esastır.</div>
+{hub_html}
 {js}
 """
     return base(slug, title, desc, body)
@@ -1656,7 +1659,7 @@ def write_osym_veri():
     return counts
 
 
-def page_tus():
+def page_tus(hubs=None):
     if not (ROOT / "veri" / "tus.json").exists():
         return None
     return minmax_page(
@@ -1671,10 +1674,10 @@ def page_tus():
         "<b>son 3 yılın (2023-2024-2025, 1. dönem) karşılaştırmasıyla</b>. Trend sütunu 2025 tabanının bir önceki yıla göre değişimini gösterir. "
         "Dal veya kurum/şehir arayın, uzmanlık dalına göre filtreleyin.",
         "ÖSYM 2023, 2024 ve 2025 TUS 1. Dönem 'En Küçük ve En Büyük Puanlar' resmî yayınları (dokuman.osym.gov.tr).",
-        ph="Dal / kurum / şehir ara…")
+        ph="Dal / kurum / şehir ara…", hub_html=hub_links_html("tus", hubs))
 
 
-def page_dus():
+def page_dus(hubs=None):
     if not (ROOT / "veri" / "dus.json").exists():
         return None
     return minmax_page(
@@ -1688,10 +1691,10 @@ def page_dus():
         "DUS'ta her kurum ve diş hekimliği uzmanlık dalı için ÖSYM'nin açıkladığı taban ve tavan puanlar, "
         "<b>son 3 yılın (2023-2024-2025) karşılaştırmasıyla</b>. Trend sütunu 2025 tabanının bir önceki yıla göre değişimini gösterir.",
         "ÖSYM 2023, 2024 ve 2025 DUS 'En Küçük ve En Büyük Puanlar' resmî yayınları (dokuman.osym.gov.tr).",
-        ph="Dal / kurum ara…")
+        ph="Dal / kurum ara…", hub_html=hub_links_html("dus", hubs))
 
 
-def page_dgs_taban():
+def page_dgs_taban(hubs=None):
     if not (ROOT / "veri" / "dgs.json").exists():
         return None
     return minmax_page(
@@ -1707,10 +1710,10 @@ def page_dgs_taban():
         "(↑ yükseliş, ↓ düşüş). Program kodu yıllar arası eşleştirilir; yeni açılan programlarda geçmiş boştur. "
         "Program veya üniversite adı arayın. DGS net hesaplama için <a href='/dgs-puan-hesaplama.html'>DGS puan hesaplama</a>.",
         "ÖSYM 2023, 2024 ve 2025 'DGS Yerleştirme Sonuçlarına İlişkin En Küçük ve En Büyük Puanlar' resmî yayınları (dokuman.osym.gov.tr).",
-        ph="Program / üniversite ara…")
+        ph="Program / üniversite ara…", hub_html=hub_links_html("dgs", hubs))
 
 
-def page_kpss_atama():
+def page_kpss_atama(hubs=None):
     if not (ROOT / "veri" / "kpss.json").exists():
         return None
     return minmax_page(
@@ -1723,7 +1726,129 @@ def page_kpss_atama():
         "KPSS ile atanılan her kadro/pozisyon için ÖSYM'nin açıkladığı taban ve tavan puanlar. "
         "Kadro veya kurum arayın; il, öğrenim düzeyi ve yerleştirme dönemine göre filtreleyin. "
         "<b>Kapsam:</b> 2025 yılının tüm KPSS yerleştirmeleri (2025/1–2025/5: Genel, Çevre Bak., Sağlık Bak.).",
-        OSYM_KAYNAK, ph="Kadro / kurum ara…")
+        OSYM_KAYNAK, ph="Kadro / kurum ara…", hub_html=hub_links_html("kpss", hubs))
+
+
+# ───────────────────────── ÖSYM KATEGORİ HUB SAYFALARI (SEO) ─────────────────────────
+_TR_ALPHABET = "abcçdefgğhıijklmnoöprsştuüvyz"
+
+
+def tr_sort_key(text):
+    if not text:
+        return []
+    text = text.replace("İ", "i").replace("I", "ı").lower()
+    return [_TR_ALPHABET.index(c) if c in _TR_ALPHABET else 255 for c in text]
+
+
+# Dikey başına: (group_key, subdir, EX_kısa, sınav_adı, min_kurum, kategori_kelime, kategori_çoğul)
+_HUB_CFG = {
+    "tus": ("dal", "tus-taban", "TUS", "Tıpta Uzmanlık (TUS)", 1, "uzmanlık dalı", "uzmanlık dalları"),
+    "dus": ("dal", "dus-taban", "DUS", "Diş Hekimliği Uzmanlık (DUS)", 1, "uzmanlık dalı", "uzmanlık dalları"),
+    "dgs": ("bolum", "dgs-taban", "DGS", "Dikey Geçiş (DGS)", 3, "bölüm", "bölümler"),
+    "kpss": ("kadro", "kpss-taban", "KPSS", "KPSS Atama", 2, "kadro", "kadrolar"),
+}
+# Dikey başına tablo kolonları: (başlık, alan, tür) tür: t=metin, n=tamsayı, p=puan, trend=hesaplanan
+_HUB_COLS = {
+    "tus": [("Kurum", "kurum", "t"), ("Tür", "tur", "t"), ("Kont.", "kont", "n"),
+            ("2025 Taban", "tp", "p"), ("2024", "tp24", "p"), ("2023", "tp23", "p"), ("Trend", None, "trend"), ("Tavan", "tavan", "p")],
+    "dus": [("Kurum", "kurum", "t"), ("Tür", "tur", "t"), ("Kont.", "kont", "n"),
+            ("2025 Taban", "tp", "p"), ("2024", "tp24", "p"), ("2023", "tp23", "p"), ("Trend", None, "trend"), ("Tavan", "tavan", "p")],
+    "dgs": [("Üniversite", "uni", "t"), ("Kont.", "kont", "n"),
+            ("2025 Taban", "tp", "p"), ("2024", "tp24", "p"), ("2023", "tp23", "p"), ("Trend", None, "trend"), ("Tavan", "tavan", "p")],
+    "kpss": [("Kurum", "kurum", "t"), ("İl", "il", "t"), ("Düzey", "duzey", "t"), ("Dönem", "donem", "t"),
+             ("Kont.", "kont", "n"), ("Taban", "tp", "p"), ("Tavan", "tavan", "p")],
+}
+_HUB_MAIN = {"tus": "tus-taban-puanlari.html", "dus": "dus-taban-puanlari.html",
+             "dgs": "dgs-taban-puanlari.html", "kpss": "kpss-atama-taban-puanlari.html"}
+
+
+def _hub_cell(r, field, kind):
+    if kind == "trend":
+        return _osym_trend(r)
+    v = r.get(field)
+    if kind == "p":
+        return "<strong>" + fmt_puan(v) + "</strong>" if field == "tp" else fmt_puan(v)
+    if kind == "n":
+        return fmt_sira(v)
+    return v if v else "—"
+
+
+def gen_osym_hub_pages():
+    """ÖSYM dikeylerinde kategori (uzmanlık dalı / bölüm / kadro) bazlı toplulaştırıcı
+    hub sayfaları — SEO için her kategori = 1 zengin sayfa (tüm kurumlar + 3-yıl trend + özet).
+    Döner: (sitemap_slugs, {exam: [(slug, kategori, kurum_sayısı)]})."""
+    from collections import defaultdict
+    slugs = []
+    hub_links = {}
+    for exam, (gkey, subdir, EX, sinav, mink, kw, kwp) in _HUB_CFG.items():
+        d = _load_osym(exam)
+        if not d:
+            continue
+        groups = defaultdict(list)
+        for r in d:
+            if r.get(gkey):
+                groups[r[gkey]].append(r)
+        # çakışmasız slug
+        slugmap = {}
+        for g in sorted(groups):
+            s = slugify(g) or "x"
+            base_s, i = s, 2
+            while s in slugmap and slugmap[s] != g:
+                s = f"{base_s}-{i}"; i += 1
+            slugmap[s] = g
+        cols = _HUB_COLS[exam]
+        links = []
+        for s, g in slugmap.items():
+            recs = groups[g]
+            if len(recs) < mink:
+                continue
+            recs = sorted(recs, key=lambda r: (r.get("tp") is None, -(r.get("tp") or 0)))
+            thead = "".join(f"<th>{h}</th>" for h, _, _ in cols)
+            rws = ""
+            for r in recs:
+                rws += "<tr>" + "".join(f"<td>{_hub_cell(r, f, k)}</td>" for _, f, k in cols) + "</tr>"
+            tabans = [r["tp"] for r in recs if r.get("tp")]
+            ozet = (f"<strong>{g}</strong> {kw}nda 2025'te <strong>{len(recs)}</strong> "
+                    + ("kadro/pozisyon" if exam == "kpss" else "kurum/program") + " yer aldı"
+                    + (f"; taban puanları <strong>{fmt_puan(min(tabans))}</strong> – <strong>{fmt_puan(max(tabans))}</strong> "
+                       f"aralığında (ortalama <strong>{fmt_puan(round(sum(tabans)/len(tabans),2))}</strong>)." if tabans else "."))
+            main = _HUB_MAIN[exam]
+            body = f"""
+<div class="crumb"><a href="/index.html">Ana Sayfa</a> / <a href="/taban-puanlari.html">Taban Puanları</a> / <a href="/{main}">{EX}</a> / {g}</div>
+<div class="page-title"><h1>{g} {EX} Taban Puanları 2025</h1><span class="sub">{sinav} · {len(recs)} {'kadro' if exam=='kpss' else 'kurum'} · ÖSYM resmî{'' if exam=='kpss' else ' · 3 yıllık trend (2023-2025)'}</span></div>
+<div class="info-box">{ozet} Tablo 2025 tabanına göre yüksekten düşüğe sıralıdır.{'' if exam=='kpss' else ' Trend sütunu 2025 tabanının bir önceki yıla göre değişimini gösterir (↑/↓).'}</div>
+<div class="data-table-wrap">
+<table class="data-table"><thead><tr>{thead}</tr></thead><tbody>{rws}</tbody></table>
+</div>
+<div class="notice"><b>Kaynak:</b> ÖSYM resmî 'En Küçük ve En Büyük Puanlar' yayını (dokuman.osym.gov.tr).
+Tüm {EX} verisi için <a href="/{main}">{EX} taban puanları arama</a> · <a href="/taban-puanlari.html">tüm taban puanları</a>.</div>
+"""
+            title = f"{g} {EX} Taban Puanları 2025 — Kurum Bazında {'ve 3 Yıllık Trend ' if exam!='kpss' else ''}| SınavVeri"
+            desc = (f"{g} {EX.lower()} 2025 taban ve tavan puanları, {len(recs)} {'kadro' if exam=='kpss' else 'kurum'} bazında"
+                    + ("" if exam == "kpss" else ", 2023-2024-2025 karşılaştırmasıyla") + ". ÖSYM resmî verisi.")
+            write(f"{subdir}/{s}.html", base(f"{subdir}/{s}.html", title, desc, body))
+            slugs.append(f"{subdir}/{s}.html")
+            links.append((s, g, len(recs)))
+        hub_links[exam] = sorted(links, key=lambda x: tr_sort_key(x[1]))
+        print(f"  → {len(links)} {EX} hub sayfası ({subdir}/)")
+    return slugs, hub_links
+
+
+def hub_links_html(exam, hub_links):
+    """Ana taban sayfasına gömülecek 'kategorilere göz at' iç-link bloğu."""
+    links = (hub_links or {}).get(exam) or []
+    if not links:
+        return ""
+    EX = _HUB_CFG[exam][2]
+    kwp = _HUB_CFG[exam][6]
+    sub = _HUB_CFG[exam][1]
+    CAP = 200
+    shown = links[:CAP]
+    items = " · ".join(f'<a href="/{sub}/{s}.html">{g}</a> <span style="color:var(--fg-faded)">({n})</span>'
+                       for s, g, n in shown)
+    extra = "" if len(links) <= CAP else f' <span style="color:var(--fg-faded)">… ve {len(links)-CAP} kategori daha (yukarıdaki aramayı kullanın).</span>'
+    return (f'<div class="info-box" style="margin-top:14px"><b>{EX} {kwp}na göre göz atın ({len(links)}):</b> '
+            f'<div style="margin-top:8px;line-height:2;font-size:13px">{items}{extra}</div></div>')
 
 
 # ───────────────────────── DOLULUK ANALİZİ ─────────────────────────
@@ -1929,11 +2054,15 @@ def main():
     # ÖSYM resmî taban puanları (TUS/DUS/DGS/KPSS) — istemci JSON üret + sayfalar
     print("  ÖSYM resmî veri (TUS/DUS/DGS/KPSS) işleniyor...")
     write_osym_veri()
-    for slug, fn in [("tus-taban-puanlari.html", page_tus), ("dus-taban-puanlari.html", page_dus),
-                     ("dgs-taban-puanlari.html", page_dgs_taban), ("kpss-atama-taban-puanlari.html", page_kpss_atama)]:
-        html = fn()
+    print("  ÖSYM kategori hub sayfaları (SEO) üretiliyor...")
+    hub_slugs, hub_links = gen_osym_hub_pages()
+    slugs.extend(hub_slugs)
+    for slug, fn, ex in [("tus-taban-puanlari.html", page_tus, "tus"), ("dus-taban-puanlari.html", page_dus, "dus"),
+                         ("dgs-taban-puanlari.html", page_dgs_taban, "dgs"), ("kpss-atama-taban-puanlari.html", page_kpss_atama, "kpss")]:
+        html = fn(hub_links)
         if html:
             W(slug, html)
+    print(f"  → toplam {len(hub_slugs)} ÖSYM hub sayfası")
     W("tercih-robotu.html", page_tercih_robotu())
     W("puan-hesaplama.html", page_puan_hesaplama_hub())
     W("rehberler.html", page_rehberler_hub())
