@@ -9,7 +9,9 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     steps:
-      - name: Deploy to TR Server (Capistrano-style atomic release)
+      - name: Deploy to TR Server (Capistrano-style atomic release) — attempt 1
+        id: try1
+        continue-on-error: true
         uses: appleboy/ssh-action@029f5b4aeeeb58fdfe1410a5d17f967dacf36262 # v1.0.3
         env:
           GITHUB_SHA: ${{ github.sha }}
@@ -82,3 +84,77 @@ jobs:
             # 9. Deploy log
             mkdir -p "$SITE/shared/log"
             echo "$(date -u +%FT%TZ): Deployed ${TIMESTAMP}_${SHA} (run #${{ github.run_number }})" >> "$SITE/shared/log/deploys.log"
+
+      - name: Wait 30s before retry (transient SSH glitch recovery)
+        if: steps.try1.outcome == 'failure'
+        run: sleep 30
+
+      - name: Deploy to TR Server — attempt 2 (retry on transient glitch)
+        id: try2
+        if: steps.try1.outcome == 'failure'
+        uses: appleboy/ssh-action@029f5b4aeeeb58fdfe1410a5d17f967dacf36262 # v1.0.3
+        env:
+          GITHUB_SHA: ${{ github.sha }}
+          GITHUB_RUN_NUMBER: ${{ github.run_number }}
+        with:
+          host: 185.136.205.177
+          username: root
+          key: ${{ secrets.SERVER_SSH_KEY }}
+          port: 22
+          envs: GITHUB_SHA,GITHUB_RUN_NUMBER
+          script: |
+            set -e
+            SITE=/var/www/sinavveri.com
+            TIMESTAMP=$(date -u +%Y%m%d%H%M%S)
+            SHA=${GITHUB_SHA::7}
+            RELEASE="$SITE/releases/${TIMESTAMP}_${SHA}"
+
+            mkdir -p "$RELEASE"
+            cd "$RELEASE"
+            git clone --depth=1 --branch=main \
+              -c core.sshCommand="ssh -i /root/.ssh/github_push -o StrictHostKeyChecking=accept-new" \
+              git@github.com:teknikanaliz/sinavveri.git .
+
+            for f in e77c22b97eb527506d152246be339059.txt; do
+              [ -f "$SITE/shared/$f" ] && ln -sf "../../shared/$f" "./$f"
+            done
+            ln -sfn /var/www/_shared ./_shared
+
+            if [ -x scripts/post-deploy.sh ]; then
+              if [ "$(stat -c %u scripts/post-deploy.sh)" != "0" ]; then
+                echo "SECURITY: scripts/post-deploy.sh root-owned değil"; exit 1
+              fi
+              bash scripts/post-deploy.sh
+            fi
+
+            chown -R www:www "$RELEASE"
+            chown -R root:root "$RELEASE/.git"
+            [ -d "$RELEASE/scripts" ] && chown -R root:root "$RELEASE/scripts"
+
+            ln -sfn "$RELEASE" "$SITE/current"
+            echo "Deployed (retry): ${SHA} at $(date -u) → $RELEASE"
+
+            sleep 2
+            HTTP_CODE=$(curl -s -o /dev/null -w '%{http_code}' --max-time 10 https://sinavveri.com/)
+            if [ "$HTTP_CODE" != "200" ]; then
+              PREV=$(ls -t "$SITE/releases" | grep -v "${TIMESTAMP}_${SHA}" | head -1)
+              if [ -n "$PREV" ]; then
+                ln -sfn "$SITE/releases/$PREV" "$SITE/current"
+              fi
+              curl -s -X POST "https://api.telegram.org/bot${{ secrets.TG_BOT_TOKEN }}/sendMessage" \
+                -d chat_id="${{ secrets.TG_CHAT_ID }}" \
+                -d parse_mode="HTML" \
+                -d text="<b>❌ sinavveri.com Capistrano deploy HATA (retry)</b>%0AHTTP $HTTP_CODE → otomatik rollback ($PREV)" \
+                -o /dev/null
+              exit 1
+            fi
+
+            cd "$SITE/releases" && ls -t | tail -n +6 | xargs -r rm -rf
+            mkdir -p "$SITE/shared/log"
+            echo "$(date -u +%FT%TZ): Deployed (retry) ${TIMESTAMP}_${SHA} (run #${{ github.run_number }})" >> "$SITE/shared/log/deploys.log"
+
+      - name: Final fail (both attempts failed)
+        if: steps.try1.outcome == 'failure' && steps.try2.outcome == 'failure'
+        run: |
+          echo "Both deploy attempts failed — see TG alert"
+          exit 1
