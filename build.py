@@ -1804,15 +1804,15 @@ def page_tus(hubs=None):
     return minmax_page(
         "tus-taban-puanlari.html", "TUS Taban Puanları 2023-2025 — Kurum ve Uzmanlık Dalı | SınavVeri",
         "TUS taban ve tavan puanları (2025/1) + 2024 ve 2023 karşılaştırması, her hastane/üniversite ve uzmanlık dalı için. ÖSYM resmî, 3 yıllık trend. Kardiyoloji, radyoloji, genel cerrahi ve tüm branşlar.",
-        "TUS Taban Puanları (3 Yıllık Trend)", "Tıpta Uzmanlık · kurum × uzmanlık dalı · ÖSYM resmî 1. dönem 2023→2025",
+        "TUS Taban Puanları (3 Yıllık Trend)", "Tıpta Uzmanlık · kurum × uzmanlık dalı · ÖSYM resmî yerleştirme 2023→2025",
         "/veri/tus.json",
         [(1, "Uzmanlık Dalı", "b"), (0, "Kurum", "t"), (3, "Kont.", "n"),
          (4, "2025 Taban", "p"), (6, "2024", "pv"), (7, "2023", "pv"), (8, "Trend", "t"), (5, "Tavan", "pv")],
         [(1, "Uzmanlık Dalı"), (2, "Kontenjan Türü")], [0, 1],
         "TUS'ta her kurum ve uzmanlık dalı için ÖSYM'nin açıkladığı en düşük (taban) ve en yüksek (tavan) puanlar, "
-        "<b>son 3 yılın (2023-2024-2025, 1. dönem) karşılaştırmasıyla</b>. Trend sütunu 2025 tabanının bir önceki yıla göre değişimini gösterir. "
+        "<b>son 3 yılın (2023-2024-2025) yerleştirme karşılaştırmasıyla</b>. Trend sütunu 2025 tabanının bir önceki yıla göre değişimini gösterir. "
         "Dal veya kurum/şehir arayın, uzmanlık dalına göre filtreleyin.",
-        "ÖSYM 2023, 2024 ve 2025 TUS 1. Dönem 'En Küçük ve En Büyük Puanlar' resmî yayınları (dokuman.osym.gov.tr).",
+        "ÖSYM 2023, 2024 ve 2025 TUS Yerleştirme 'En Küçük ve En Büyük Puanlar' resmî yayınları (dokuman.osym.gov.tr).",
         ph="Dal / kurum / şehir ara…", hub_html=hub_links_html("tus", hubs))
 
 
