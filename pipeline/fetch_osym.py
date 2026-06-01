@@ -141,37 +141,74 @@ def _tdkey(kurum, dal, tur):
     return _mkey(kurum) + "|" + _mkey(dal) + "|" + (tur or "")
 
 
+def _kurum_core(kurum):
+    """Kurum adını çekirdeğe indir: parantez (şehir) at, 'T.C. Sağlık Bakanlığı' önekini at,
+    virgül varsa son birimi al. 2025 'T.C. SB Adana Şehir Hast. (ADANA)' ↔ 2024 'Adana Şehir Hast.'"""
+    s = re.sub(r"\([^)]*\)", " ", kurum or "")
+    s = s.replace("T.C. Sağlık Bakanlığı", " ").replace("T.C.", " ")
+    if "," in s:
+        s = s.rsplit(",", 1)[-1]
+    return _mkey(s)
+
+
+def _corekey(kurum, dal, tur):
+    return _kurum_core(kurum) + "|" + _mkey(dal) + "|" + (tur or "")
+
+
 def taban_map_kod(url):
     """{program_kodu: taban} — kodu STABİL dikeyler için (DGS: üniversite program kodları)."""
     return {r["kod"]: r["min"] for r in parse_rows(fetch_pdf_text(url)) if r["min"] is not None}
 
 
-def taban_map_name(url):
-    """{kurum|dal|tür: taban} — kodu yıllar arası DEĞİŞEN dikeyler için (TUS/DUS)."""
-    m = {}
+def taban_maps_name(url):
+    """(full, core) iki harita döndür. full: tam isim anahtarı. core: çekirdek kurum anahtarı —
+    aynı çekirdeğe DÜŞEN birden çok FARKLI taban varsa o anahtar None (belirsiz → atlanır, yanlış eşleşme yok)."""
+    full = {}
+    core_seen = {}
     for r in norm_tus_dus(parse_rows(fetch_pdf_text(url))):
-        if r["tp"] is not None:
-            m[_tdkey(r["kurum"], r["dal"], r["tur"])] = r["tp"]
-    return m
+        if r["tp"] is None:
+            continue
+        full[_tdkey(r["kurum"], r["dal"], r["tur"])] = r["tp"]
+        ck = _corekey(r["kurum"], r["dal"], r["tur"])
+        if ck in core_seen:
+            if core_seen[ck] != r["tp"]:
+                core_seen[ck] = None  # belirsiz
+        else:
+            core_seen[ck] = r["tp"]
+    return full, core_seen
 
 
 def enrich_history(norm, exam):
     """Mevcut yıl satırlarını önceki yılların tabanıyla zenginleştir (tp24, tp23).
-    DGS kodla (stabil), TUS/DUS isimle (kod yıllar arası değişir) eşleştirilir.
+    DGS kodla (stabil); TUS/DUS önce tam isim, tutmazsa çekirdek-kurum anahtarıyla (kod yıllar arası değişir,
+    2025 'T.C. Sağlık Bakanlığı …' önekleri normalize edilir). Belirsiz çekirdek eşleşmeler atlanır.
     Bir yıl çekilemezse o yıl atlanır (alan eklenmez); kötü veri build'i bozmaz."""
     by_name = exam in ("tus", "dus")
-    keyf = (lambda r: _tdkey(r["kurum"], r["dal"], r["tur"])) if by_name else (lambda r: r["kod"])
     for year, url in HIST_URLS.get(exam, {}).items():
         key = "tp%s" % str(year)[2:]  # 2024→tp24, 2023→tp23
         try:
-            m = taban_map_name(url) if by_name else taban_map_kod(url)
-            hit = 0
-            for r in norm:
-                v = m.get(keyf(r))
-                if v is not None:
-                    r[key] = v
-                    hit += 1
-            print(f"    {exam.upper()} {year} geçmiş ({'isim' if by_name else 'kod'}): {len(m)} kayıt, {hit} eşleşme → {key}")
+            hit = exact = 0
+            if by_name:
+                full, core = taban_maps_name(url)
+                for r in norm:
+                    v = full.get(_tdkey(r["kurum"], r["dal"], r["tur"]))
+                    if v is not None:
+                        exact += 1
+                    else:
+                        v = core.get(_corekey(r["kurum"], r["dal"], r["tur"]))
+                    if v is not None:
+                        r[key] = v
+                        hit += 1
+                print(f"    {exam.upper()} {year} geçmiş (isim): {len(full)} kayıt, {hit} eşleşme "
+                      f"({exact} tam + {hit - exact} çekirdek) → {key}")
+            else:
+                m = taban_map_kod(url)
+                for r in norm:
+                    v = m.get(r["kod"])
+                    if v is not None:
+                        r[key] = v
+                        hit += 1
+                print(f"    {exam.upper()} {year} geçmiş (kod): {len(m)} kayıt, {hit} eşleşme → {key}")
         except Exception as e:
             print(f"    {exam.upper()} {year} geçmiş HATA (atlandı): {e}")
     return norm
