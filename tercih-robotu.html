@@ -100,7 +100,7 @@
 </div>
 
 <div class="data-table-wrap">
-<table class="data-table">
+<table class="data-table" data-live="1">
 <thead><tr><th>Program / Üniversite</th><th>İl</th><th>Tür</th><th>Taban Puan</th><th>Başarı Sırası</th><th>Şans</th></tr></thead>
 <tbody id="rbody"></tbody>
 </table>
@@ -125,37 +125,54 @@ Bu bir tahmindir; 2026 taban puanları kontenjan ve tercih yoğunluğuna göre d
     fetch('/veri/'+pt+'.json').then(function(r){return r.json();}).then(function(j){cache[pt]=j;data=j;cb();})
       .catch(function(){el('rstatus').textContent='Veri yüklenemedi.';});
   }
+  var lastReach=[],lastSira=0,sortI=null,sortD=1;
+  var SCOLS=[[IDX.b,0],[IDX.il,0],[IDX.t,0],[IDX.tp,1],[IDX.sira,1]];
+  function sortReach(){
+    if(sortI==null||sortI>=SCOLS.length){lastReach.sort(function(a,b){return a[IDX.sira]-b[IDX.sira];});return;}
+    var f=SCOLS[sortI][0],num=SCOLS[sortI][1];
+    lastReach.sort(function(a,b){var x=a[f],y=b[f];
+      if(num){x=(x==null?null:Number(x));y=(y==null?null:Number(y));if(x==null&&y==null)return 0;if(x==null)return 1;if(y==null)return -1;return (x-y)*sortD;}
+      return String(x==null?'':x).localeCompare(String(y==null?'':y),'tr')*sortD;});
+  }
+  function draw(){
+    var tb=el('rbody'); tb.innerHTML='';
+    lastReach.slice(0,200).forEach(function(r){
+      var margin=r[IDX.sira]-lastSira;
+      var safe = margin>lastSira*0.25 ? '<span class="tag tag-lgs">Rahat</span>' : (margin>lastSira*0.05 ? '<span class="tag tag-kpss">Olası</span>' : '<span class="tag tag-other">Sınırda</span>');
+      var tr=document.createElement('tr');
+      tr.innerHTML='<td><strong>'+(r[IDX.b]||'')+'</strong><br><small>'+(r[IDX.u]||'')+'</small></td>'+
+        '<td>'+(r[IDX.il]||'—')+'</td>'+'<td>'+(TUR[r[IDX.t]]||'—')+'</td>'+
+        '<td><strong>'+pf(r[IDX.tp])+'</strong></td>'+'<td>'+nf(r[IDX.sira])+'</td>'+'<td>'+safe+'</td>';
+      tb.appendChild(tr);
+    });
+    el('rhint').style.display = lastReach.length>200 ? 'block':'none';
+    el('rhint').textContent='İlk 200 program gösteriliyor. Sütun başlığına tıklayarak sıralayın; il/tür ile daraltın.';
+  }
   function run(){
     var pt=el('rPt').value;
     load(pt,function(){
       var sira=parseInt((el('rSira').value||'').replace(/\D/g,''),10);
       if(!sira||sira<1){el('rstatus').textContent='Lütfen geçerli bir başarı sıranızı girin.';el('rbody').innerHTML='';return;}
       var il=el('rIl').value, tur=el('rTur').value;
-      // Ulaşılabilir: programın taban sırası >= adayın sırası (aday daha iyi/eşit)
-      var reach=data.filter(function(r){
+      lastSira=sira;
+      lastReach=data.filter(function(r){
         if(r[IDX.sira]==null)return false;
         if(il&&r[IDX.il]!==il)return false;
         if(tur&&r[IDX.t]!==tur)return false;
         return r[IDX.sira]>=sira;
       });
-      reach.sort(function(a,b){return a[IDX.sira]-b[IDX.sira];}); // en iyi (en zor) ulaşılabilir önce
-      el('rstatus').innerHTML='<b>'+reach.length.toLocaleString('tr-TR')+'</b> programa yerleşebilirsin (sıran: '+sira.toLocaleString('tr-TR')+')';
-      var tb=el('rbody'); tb.innerHTML='';
-      reach.slice(0,200).forEach(function(r){
-        var margin=r[IDX.sira]-sira;
-        var safe = margin>sira*0.25 ? '<span class="tag tag-lgs">Rahat</span>' : (margin>sira*0.05 ? '<span class="tag tag-kpss">Olası</span>' : '<span class="tag tag-other">Sınırda</span>');
-        var tr=document.createElement('tr');
-        tr.innerHTML='<td><strong>'+(r[IDX.b]||'')+'</strong><br><small>'+(r[IDX.u]||'')+'</small></td>'+
-          '<td>'+(r[IDX.il]||'—')+'</td>'+'<td>'+(TUR[r[IDX.t]]||'—')+'</td>'+
-          '<td><strong>'+pf(r[IDX.tp])+'</strong></td>'+'<td>'+nf(r[IDX.sira])+'</td>'+'<td>'+safe+'</td>';
-        tb.appendChild(tr);
-      });
-      el('rhint').style.display = reach.length>200 ? 'block':'none';
-      el('rhint').textContent='İlk 200 program gösteriliyor. Daha hassas sonuç için il/tür filtresi kullanın.';
+      sortReach();
+      el('rstatus').innerHTML='<b>'+lastReach.length.toLocaleString('tr-TR')+'</b> programa yerleşebilirsin (sıran: '+sira.toLocaleString('tr-TR')+')';
+      draw();
     });
   }
   el('rBtn').addEventListener('click',run);
   el('rSira').addEventListener('keydown',function(e){if(e.key==='Enter')run();});
+  (function(){var ths=document.querySelectorAll('.data-table thead th');ths.forEach(function(th,i){
+    th.style.cursor='pointer';th.title='Sıralamak için tıklayın';
+    th.addEventListener('click',function(){if(!lastReach.length)return;sortD=(sortI===i)?-sortD:1;sortI=i;
+      ths.forEach(function(o){var a=o.querySelector('.s-arrow');if(a)a.remove();});
+      var ar=document.createElement('span');ar.className='s-arrow';ar.textContent=sortD>0?' ▲':' ▼';th.appendChild(ar);sortReach();draw();});});})();
 })();
 </script><script nonce="__NONCE__">
 (function(){
@@ -190,6 +207,38 @@ Bu bir tahmindir; 2026 taban puanları kontenjan ve tercih yoğunluğuna göre d
       try{localStorage.setItem('sinavveri-theme',n);}catch(e){} lab();
     });
   })();
+</script>
+<script nonce="__NONCE__">
+(function(){
+  function num(s){s=(s||'').replace(/[^0-9,.\-]/g,'').replace(/\./g,'').replace(',','.');return s===''||s==='-'?NaN:parseFloat(s);}
+  function sortBody(tb,idx,dir){
+    var body=tb.querySelector('tbody'); if(!body)return;
+    var rows=Array.prototype.slice.call(body.querySelectorAll(':scope>tr'));
+    rows.sort(function(a,b){
+      var x=a.children[idx],y=b.children[idx]; if(!x||!y)return 0;
+      var xt=x.textContent.trim(),yt=y.textContent.trim(),xn=num(xt),yn=num(yt),c;
+      if(!isNaN(xn)&&!isNaN(yn))c=xn-yn;
+      else if(isNaN(xn)&&isNaN(yn))c=xt.localeCompare(yt,'tr');
+      else c=isNaN(xn)?1:-1;
+      return c*dir;
+    });
+    rows.forEach(function(r){body.appendChild(r);});
+  }
+  document.querySelectorAll('table.data-table:not([data-live])').forEach(function(tb){
+    var ths=tb.querySelectorAll('thead th'); if(!ths.length)return;
+    ths.forEach(function(th,i){
+      if(th.hasAttribute('data-nosort'))return;
+      th.style.cursor='pointer'; th.title='Sıralamak için tıklayın'; th.dataset.dir='0';
+      th.addEventListener('click',function(){
+        var dir=th.dataset.dir==='1'?-1:1;
+        ths.forEach(function(o){o.dataset.dir='0';var a=o.querySelector('.s-arrow');if(a)a.remove();});
+        th.dataset.dir=dir>0?'1':'-1';
+        sortBody(tb,i,dir);
+        var ar=document.createElement('span');ar.className='s-arrow';ar.textContent=dir>0?' ▲':' ▼';th.appendChild(ar);
+      });
+    });
+  });
+})();
 </script>
 <script nonce="__NONCE__">if('serviceWorker' in navigator){navigator.serviceWorker.register('/sw.js').catch(function(){});}</script>
 </body>

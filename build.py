@@ -109,6 +109,38 @@ def base(slug, title, desc, body, *, extra_head="", extra_ld=None):
     }});
   }})();
 </script>
+<script nonce="__NONCE__">
+(function(){{
+  function num(s){{s=(s||'').replace(/[^0-9,.\\-]/g,'').replace(/\\./g,'').replace(',','.');return s===''||s==='-'?NaN:parseFloat(s);}}
+  function sortBody(tb,idx,dir){{
+    var body=tb.querySelector('tbody'); if(!body)return;
+    var rows=Array.prototype.slice.call(body.querySelectorAll(':scope>tr'));
+    rows.sort(function(a,b){{
+      var x=a.children[idx],y=b.children[idx]; if(!x||!y)return 0;
+      var xt=x.textContent.trim(),yt=y.textContent.trim(),xn=num(xt),yn=num(yt),c;
+      if(!isNaN(xn)&&!isNaN(yn))c=xn-yn;
+      else if(isNaN(xn)&&isNaN(yn))c=xt.localeCompare(yt,'tr');
+      else c=isNaN(xn)?1:-1;
+      return c*dir;
+    }});
+    rows.forEach(function(r){{body.appendChild(r);}});
+  }}
+  document.querySelectorAll('table.data-table:not([data-live])').forEach(function(tb){{
+    var ths=tb.querySelectorAll('thead th'); if(!ths.length)return;
+    ths.forEach(function(th,i){{
+      if(th.hasAttribute('data-nosort'))return;
+      th.style.cursor='pointer'; th.title='Sıralamak için tıklayın'; th.dataset.dir='0';
+      th.addEventListener('click',function(){{
+        var dir=th.dataset.dir==='1'?-1:1;
+        ths.forEach(function(o){{o.dataset.dir='0';var a=o.querySelector('.s-arrow');if(a)a.remove();}});
+        th.dataset.dir=dir>0?'1':'-1';
+        sortBody(tb,i,dir);
+        var ar=document.createElement('span');ar.className='s-arrow';ar.textContent=dir>0?' ▲':' ▼';th.appendChild(ar);
+      }});
+    }});
+  }});
+}})();
+</script>
 <script nonce="__NONCE__">if('serviceWorker' in navigator){{navigator.serviceWorker.register('/sw.js').catch(function(){{}});}}</script>
 </body>
 </html>"""
@@ -962,9 +994,20 @@ SEARCH_JS = r"""<script nonce="__NONCE__">
     });
     return out;
   }
+  var sortI=null,sortD=1;
+  var SCOLS=[[IDX.b,0],[IDX.il,0],[IDX.t,0],[IDX.kont,1],[IDX.tp,1],[IDX.sira,1],['dol',1]];
+  function sval(r,f){if(f==='dol'){var k=r[IDX.kont],y=r[IDX.yer];return (k&&y!=null)?y/k:null;}return r[f];}
+  function applySort(rows){
+    if(sortI==null||sortI>=SCOLS.length)return rows;
+    var c=SCOLS[sortI],f=c[0],num=c[1];
+    rows.sort(function(a,b){var x=sval(a,f),y=sval(b,f);
+      if(num){x=(x==null?null:Number(x));y=(y==null?null:Number(y));if(x==null&&y==null)return 0;if(x==null)return 1;if(y==null)return -1;return (x-y)*sortD;}
+      return String(x==null?'':x).localeCompare(String(y==null?'':y),'tr')*sortD;});
+    return rows;
+  }
   function render(reset){
     if(reset!==false)shown=0;
-    var rows=filtered();
+    var rows=applySort(filtered());
     el('status').textContent=rows.length.toLocaleString('tr-TR')+' program bulundu';
     shown=Math.min(shown+PAGE,rows.length); if(shown===0&&rows.length)shown=Math.min(PAGE,rows.length);
     var tb=el('tbody'); tb.innerHTML='';
@@ -986,6 +1029,11 @@ SEARCH_JS = r"""<script nonce="__NONCE__">
   if(el('fBurs'))el('fBurs').addEventListener('change',function(){render(true);});
   el('ptSel').addEventListener('change',function(){load(this.value);});
   el('moreBtn').addEventListener('click',function(){render(false);});
+  (function(){var ths=document.querySelectorAll('.data-table thead th');ths.forEach(function(th,i){
+    th.style.cursor='pointer';th.title='Sıralamak için tıklayın';
+    th.addEventListener('click',function(){sortD=(sortI===i)?-sortD:1;sortI=i;
+      ths.forEach(function(o){var a=o.querySelector('.s-arrow');if(a)a.remove();});
+      var ar=document.createElement('span');ar.className='s-arrow';ar.textContent=sortD>0?' ▲':' ▼';th.appendChild(ar);render(true);});});})();
   load(el('ptSel').value);
 })();
 </script>"""
@@ -1017,7 +1065,7 @@ def page_taban_index():
 </div>
 
 <div class="data-table-wrap">
-<table class="data-table">
+<table class="data-table" data-live="1">
 <thead><tr><th>Program / Üniversite</th><th>İl</th><th>Tür</th><th>Kont.</th><th>Taban Puan</th><th>Başarı Sırası</th><th>Doluluk</th></tr></thead>
 <tbody id="tbody"></tbody>
 </table>
@@ -1051,37 +1099,54 @@ ROBOT_JS = r"""<script nonce="__NONCE__">
     fetch('/veri/'+pt+'.json').then(function(r){return r.json();}).then(function(j){cache[pt]=j;data=j;cb();})
       .catch(function(){el('rstatus').textContent='Veri yüklenemedi.';});
   }
+  var lastReach=[],lastSira=0,sortI=null,sortD=1;
+  var SCOLS=[[IDX.b,0],[IDX.il,0],[IDX.t,0],[IDX.tp,1],[IDX.sira,1]];
+  function sortReach(){
+    if(sortI==null||sortI>=SCOLS.length){lastReach.sort(function(a,b){return a[IDX.sira]-b[IDX.sira];});return;}
+    var f=SCOLS[sortI][0],num=SCOLS[sortI][1];
+    lastReach.sort(function(a,b){var x=a[f],y=b[f];
+      if(num){x=(x==null?null:Number(x));y=(y==null?null:Number(y));if(x==null&&y==null)return 0;if(x==null)return 1;if(y==null)return -1;return (x-y)*sortD;}
+      return String(x==null?'':x).localeCompare(String(y==null?'':y),'tr')*sortD;});
+  }
+  function draw(){
+    var tb=el('rbody'); tb.innerHTML='';
+    lastReach.slice(0,200).forEach(function(r){
+      var margin=r[IDX.sira]-lastSira;
+      var safe = margin>lastSira*0.25 ? '<span class="tag tag-lgs">Rahat</span>' : (margin>lastSira*0.05 ? '<span class="tag tag-kpss">Olası</span>' : '<span class="tag tag-other">Sınırda</span>');
+      var tr=document.createElement('tr');
+      tr.innerHTML='<td><strong>'+(r[IDX.b]||'')+'</strong><br><small>'+(r[IDX.u]||'')+'</small></td>'+
+        '<td>'+(r[IDX.il]||'—')+'</td>'+'<td>'+(TUR[r[IDX.t]]||'—')+'</td>'+
+        '<td><strong>'+pf(r[IDX.tp])+'</strong></td>'+'<td>'+nf(r[IDX.sira])+'</td>'+'<td>'+safe+'</td>';
+      tb.appendChild(tr);
+    });
+    el('rhint').style.display = lastReach.length>200 ? 'block':'none';
+    el('rhint').textContent='İlk 200 program gösteriliyor. Sütun başlığına tıklayarak sıralayın; il/tür ile daraltın.';
+  }
   function run(){
     var pt=el('rPt').value;
     load(pt,function(){
       var sira=parseInt((el('rSira').value||'').replace(/\D/g,''),10);
       if(!sira||sira<1){el('rstatus').textContent='Lütfen geçerli bir başarı sıranızı girin.';el('rbody').innerHTML='';return;}
       var il=el('rIl').value, tur=el('rTur').value;
-      // Ulaşılabilir: programın taban sırası >= adayın sırası (aday daha iyi/eşit)
-      var reach=data.filter(function(r){
+      lastSira=sira;
+      lastReach=data.filter(function(r){
         if(r[IDX.sira]==null)return false;
         if(il&&r[IDX.il]!==il)return false;
         if(tur&&r[IDX.t]!==tur)return false;
         return r[IDX.sira]>=sira;
       });
-      reach.sort(function(a,b){return a[IDX.sira]-b[IDX.sira];}); // en iyi (en zor) ulaşılabilir önce
-      el('rstatus').innerHTML='<b>'+reach.length.toLocaleString('tr-TR')+'</b> programa yerleşebilirsin (sıran: '+sira.toLocaleString('tr-TR')+')';
-      var tb=el('rbody'); tb.innerHTML='';
-      reach.slice(0,200).forEach(function(r){
-        var margin=r[IDX.sira]-sira;
-        var safe = margin>sira*0.25 ? '<span class="tag tag-lgs">Rahat</span>' : (margin>sira*0.05 ? '<span class="tag tag-kpss">Olası</span>' : '<span class="tag tag-other">Sınırda</span>');
-        var tr=document.createElement('tr');
-        tr.innerHTML='<td><strong>'+(r[IDX.b]||'')+'</strong><br><small>'+(r[IDX.u]||'')+'</small></td>'+
-          '<td>'+(r[IDX.il]||'—')+'</td>'+'<td>'+(TUR[r[IDX.t]]||'—')+'</td>'+
-          '<td><strong>'+pf(r[IDX.tp])+'</strong></td>'+'<td>'+nf(r[IDX.sira])+'</td>'+'<td>'+safe+'</td>';
-        tb.appendChild(tr);
-      });
-      el('rhint').style.display = reach.length>200 ? 'block':'none';
-      el('rhint').textContent='İlk 200 program gösteriliyor. Daha hassas sonuç için il/tür filtresi kullanın.';
+      sortReach();
+      el('rstatus').innerHTML='<b>'+lastReach.length.toLocaleString('tr-TR')+'</b> programa yerleşebilirsin (sıran: '+sira.toLocaleString('tr-TR')+')';
+      draw();
     });
   }
   el('rBtn').addEventListener('click',run);
   el('rSira').addEventListener('keydown',function(e){if(e.key==='Enter')run();});
+  (function(){var ths=document.querySelectorAll('.data-table thead th');ths.forEach(function(th,i){
+    th.style.cursor='pointer';th.title='Sıralamak için tıklayın';
+    th.addEventListener('click',function(){if(!lastReach.length)return;sortD=(sortI===i)?-sortD:1;sortI=i;
+      ths.forEach(function(o){var a=o.querySelector('.s-arrow');if(a)a.remove();});
+      var ar=document.createElement('span');ar.className='s-arrow';ar.textContent=sortD>0?' ▲':' ▼';th.appendChild(ar);sortReach();draw();});});})();
 })();
 </script>"""
 
@@ -1111,7 +1176,7 @@ def page_tercih_robotu():
 </div>
 
 <div class="data-table-wrap">
-<table class="data-table">
+<table class="data-table" data-live="1">
 <thead><tr><th>Program / Üniversite</th><th>İl</th><th>Tür</th><th>Taban Puan</th><th>Başarı Sırası</th><th>Şans</th></tr></thead>
 <tbody id="rbody"></tbody>
 </table>
@@ -1160,18 +1225,19 @@ PUAN_ROBOT_JS = r"""<script nonce="__NONCE__">
       vals.forEach(function(v){var o=document.createElement('option');o.value=v;o.textContent=v;sel.appendChild(o);});
     });
   }
-  function run(){
-    var p=parseFloat((el('rPuan').value||'').replace(',','.').replace(/[^0-9.]/g,''));
-    if(isNaN(p)||p<=0){el('rstatus').textContent='Lütfen geçerli bir puan girin.';el('rbody').innerHTML='';return;}
-    var reach=data.filter(function(r){
-      for(var k=0;k<CFG.filters.length;k++){var s=el('rf'+k);if(s&&s.value&&String(r[CFG.filters[k][0]])!==s.value)return false;}
-      var t=r[CFG.taban];return t!=null&&t<=p;
-    });
-    reach.sort(function(a,b){return (b[CFG.taban]||0)-(a[CFG.taban]||0);}); // en yüksek taban (en zor) önce
-    el('rstatus').innerHTML='<b>'+reach.length.toLocaleString('tr-TR')+'</b> '+CFG.noun+' yerleşebilirsin (puanın: '+pf(p)+')';
+  var lastReach=[],userP=0,sortI=null,sortD=1;
+  var SCOLS=[[CFG.nb,0]];CFG.show.forEach(function(c){SCOLS.push([c[0],0]);});SCOLS.push([CFG.taban,1]);
+  function sortReach(){
+    if(sortI==null||sortI>=SCOLS.length){lastReach.sort(function(a,b){return (b[CFG.taban]||0)-(a[CFG.taban]||0);});return;}
+    var f=SCOLS[sortI][0],num=SCOLS[sortI][1];
+    lastReach.sort(function(a,b){var x=a[f],y=b[f];
+      if(num){x=(x==null?null:Number(x));y=(y==null?null:Number(y));if(x==null&&y==null)return 0;if(x==null)return 1;if(y==null)return -1;return (x-y)*sortD;}
+      return String(x==null?'':x).localeCompare(String(y==null?'':y),'tr')*sortD;});
+  }
+  function draw(){
     var tb=el('rbody');tb.innerHTML='';
-    reach.slice(0,200).forEach(function(r){
-      var m=p-r[CFG.taban];
+    lastReach.slice(0,200).forEach(function(r){
+      var m=userP-r[CFG.taban];
       var safe=m>=CFG.t1?'<span class="tag tag-lgs">Rahat</span>':(m>=CFG.t2?'<span class="tag tag-kpss">Olası</span>':'<span class="tag tag-other">Sınırda</span>');
       var name='<td><strong>'+(r[CFG.nb]||'')+'</strong>'+(CFG.ns!=null?'<br><small>'+(r[CFG.ns]||'')+'</small>':'')+'</td>';
       var show='';CFG.show.forEach(function(c){show+='<td>'+(r[c[0]]==null||r[c[0]]===''?'—':r[c[0]])+'</td>';});
@@ -1179,11 +1245,36 @@ PUAN_ROBOT_JS = r"""<script nonce="__NONCE__">
       tr.innerHTML=name+show+'<td><strong>'+pf(r[CFG.taban])+'</strong></td><td>'+safe+'</td>';
       tb.appendChild(tr);
     });
-    el('rhint').style.display=reach.length>200?'block':'none';
-    el('rhint').textContent='İlk 200 sonuç (en yüksek tabandan) gösteriliyor. Daha hassas için filtre kullanın.';
+    el('rhint').style.display=lastReach.length>200?'block':'none';
+    el('rhint').textContent='İlk 200 sonuç gösteriliyor. Daha hassas için filtre/sıralama kullanın.';
+  }
+  function run(){
+    var p=parseFloat((el('rPuan').value||'').replace(',','.').replace(/[^0-9.]/g,''));
+    if(isNaN(p)||p<=0){el('rstatus').textContent='Lütfen geçerli bir puan girin.';el('rbody').innerHTML='';return;}
+    userP=p;
+    lastReach=data.filter(function(r){
+      for(var k=0;k<CFG.filters.length;k++){var s=el('rf'+k);if(s&&s.value&&String(r[CFG.filters[k][0]])!==s.value)return false;}
+      var t=r[CFG.taban];return t!=null&&t<=p;
+    });
+    sortReach();
+    el('rstatus').innerHTML='<b>'+lastReach.length.toLocaleString('tr-TR')+'</b> '+CFG.noun+' yerleşebilirsin (puanın: '+pf(p)+')';
+    draw();
   }
   el('rBtn').addEventListener('click',run);
   el('rPuan').addEventListener('keydown',function(e){if(e.key==='Enter')run();});
+  (function(){
+    var ths=document.querySelectorAll('.data-table thead th');
+    ths.forEach(function(th,i){
+      th.style.cursor='pointer'; th.title='Sıralamak için tıklayın';
+      th.addEventListener('click',function(){
+        if(!lastReach.length)return;
+        sortD=(sortI===i)?-sortD:1; sortI=i;
+        ths.forEach(function(o){var a=o.querySelector('.s-arrow');if(a)a.remove();});
+        var ar=document.createElement('span');ar.className='s-arrow';ar.textContent=sortD>0?' ▲':' ▼';th.appendChild(ar);
+        sortReach();draw();
+      });
+    });
+  })();
 })();
 </script>"""
 
@@ -1228,7 +1319,7 @@ def puan_robot_page(slug, title, desc, h1, sub, veri_file, nb, ns, show, taban, 
   <div id="rstatus" style="margin-top:14px;font-size:14px;color:var(--accent);font-weight:700"></div>
 </div>
 <div class="data-table-wrap">
-<table class="data-table"><thead><tr>{thead}</tr></thead><tbody id="rbody"></tbody></table>
+<table class="data-table" data-live="1"><thead><tr>{thead}</tr></thead><tbody id="rbody"></tbody></table>
 </div>
 <div id="rhint" style="display:none;font-size:12px;color:var(--fg-faded);margin-top:10px;text-align:center"></div>
 <div class="notice"><b>Nasıl çalışır?</b> Puanın bir programın/kadronun taban puanından <b>yüksek veya eşitse</b> oraya yerleşebilirsin.
@@ -1499,9 +1590,18 @@ LISE_SEARCH_JS = r"""<script nonce="__NONCE__">
       return true;
     });
   }
+  var sortI=null,sortD=1,SCOLS=[[2,0],[0,0],[3,0],[4,1],[5,1],[6,1]];
+  function applySort(rows){
+    if(sortI==null||sortI>=SCOLS.length)return rows;
+    var f=SCOLS[sortI][0],num=SCOLS[sortI][1];
+    rows.sort(function(a,b){var x=a[f],y=b[f];
+      if(num){x=(x==null?null:Number(x));y=(y==null?null:Number(y));if(x==null&&y==null)return 0;if(x==null)return 1;if(y==null)return -1;return (x-y)*sortD;}
+      return String(x==null?'':x).localeCompare(String(y==null?'':y),'tr')*sortD;});
+    return rows;
+  }
   function render(reset){
     if(reset!==false)shown=0;
-    var rows=filtered();
+    var rows=applySort(filtered());
     el('status').textContent=rows.length.toLocaleString('tr-TR')+' lise bulundu';
     shown=Math.min(shown+PAGE,rows.length);if(shown===0&&rows.length)shown=Math.min(PAGE,rows.length);
     var tb=el('tbody');tb.innerHTML='';
@@ -1517,6 +1617,11 @@ LISE_SEARCH_JS = r"""<script nonce="__NONCE__">
   }
   ['fQ','fIl','fTur'].forEach(function(id){el(id).addEventListener('input',function(){render(true);});});
   el('moreBtn').addEventListener('click',function(){render(false);});
+  (function(){var ths=document.querySelectorAll('.data-table thead th');ths.forEach(function(th,i){
+    th.style.cursor='pointer';th.title='Sıralamak için tıklayın';
+    th.addEventListener('click',function(){sortD=(sortI===i)?-sortD:1;sortI=i;
+      ths.forEach(function(o){var a=o.querySelector('.s-arrow');if(a)a.remove();});
+      var ar=document.createElement('span');ar.className='s-arrow';ar.textContent=sortD>0?' ▲':' ▼';th.appendChild(ar);render(true);});});})();
 })();
 </script>"""
 
@@ -1540,7 +1645,7 @@ def page_lise_taban_index(lgs, il_slugs):
   <div id="status" style="margin-top:12px;font-size:13px;color:var(--accent);font-weight:700">Yükleniyor…</div>
 </div>
 <div class="data-table-wrap">
-<table class="data-table">
+<table class="data-table" data-live="1">
 <thead><tr><th>Lise</th><th>İl / İlçe</th><th>Tür</th><th>Kont.</th><th>Taban Puan</th><th>Yüzdelik</th></tr></thead>
 <tbody id="tbody"></tbody>
 </table>
@@ -1673,9 +1778,21 @@ GENERIC_SEARCH_JS = r"""<script nonce="__NONCE__">
       return true;
     });
   }
+  var sortI=null,sortD=1;
+  function applySort(rows){
+    if(sortI==null)return rows;
+    var c=CFG.cols[sortI],fi=c[0],numeric=(c[1]==='p'||c[1]==='pv'||c[1]==='n');
+    rows.sort(function(a,b){
+      var x=a[fi],y=b[fi];
+      if(numeric){var xn=(x==null?null:Number(x)),yn=(y==null?null:Number(y));
+        if(xn==null&&yn==null)return 0; if(xn==null)return 1; if(yn==null)return -1; return (xn-yn)*sortD;}
+      return String(x==null?'':x).localeCompare(String(y==null?'':y),'tr')*sortD;
+    });
+    return rows;
+  }
   function render(reset){
     if(reset!==false)shown=0;
-    var rows=filtered();
+    var rows=applySort(filtered());
     el('status').textContent=rows.length.toLocaleString('tr-TR')+' sonuç bulundu';
     shown=Math.min(shown+PAGE,rows.length);if(shown===0&&rows.length)shown=Math.min(PAGE,rows.length);
     var tb=el('tbody');tb.innerHTML='';
@@ -1698,6 +1815,18 @@ GENERIC_SEARCH_JS = r"""<script nonce="__NONCE__">
   el('fQ').addEventListener('input',function(){render(true);});
   CFG.filters.forEach(function(f){var s=el('fil'+f[1]);if(s)s.addEventListener('change',function(){render(true);});});
   el('moreBtn').addEventListener('click',function(){render(false);});
+  (function(){
+    var ths=document.querySelectorAll('.data-table thead th');
+    ths.forEach(function(th,i){
+      th.style.cursor='pointer'; th.title='Sıralamak için tıklayın';
+      th.addEventListener('click',function(){
+        sortD=(sortI===i)?-sortD:1; sortI=i;
+        ths.forEach(function(o){var a=o.querySelector('.s-arrow');if(a)a.remove();});
+        var ar=document.createElement('span');ar.className='s-arrow';ar.textContent=sortD>0?' ▲':' ▼';th.appendChild(ar);
+        render(true);
+      });
+    });
+  })();
 })();
 </script>"""
 
@@ -1724,7 +1853,7 @@ def minmax_page(slug, title, desc, h1, sub, file, cols, filters, search_idx, int
   <div id="status" style="margin-top:12px;font-size:13px;color:var(--accent);font-weight:700">Yükleniyor…</div>
 </div>
 <div class="data-table-wrap">
-<table class="data-table"><thead><tr>{thead}</tr></thead><tbody id="tbody"></tbody></table>
+<table class="data-table" data-live="1"><thead><tr>{thead}</tr></thead><tbody id="tbody"></tbody></table>
 </div>
 <div id="moreWrap" style="text-align:center;margin-top:16px;display:none">
   <button type="button" class="btn btn-primary" id="moreBtn">Daha fazla göster</button>

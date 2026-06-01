@@ -85,7 +85,7 @@
   <div id="status" style="margin-top:12px;font-size:13px;color:var(--accent);font-weight:700">Yükleniyor…</div>
 </div>
 <div class="data-table-wrap">
-<table class="data-table"><thead><tr><th>Program</th><th>Üniversite</th><th>Kont.</th><th>2025 Taban</th><th>2024</th><th>2023</th><th>Trend</th><th>Tavan</th></tr></thead><tbody id="tbody"></tbody></table>
+<table class="data-table" data-live="1"><thead><tr><th>Program</th><th>Üniversite</th><th>Kont.</th><th>2025 Taban</th><th>2024</th><th>2023</th><th>Trend</th><th>Tavan</th></tr></thead><tbody id="tbody"></tbody></table>
 </div>
 <div id="moreWrap" style="text-align:center;margin-top:16px;display:none">
   <button type="button" class="btn btn-primary" id="moreBtn">Daha fazla göster</button>
@@ -120,9 +120,21 @@ Yerleşen olmayan satırlarda değer boştur (—). Resmî bilgi için <a href="
       return true;
     });
   }
+  var sortI=null,sortD=1;
+  function applySort(rows){
+    if(sortI==null)return rows;
+    var c=CFG.cols[sortI],fi=c[0],numeric=(c[1]==='p'||c[1]==='pv'||c[1]==='n');
+    rows.sort(function(a,b){
+      var x=a[fi],y=b[fi];
+      if(numeric){var xn=(x==null?null:Number(x)),yn=(y==null?null:Number(y));
+        if(xn==null&&yn==null)return 0; if(xn==null)return 1; if(yn==null)return -1; return (xn-yn)*sortD;}
+      return String(x==null?'':x).localeCompare(String(y==null?'':y),'tr')*sortD;
+    });
+    return rows;
+  }
   function render(reset){
     if(reset!==false)shown=0;
-    var rows=filtered();
+    var rows=applySort(filtered());
     el('status').textContent=rows.length.toLocaleString('tr-TR')+' sonuç bulundu';
     shown=Math.min(shown+PAGE,rows.length);if(shown===0&&rows.length)shown=Math.min(PAGE,rows.length);
     var tb=el('tbody');tb.innerHTML='';
@@ -145,6 +157,18 @@ Yerleşen olmayan satırlarda değer boştur (—). Resmî bilgi için <a href="
   el('fQ').addEventListener('input',function(){render(true);});
   CFG.filters.forEach(function(f){var s=el('fil'+f[1]);if(s)s.addEventListener('change',function(){render(true);});});
   el('moreBtn').addEventListener('click',function(){render(false);});
+  (function(){
+    var ths=document.querySelectorAll('.data-table thead th');
+    ths.forEach(function(th,i){
+      th.style.cursor='pointer'; th.title='Sıralamak için tıklayın';
+      th.addEventListener('click',function(){
+        sortD=(sortI===i)?-sortD:1; sortI=i;
+        ths.forEach(function(o){var a=o.querySelector('.s-arrow');if(a)a.remove();});
+        var ar=document.createElement('span');ar.className='s-arrow';ar.textContent=sortD>0?' ▲':' ▼';th.appendChild(ar);
+        render(true);
+      });
+    });
+  })();
 })();
 </script>
 
@@ -169,6 +193,38 @@ Yerleşen olmayan satırlarda değer boştur (—). Resmî bilgi için <a href="
       try{localStorage.setItem('sinavveri-theme',n);}catch(e){} lab();
     });
   })();
+</script>
+<script nonce="__NONCE__">
+(function(){
+  function num(s){s=(s||'').replace(/[^0-9,.\-]/g,'').replace(/\./g,'').replace(',','.');return s===''||s==='-'?NaN:parseFloat(s);}
+  function sortBody(tb,idx,dir){
+    var body=tb.querySelector('tbody'); if(!body)return;
+    var rows=Array.prototype.slice.call(body.querySelectorAll(':scope>tr'));
+    rows.sort(function(a,b){
+      var x=a.children[idx],y=b.children[idx]; if(!x||!y)return 0;
+      var xt=x.textContent.trim(),yt=y.textContent.trim(),xn=num(xt),yn=num(yt),c;
+      if(!isNaN(xn)&&!isNaN(yn))c=xn-yn;
+      else if(isNaN(xn)&&isNaN(yn))c=xt.localeCompare(yt,'tr');
+      else c=isNaN(xn)?1:-1;
+      return c*dir;
+    });
+    rows.forEach(function(r){body.appendChild(r);});
+  }
+  document.querySelectorAll('table.data-table:not([data-live])').forEach(function(tb){
+    var ths=tb.querySelectorAll('thead th'); if(!ths.length)return;
+    ths.forEach(function(th,i){
+      if(th.hasAttribute('data-nosort'))return;
+      th.style.cursor='pointer'; th.title='Sıralamak için tıklayın'; th.dataset.dir='0';
+      th.addEventListener('click',function(){
+        var dir=th.dataset.dir==='1'?-1:1;
+        ths.forEach(function(o){o.dataset.dir='0';var a=o.querySelector('.s-arrow');if(a)a.remove();});
+        th.dataset.dir=dir>0?'1':'-1';
+        sortBody(tb,i,dir);
+        var ar=document.createElement('span');ar.className='s-arrow';ar.textContent=dir>0?' ▲':' ▼';th.appendChild(ar);
+      });
+    });
+  });
+})();
 </script>
 <script nonce="__NONCE__">if('serviceWorker' in navigator){navigator.serviceWorker.register('/sw.js').catch(function(){});}</script>
 </body>

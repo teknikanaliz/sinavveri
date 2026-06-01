@@ -416,6 +416,38 @@ Başvuru ve sonuç tarihleri ÖSYM tarafından güncellenebilir; kesin bilgi iç
     });
   })();
 </script>
+<script nonce="__NONCE__">
+(function(){
+  function num(s){s=(s||'').replace(/[^0-9,.\-]/g,'').replace(/\./g,'').replace(',','.');return s===''||s==='-'?NaN:parseFloat(s);}
+  function sortBody(tb,idx,dir){
+    var body=tb.querySelector('tbody'); if(!body)return;
+    var rows=Array.prototype.slice.call(body.querySelectorAll(':scope>tr'));
+    rows.sort(function(a,b){
+      var x=a.children[idx],y=b.children[idx]; if(!x||!y)return 0;
+      var xt=x.textContent.trim(),yt=y.textContent.trim(),xn=num(xt),yn=num(yt),c;
+      if(!isNaN(xn)&&!isNaN(yn))c=xn-yn;
+      else if(isNaN(xn)&&isNaN(yn))c=xt.localeCompare(yt,'tr');
+      else c=isNaN(xn)?1:-1;
+      return c*dir;
+    });
+    rows.forEach(function(r){body.appendChild(r);});
+  }
+  document.querySelectorAll('table.data-table:not([data-live])').forEach(function(tb){
+    var ths=tb.querySelectorAll('thead th'); if(!ths.length)return;
+    ths.forEach(function(th,i){
+      if(th.hasAttribute('data-nosort'))return;
+      th.style.cursor='pointer'; th.title='Sıralamak için tıklayın'; th.dataset.dir='0';
+      th.addEventListener('click',function(){
+        var dir=th.dataset.dir==='1'?-1:1;
+        ths.forEach(function(o){o.dataset.dir='0';var a=o.querySelector('.s-arrow');if(a)a.remove();});
+        th.dataset.dir=dir>0?'1':'-1';
+        sortBody(tb,i,dir);
+        var ar=document.createElement('span');ar.className='s-arrow';ar.textContent=dir>0?' ▲':' ▼';th.appendChild(ar);
+      });
+    });
+  });
+})();
+</script>
 <script nonce="__NONCE__">if('serviceWorker' in navigator){navigator.serviceWorker.register('/sw.js').catch(function(){});}</script>
 </body>
 </html>

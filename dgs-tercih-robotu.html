@@ -91,7 +91,7 @@
   <div id="rstatus" style="margin-top:14px;font-size:14px;color:var(--accent);font-weight:700"></div>
 </div>
 <div class="data-table-wrap">
-<table class="data-table"><thead><tr><th>Program</th><th>Taban</th><th>Şans</th></tr></thead><tbody id="rbody"></tbody></table>
+<table class="data-table" data-live="1"><thead><tr><th>Program</th><th>Taban</th><th>Şans</th></tr></thead><tbody id="rbody"></tbody></table>
 </div>
 <div id="rhint" style="display:none;font-size:12px;color:var(--fg-faded);margin-top:10px;text-align:center"></div>
 <div class="notice"><b>Nasıl çalışır?</b> Puanın bir programın/kadronun taban puanından <b>yüksek veya eşitse</b> oraya yerleşebilirsin.
@@ -114,18 +114,19 @@ kontenjan ve tercih yoğunluğuna göre değişir. <b>Kaynak:</b> ÖSYM 2025 DGS
       vals.forEach(function(v){var o=document.createElement('option');o.value=v;o.textContent=v;sel.appendChild(o);});
     });
   }
-  function run(){
-    var p=parseFloat((el('rPuan').value||'').replace(',','.').replace(/[^0-9.]/g,''));
-    if(isNaN(p)||p<=0){el('rstatus').textContent='Lütfen geçerli bir puan girin.';el('rbody').innerHTML='';return;}
-    var reach=data.filter(function(r){
-      for(var k=0;k<CFG.filters.length;k++){var s=el('rf'+k);if(s&&s.value&&String(r[CFG.filters[k][0]])!==s.value)return false;}
-      var t=r[CFG.taban];return t!=null&&t<=p;
-    });
-    reach.sort(function(a,b){return (b[CFG.taban]||0)-(a[CFG.taban]||0);}); // en yüksek taban (en zor) önce
-    el('rstatus').innerHTML='<b>'+reach.length.toLocaleString('tr-TR')+'</b> '+CFG.noun+' yerleşebilirsin (puanın: '+pf(p)+')';
+  var lastReach=[],userP=0,sortI=null,sortD=1;
+  var SCOLS=[[CFG.nb,0]];CFG.show.forEach(function(c){SCOLS.push([c[0],0]);});SCOLS.push([CFG.taban,1]);
+  function sortReach(){
+    if(sortI==null||sortI>=SCOLS.length){lastReach.sort(function(a,b){return (b[CFG.taban]||0)-(a[CFG.taban]||0);});return;}
+    var f=SCOLS[sortI][0],num=SCOLS[sortI][1];
+    lastReach.sort(function(a,b){var x=a[f],y=b[f];
+      if(num){x=(x==null?null:Number(x));y=(y==null?null:Number(y));if(x==null&&y==null)return 0;if(x==null)return 1;if(y==null)return -1;return (x-y)*sortD;}
+      return String(x==null?'':x).localeCompare(String(y==null?'':y),'tr')*sortD;});
+  }
+  function draw(){
     var tb=el('rbody');tb.innerHTML='';
-    reach.slice(0,200).forEach(function(r){
-      var m=p-r[CFG.taban];
+    lastReach.slice(0,200).forEach(function(r){
+      var m=userP-r[CFG.taban];
       var safe=m>=CFG.t1?'<span class="tag tag-lgs">Rahat</span>':(m>=CFG.t2?'<span class="tag tag-kpss">Olası</span>':'<span class="tag tag-other">Sınırda</span>');
       var name='<td><strong>'+(r[CFG.nb]||'')+'</strong>'+(CFG.ns!=null?'<br><small>'+(r[CFG.ns]||'')+'</small>':'')+'</td>';
       var show='';CFG.show.forEach(function(c){show+='<td>'+(r[c[0]]==null||r[c[0]]===''?'—':r[c[0]])+'</td>';});
@@ -133,11 +134,36 @@ kontenjan ve tercih yoğunluğuna göre değişir. <b>Kaynak:</b> ÖSYM 2025 DGS
       tr.innerHTML=name+show+'<td><strong>'+pf(r[CFG.taban])+'</strong></td><td>'+safe+'</td>';
       tb.appendChild(tr);
     });
-    el('rhint').style.display=reach.length>200?'block':'none';
-    el('rhint').textContent='İlk 200 sonuç (en yüksek tabandan) gösteriliyor. Daha hassas için filtre kullanın.';
+    el('rhint').style.display=lastReach.length>200?'block':'none';
+    el('rhint').textContent='İlk 200 sonuç gösteriliyor. Daha hassas için filtre/sıralama kullanın.';
+  }
+  function run(){
+    var p=parseFloat((el('rPuan').value||'').replace(',','.').replace(/[^0-9.]/g,''));
+    if(isNaN(p)||p<=0){el('rstatus').textContent='Lütfen geçerli bir puan girin.';el('rbody').innerHTML='';return;}
+    userP=p;
+    lastReach=data.filter(function(r){
+      for(var k=0;k<CFG.filters.length;k++){var s=el('rf'+k);if(s&&s.value&&String(r[CFG.filters[k][0]])!==s.value)return false;}
+      var t=r[CFG.taban];return t!=null&&t<=p;
+    });
+    sortReach();
+    el('rstatus').innerHTML='<b>'+lastReach.length.toLocaleString('tr-TR')+'</b> '+CFG.noun+' yerleşebilirsin (puanın: '+pf(p)+')';
+    draw();
   }
   el('rBtn').addEventListener('click',run);
   el('rPuan').addEventListener('keydown',function(e){if(e.key==='Enter')run();});
+  (function(){
+    var ths=document.querySelectorAll('.data-table thead th');
+    ths.forEach(function(th,i){
+      th.style.cursor='pointer'; th.title='Sıralamak için tıklayın';
+      th.addEventListener('click',function(){
+        if(!lastReach.length)return;
+        sortD=(sortI===i)?-sortD:1; sortI=i;
+        ths.forEach(function(o){var a=o.querySelector('.s-arrow');if(a)a.remove();});
+        var ar=document.createElement('span');ar.className='s-arrow';ar.textContent=sortD>0?' ▲':' ▼';th.appendChild(ar);
+        sortReach();draw();
+      });
+    });
+  })();
 })();
 </script>
 
@@ -162,6 +188,38 @@ kontenjan ve tercih yoğunluğuna göre değişir. <b>Kaynak:</b> ÖSYM 2025 DGS
       try{localStorage.setItem('sinavveri-theme',n);}catch(e){} lab();
     });
   })();
+</script>
+<script nonce="__NONCE__">
+(function(){
+  function num(s){s=(s||'').replace(/[^0-9,.\-]/g,'').replace(/\./g,'').replace(',','.');return s===''||s==='-'?NaN:parseFloat(s);}
+  function sortBody(tb,idx,dir){
+    var body=tb.querySelector('tbody'); if(!body)return;
+    var rows=Array.prototype.slice.call(body.querySelectorAll(':scope>tr'));
+    rows.sort(function(a,b){
+      var x=a.children[idx],y=b.children[idx]; if(!x||!y)return 0;
+      var xt=x.textContent.trim(),yt=y.textContent.trim(),xn=num(xt),yn=num(yt),c;
+      if(!isNaN(xn)&&!isNaN(yn))c=xn-yn;
+      else if(isNaN(xn)&&isNaN(yn))c=xt.localeCompare(yt,'tr');
+      else c=isNaN(xn)?1:-1;
+      return c*dir;
+    });
+    rows.forEach(function(r){body.appendChild(r);});
+  }
+  document.querySelectorAll('table.data-table:not([data-live])').forEach(function(tb){
+    var ths=tb.querySelectorAll('thead th'); if(!ths.length)return;
+    ths.forEach(function(th,i){
+      if(th.hasAttribute('data-nosort'))return;
+      th.style.cursor='pointer'; th.title='Sıralamak için tıklayın'; th.dataset.dir='0';
+      th.addEventListener('click',function(){
+        var dir=th.dataset.dir==='1'?-1:1;
+        ths.forEach(function(o){o.dataset.dir='0';var a=o.querySelector('.s-arrow');if(a)a.remove();});
+        th.dataset.dir=dir>0?'1':'-1';
+        sortBody(tb,i,dir);
+        var ar=document.createElement('span');ar.className='s-arrow';ar.textContent=dir>0?' ▲':' ▼';th.appendChild(ar);
+      });
+    });
+  });
+})();
 </script>
 <script nonce="__NONCE__">if('serviceWorker' in navigator){navigator.serviceWorker.register('/sw.js').catch(function(){});}</script>
 </body>
