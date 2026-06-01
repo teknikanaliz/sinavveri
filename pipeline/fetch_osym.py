@@ -155,6 +155,36 @@ def _corekey(kurum, dal, tur):
     return _kurum_core(kurum) + "|" + _mkey(dal) + "|" + (tur or "")
 
 
+# ÖSYM kontenjan tablosu (kadro türü = ÜNİ/SBA/EAH/MSB/… kod ile). Aynı kurum+dal'da
+# birden çok program ayrımı buradan gelir. Kod yıl-içinde UNIQUE → güvenli join.
+CUR_YEAR = 2025
+KONT_URLS = {
+    "tus": {
+        2025: "https://dokuman.osym.gov.tr/pdfdokuman/2025/TUSDONEM-1/TERCIH/konttablo_ts1d21052025.pdf",
+        2024: "https://dokuman.osym.gov.tr/pdfdokuman/2024/TUSDONEM-1/TERCIH/okontenjan_20052024.pdf",
+        2023: "https://dokuman.osym.gov.tr/pdfdokuman/2023/TUSDONEM1/TERCIH/kontenjanlar01062023.pdf",
+    },
+    "dus": {
+        2025: "https://dokuman.osym.gov.tr/pdfdokuman/2025/DUSDONEM-1/TERCIH/konttablo25062025.pdf",
+    },
+}
+VALID_KADRO = {"ÜNİ", "SBA", "EAH", "YBU", "KKTC", "MSB", "MAP", "BNDH", "ADL", "İÇB", "JAN", "DAP"}
+
+
+def kadro_map(url):
+    """{program_kodu: kadro_türü} — kontenjan tablosundan. Satır: 'kod T KADRO İL kurum dal …'.
+    İl adını kadro sanmamak için ilk birkaç token içinde bilinen kadro kümesinden arar."""
+    m = {}
+    for ln in fetch_pdf_text(url).splitlines():
+        t = ln.split()
+        if t and re.fullmatch(r"\d{9,10}", t[0]):
+            for tok in t[1:6]:
+                if tok in VALID_KADRO:
+                    m[t[0]] = tok
+                    break
+    return m
+
+
 def taban_map_kod(url):
     """{program_kodu: taban} — kodu STABİL dikeyler için (DGS: üniversite program kodları)."""
     return {r["kod"]: r["min"] for r in parse_rows(fetch_pdf_text(url)) if r["min"] is not None}
@@ -180,38 +210,85 @@ def taban_maps_name(url):
 
 def enrich_history(norm, exam):
     """Mevcut yıl satırlarını önceki yılların tabanıyla zenginleştir (tp24, tp23).
-    DGS kodla (stabil); TUS/DUS önce tam isim, tutmazsa çekirdek-kurum anahtarıyla (kod yıllar arası değişir,
-    2025 'T.C. Sağlık Bakanlığı …' önekleri normalize edilir). Belirsiz çekirdek eşleşmeler atlanır.
-    Bir yıl çekilemezse o yıl atlanır (alan eklenmez); kötü veri build'i bozmaz."""
-    by_name = exam in ("tus", "dus")
+    DGS: kodla (üniversite kodları stabil). TUS/DUS: isim + KADRO TÜRÜ anahtarıyla — ÖSYM
+    program kodları yıllar arası yeniden atandığından isimle, aynı kurum+dal'daki SBA/ÜNİ/EAH
+    çoklu programlarını ayırmak için kadro türüyle eşleşir (her iki yılda da kont tablosu varsa).
+    Belirsiz çekirdek eşleşmeler atlanır; kötü veri build'i bozmaz."""
+    if exam == "dgs":
+        for year, url in HIST_URLS.get(exam, {}).items():
+            key = "tp%s" % str(year)[2:]
+            try:
+                m = taban_map_kod(url)
+                hit = sum(1 for r in norm if _set_if(r, key, m.get(r["kod"])))
+                print(f"    DGS {year} geçmiş (kod): {len(m)} kayıt, {hit} eşleşme → {key}")
+            except Exception as e:
+                print(f"    DGS {year} geçmiş HATA (atlandı): {e}")
+        return norm
+
+    # TUS/DUS — katmanlı: 1) isim+kadro (kesin) 2) çekirdek+kadro
+    #   3) isim-only / 4) çekirdek-only — yalnız HER İKİ yılda da TEKİL ise (kadrosu değişmiş tek programlar).
+    from collections import Counter
+    placed = [r for r in norm if r["tp"] is not None]
+    cnt_full25 = Counter(_tdkey(r["kurum"], r["dal"], r["tur"]) for r in placed)
+    cnt_core25 = Counter(_corekey(r["kurum"], r["dal"], r["tur"]) for r in placed)
     for year, url in HIST_URLS.get(exam, {}).items():
-        key = "tp%s" % str(year)[2:]  # 2024→tp24, 2023→tp23
+        key = "tp%s" % str(year)[2:]
+        use_kadro = CUR_YEAR in KONT_URLS.get(exam, {}) and year in KONT_URLS.get(exam, {})
         try:
-            hit = exact = 0
-            if by_name:
-                full, core = taban_maps_name(url)
-                for r in norm:
-                    v = full.get(_tdkey(r["kurum"], r["dal"], r["tur"]))
+            mm = norm_tus_dus(parse_rows(fetch_pdf_text(url)))
+            kadY = kadro_map(KONT_URLS[exam][year]) if use_kadro else {}
+            fk_kadro, ck_seen, fn_seen, cn_seen = {}, {}, {}, {}
+            for r in mm:
+                if r["tp"] is None:
+                    continue
+                fn = _tdkey(r["kurum"], r["dal"], r["tur"])
+                cn = _corekey(r["kurum"], r["dal"], r["tur"])
+                if use_kadro:
+                    kd = kadY.get(r["kod"], "")
+                    fk_kadro[fn + "|" + kd] = r["tp"]
+                    _accum(ck_seen, cn + "|" + kd, r["tp"])
+                _accum(fn_seen, fn, r["tp"])
+                _accum(cn_seen, cn, r["tp"])
+            hit = exact = fb = 0
+            for r in norm:
+                if r["tp"] is None:
+                    continue
+                fn = _tdkey(r["kurum"], r["dal"], r["tur"])
+                cn = _corekey(r["kurum"], r["dal"], r["tur"])
+                v = None
+                if use_kadro:
+                    kd = r.get("kadro", "")
+                    v = fk_kadro.get(fn + "|" + kd)
+                    if v is None:
+                        v = ck_seen.get(cn + "|" + kd)
                     if v is not None:
                         exact += 1
-                    else:
-                        v = core.get(_corekey(r["kurum"], r["dal"], r["tur"]))
-                    if v is not None:
-                        r[key] = v
-                        hit += 1
-                print(f"    {exam.upper()} {year} geçmiş (isim): {len(full)} kayıt, {hit} eşleşme "
-                      f"({exact} tam + {hit - exact} çekirdek) → {key}")
-            else:
-                m = taban_map_kod(url)
-                for r in norm:
-                    v = m.get(r["kod"])
-                    if v is not None:
-                        r[key] = v
-                        hit += 1
-                print(f"    {exam.upper()} {year} geçmiş (kod): {len(m)} kayıt, {hit} eşleşme → {key}")
+                if v is None and cnt_full25[fn] == 1 and fn_seen.get(fn) is not None:
+                    v = fn_seen[fn]; fb += 1
+                elif v is None and cnt_core25[cn] == 1 and cn_seen.get(cn) is not None:
+                    v = cn_seen[cn]; fb += 1
+                if _set_if(r, key, v):
+                    hit += 1
+            print(f"    {exam.upper()} {year} geçmiş ({'isim+kadro' if use_kadro else 'isim'}): "
+                  f"{hit} eşleşme ({exact} kadro + {fb} tekil-isim) → {key}")
         except Exception as e:
             print(f"    {exam.upper()} {year} geçmiş HATA (atlandı): {e}")
     return norm
+
+
+def _accum(d, k, v):
+    if k in d:
+        if d[k] is not None and d[k] != v:
+            d[k] = None
+    else:
+        d[k] = v
+
+
+def _set_if(r, key, v):
+    if v is not None:
+        r[key] = v
+        return True
+    return False
 
 
 def norm_kpss(rows, duzey, donem):
@@ -239,6 +316,14 @@ def main():
         print(f"  {exam.upper()}: {url.split('/')[-1]}")
         rows = parse_rows(fetch_pdf_text(url))
         norm = norm_tus_dus(rows) if exam in ("tus", "dus") else norm_dgs(rows)
+        if exam in ("tus", "dus") and CUR_YEAR in KONT_URLS.get(exam, {}):
+            try:
+                kad = kadro_map(KONT_URLS[exam][CUR_YEAR])
+                for r in norm:
+                    r["kadro"] = kad.get(r["kod"], "")
+                print(f"    {exam.upper()} kadro türü: {sum(1 for r in norm if r.get('kadro'))}/{len(norm)} eşleşti")
+            except Exception as e:
+                print(f"    {exam.upper()} kadro HATA (atlandı): {e}")
         enrich_history(norm, exam)  # tp24/tp23 ekle (çok-yıllık trend)
         withp = [x for x in norm if x["tp"]]
         (DATA / f"osym_{exam}.json").write_text(

@@ -1773,13 +1773,18 @@ def write_osym_veri():
         counts[name] = len(rows)
         print(f"  [veri] {name}.json  {len(rows)} satır, {path.stat().st_size // 1024} KB")
 
-    # TUS/DUS: [kurum, dal, tur, kont, tp(2025), tavan, tp24, tp23, trend] — çok-yıllık
+    # TUS/DUS: [kurum, dal+(kadro), tur, kont, tp(2025), tavan, tp24, tp23, trend, dal_temiz] — çok-yıllık
+    # idx1 = gösterim (kadro türü parantezde: SBA/ÜNİ/EAH…), idx9 = filtre için temiz dal.
     for ex in ("tus", "dus"):
         d = _load_osym(ex)
         if not d:
             continue
-        rows = [[r["kurum"], r["dal"], r["tur"], r["kont"], r["tp"], r["tavan"],
-                 r.get("tp24"), r.get("tp23"), _osym_trend(r)] for r in d]
+
+        def _dd(r):
+            k = r.get("kadro")
+            return f'{r["dal"]} ({k})' if k else r["dal"]
+        rows = [[r["kurum"], _dd(r), r["tur"], r["kont"], r["tp"], r["tavan"],
+                 r.get("tp24"), r.get("tp23"), _osym_trend(r), r["dal"]] for r in d]
         rows.sort(key=lambda x: (x[4] is None, -(x[4] or 0)))
         dump(ex, rows)
     # DGS: [uni, bolum, kont, tp(2025), tavan, tp24, tp23, trend] — çok-yıllık
@@ -1808,10 +1813,12 @@ def page_tus(hubs=None):
         "/veri/tus.json",
         [(1, "Uzmanlık Dalı", "b"), (0, "Kurum", "t"), (3, "Kont.", "n"),
          (4, "2025 Taban", "p"), (6, "2024", "pv"), (7, "2023", "pv"), (8, "Trend", "t"), (5, "Tavan", "pv")],
-        [(1, "Uzmanlık Dalı"), (2, "Kontenjan Türü")], [0, 1],
+        [(9, "Uzmanlık Dalı"), (2, "Kontenjan Türü")], [0, 1],
         "TUS'ta her kurum ve uzmanlık dalı için ÖSYM'nin açıkladığı en düşük (taban) ve en yüksek (tavan) puanlar, "
         "<b>son 3 yılın (2023-2024-2025) yerleştirme karşılaştırmasıyla</b>. Trend sütunu 2025 tabanının bir önceki yıla göre değişimini gösterir. "
-        "Dal veya kurum/şehir arayın, uzmanlık dalına göre filtreleyin.",
+        "Dal adının yanındaki parantez <b>kadro türüdür</b> (ÖSYM kontenjan tablosu): "
+        "<b>ÜNİ</b> üniversite, <b>SBA</b> Sağlık Bakanlığı Adına, <b>EAH</b> eğitim-araştırma hastanesi, <b>MSB</b> Milli Savunma, <b>YBU</b> yabancı uyruklu. "
+        "Aynı kurum+dalda birden çok kadro ayrı satırdır. Dal veya kurum/şehir arayın, uzmanlık dalına göre filtreleyin.",
         "ÖSYM 2023, 2024 ve 2025 TUS Yerleştirme 'En Küçük ve En Büyük Puanlar' resmî yayınları (dokuman.osym.gov.tr).",
         ph="Dal / kurum / şehir ara…", hub_html=hub_links_html("tus", hubs))
 
@@ -1826,7 +1833,7 @@ def page_dus(hubs=None):
         "/veri/dus.json",
         [(1, "Uzmanlık Dalı", "b"), (0, "Kurum", "t"), (3, "Kont.", "n"),
          (4, "2025 Taban", "p"), (6, "2024", "pv"), (7, "2023", "pv"), (8, "Trend", "t"), (5, "Tavan", "pv")],
-        [(1, "Uzmanlık Dalı")], [0, 1],
+        [(9, "Uzmanlık Dalı")], [0, 1],
         "DUS'ta her kurum ve diş hekimliği uzmanlık dalı için ÖSYM'nin açıkladığı taban ve tavan puanlar, "
         "<b>son 3 yılın (2023-2024-2025) karşılaştırmasıyla</b>. Trend sütunu 2025 tabanının bir önceki yıla göre değişimini gösterir.",
         "ÖSYM 2023, 2024 ve 2025 DUS 'En Küçük ve En Büyük Puanlar' resmî yayınları (dokuman.osym.gov.tr).",
@@ -1888,9 +1895,9 @@ _HUB_CFG = {
 }
 # Dikey başına tablo kolonları: (başlık, alan, tür) tür: t=metin, n=tamsayı, p=puan, trend=hesaplanan
 _HUB_COLS = {
-    "tus": [("Kurum", "kurum", "t"), ("Tür", "tur", "t"), ("Kont.", "kont", "n"),
+    "tus": [("Kurum", "kurum", "t"), ("Kadro", "kadro", "t"), ("Tür", "tur", "t"), ("Kont.", "kont", "n"),
             ("2025 Taban", "tp", "p"), ("2024", "tp24", "p"), ("2023", "tp23", "p"), ("Trend", None, "trend"), ("Tavan", "tavan", "p")],
-    "dus": [("Kurum", "kurum", "t"), ("Tür", "tur", "t"), ("Kont.", "kont", "n"),
+    "dus": [("Kurum", "kurum", "t"), ("Kadro", "kadro", "t"), ("Tür", "tur", "t"), ("Kont.", "kont", "n"),
             ("2025 Taban", "tp", "p"), ("2024", "tp24", "p"), ("2023", "tp23", "p"), ("Trend", None, "trend"), ("Tavan", "tavan", "p")],
     "dgs": [("Üniversite", "uni", "t"), ("Kont.", "kont", "n"),
             ("2025 Taban", "tp", "p"), ("2024", "tp24", "p"), ("2023", "tp23", "p"), ("Trend", None, "trend"), ("Tavan", "tavan", "p")],
