@@ -130,29 +130,48 @@ HIST_URLS = {
 }
 
 
-def taban_map(url):
-    """Bir yılın PDF'inden {program/kadro_kodu: taban_puan} haritası."""
+def _mkey(s):
+    """İsim eşleştirme anahtarı: Türkçe i/I/ı/İ birleştir, küçült, sadece alfanümerik.
+    (ÖSYM TUS/DUS program KODLARI yıllar arası YENİDEN ATANDIĞI için isimle eşleşilir.)"""
+    s = (s or "").replace("İ", "i").replace("I", "i").replace("ı", "i").lower()
+    return "".join(ch for ch in s if ch.isalnum())
+
+
+def _tdkey(kurum, dal, tur):
+    return _mkey(kurum) + "|" + _mkey(dal) + "|" + (tur or "")
+
+
+def taban_map_kod(url):
+    """{program_kodu: taban} — kodu STABİL dikeyler için (DGS: üniversite program kodları)."""
+    return {r["kod"]: r["min"] for r in parse_rows(fetch_pdf_text(url)) if r["min"] is not None}
+
+
+def taban_map_name(url):
+    """{kurum|dal|tür: taban} — kodu yıllar arası DEĞİŞEN dikeyler için (TUS/DUS)."""
     m = {}
-    for r in parse_rows(fetch_pdf_text(url)):
-        if r["min"] is not None:
-            m[r["kod"]] = r["min"]
+    for r in norm_tus_dus(parse_rows(fetch_pdf_text(url))):
+        if r["tp"] is not None:
+            m[_tdkey(r["kurum"], r["dal"], r["tur"])] = r["tp"]
     return m
 
 
 def enrich_history(norm, exam):
     """Mevcut yıl satırlarını önceki yılların tabanıyla zenginleştir (tp24, tp23).
+    DGS kodla (stabil), TUS/DUS isimle (kod yıllar arası değişir) eşleştirilir.
     Bir yıl çekilemezse o yıl atlanır (alan eklenmez); kötü veri build'i bozmaz."""
+    by_name = exam in ("tus", "dus")
+    keyf = (lambda r: _tdkey(r["kurum"], r["dal"], r["tur"])) if by_name else (lambda r: r["kod"])
     for year, url in HIST_URLS.get(exam, {}).items():
         key = "tp%s" % str(year)[2:]  # 2024→tp24, 2023→tp23
         try:
-            m = taban_map(url)
+            m = taban_map_name(url) if by_name else taban_map_kod(url)
             hit = 0
             for r in norm:
-                v = m.get(r["kod"])
+                v = m.get(keyf(r))
                 if v is not None:
                     r[key] = v
                     hit += 1
-            print(f"    {exam.upper()} {year} geçmiş: {len(m)} kayıt, {hit} eşleşme → {key}")
+            print(f"    {exam.upper()} {year} geçmiş ({'isim' if by_name else 'kod'}): {len(m)} kayıt, {hit} eşleşme → {key}")
         except Exception as e:
             print(f"    {exam.upper()} {year} geçmiş HATA (atlandı): {e}")
     return norm
