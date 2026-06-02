@@ -1928,10 +1928,11 @@ def write_osym_veri():
                  r.get("tp24"), r.get("tp23"), _osym_trend(r)] for r in d]
         rows.sort(key=lambda x: (x[3] is None, -(x[3] or 0)))
         dump("dgs", rows)
-    # KPSS: [kurum, kadro, il, duzey, donem, kont, tp, tavan]
+    # KPSS: [kurum, kadro, il, duzey, donem, kont, tp(2025), tavan, tp24, trend]
     d = _load_osym("kpss")
     if d:
-        rows = [[r["kurum"], r["kadro"], r["il"], r["duzey"], r.get("donem", ""), r["kont"], r["tp"], r["tavan"]] for r in d]
+        rows = [[r["kurum"], r["kadro"], r["il"], r["duzey"], r.get("donem", ""), r["kont"], r["tp"], r["tavan"],
+                 r.get("tp24"), _osym_trend(r)] for r in d]
         rows.sort(key=lambda x: (x[6] is None, -(x[6] or 0)))
         dump("kpss", rows)
     return counts
@@ -2002,11 +2003,14 @@ def page_kpss_atama(hubs=None):
         "2025 KPSS atama taban ve tavan puanları, kadro/pozisyon bazında. ÖSYM resmî yerleştirme verisi (KPSS-2025/1 ve Sağlık Bakanlığı).",
         "KPSS Atama Taban Puanları 2025", "Kadro/pozisyon bazında atama puanları · ÖSYM resmî · 2025 tüm yerleştirmeler",
         "/veri/kpss.json",
-        [(1, "Kadro", "b"), (0, "Kurum", "t"), (2, "İl", "t"), (3, "Düzey", "t"), (4, "Dönem", "t"), (6, "Taban", "p"), (7, "Tavan", "pv")],
+        [(1, "Kadro", "b"), (0, "Kurum", "t"), (2, "İl", "t"), (3, "Düzey", "t"), (4, "Dönem", "t"),
+         (6, "2025 Taban", "p"), (8, "2024", "pv"), (9, "Trend", "t"), (7, "Tavan", "pv")],
         [(2, "İl"), (3, "Düzey"), (4, "Dönem")], [0, 1],
         "KPSS ile atanılan her kadro/pozisyon için ÖSYM'nin açıkladığı taban ve tavan puanlar. "
         "Kadro veya kurum arayın; il, öğrenim düzeyi ve yerleştirme dönemine göre filtreleyin. "
-        "<b>Kapsam:</b> 2025 yılının tüm KPSS yerleştirmeleri (2025/1–2025/5: Genel, Çevre Bak., Sağlık Bak.).",
+        "<b>Kapsam:</b> 2025 yılının tüm KPSS yerleştirmeleri (2025/1–2025/5: Genel, Çevre Bak., Sağlık Bak.). "
+        "<b>2024</b> sütunu aynı kurum+il+kadronun bir önceki yıl (aynı tür yerleştirme) tabanıdır; Trend değişimi gösterir. "
+        "KPSS atamaları tek-seferlik ilanlar olduğundan eşleşme kısmidir (Çevre Bak. için 2024 verisi yoktur).",
         OSYM_KAYNAK, ph="Kadro / kurum ara…", hub_html=hub_links_html("kpss", hubs))
 
 
@@ -2037,7 +2041,7 @@ _HUB_COLS = {
     "dgs": [("Üniversite", "uni", "t"), ("Kont.", "kont", "n"),
             ("2025 Taban", "tp", "p"), ("2024", "tp24", "p"), ("2023", "tp23", "p"), ("Trend", None, "trend"), ("Tavan", "tavan", "p")],
     "kpss": [("Kurum", "kurum", "t"), ("İl", "il", "t"), ("Düzey", "duzey", "t"), ("Dönem", "donem", "t"),
-             ("Kont.", "kont", "n"), ("Taban", "tp", "p"), ("Tavan", "tavan", "p")],
+             ("Kont.", "kont", "n"), ("2025 Taban", "tp", "p"), ("2024", "tp24", "p"), ("Trend", None, "trend"), ("Tavan", "tavan", "p")],
 }
 _HUB_MAIN = {"tus": "tus-taban-puanlari.html", "dus": "dus-taban-puanlari.html",
              "dgs": "dgs-taban-puanlari.html", "kpss": "kpss-atama-taban-puanlari.html"}

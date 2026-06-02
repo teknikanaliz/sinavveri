@@ -291,6 +291,57 @@ def _set_if(r, key, v):
     return False
 
 
+# KPSS geçmiş (2024) — TÜR-duyarlı: postingler tek-seferlik olduğundan aynı TÜR yerleştirmeyle
+# (Genel↔Genel, Sağlık Bak.↔Sağlık Bak.) kurum+il+kadro+düzey isim anahtarıyla eşleşir.
+_KB = "https://dokuman.osym.gov.tr/pdfdokuman/2024/KPSS/"
+KPSS_HIST = {
+    "Genel": [
+        (_KB + "TERCIH1/minmaxlisans29072024.pdf", "Lisans"),
+        (_KB + "TERCIH1/minmaxonl29072024.pdf", "Önlisans"),
+        (_KB + "TERCIH1/minmaxort29072024.pdf", "Ortaöğretim"),
+        (_KB + "TERCIH2/minmaxlisans03012025.pdf", "Lisans"),
+        (_KB + "TERCIH2/minmaxonl03012025.pdf", "Önlisans"),
+        (_KB + "TERCIH2/minmaxort03012025.pdf", "Ortaöğretim"),
+    ],
+    "Sağlık Bak.": [
+        (_KB + "TERCIH5/minmax_lisansdt04032024.pdf", "Lisans"),
+        (_KB + "TERCIH5/minmax_onlisansdt04032024.pdf", "Önlisans"),
+        (_KB + "TERCIH5/minmax_ortaogretimdt04032024.pdf", "Ortaöğretim"),
+    ],
+}
+
+
+def _kpss_key(r):
+    return _mkey(r["kurum"]) + "|" + _mkey(r.get("il", "")) + "|" + _mkey(r["kadro"]) + "|" + (r["duzey"] or "")
+
+
+def enrich_kpss_history(kpss):
+    """2025 KPSS satırlarına tp24 ekle (aynı tür 2024 yerleştirmesiyle isim eşleşmesi)."""
+    maps = {}
+    for typ, urls in KPSS_HIST.items():
+        m = {}
+        for url, duz in urls:
+            try:
+                for r in norm_kpss(parse_rows(fetch_pdf_text(url)), duz, "2024"):
+                    if r["tp"] is not None:
+                        m[_kpss_key(r)] = r["tp"]
+            except Exception as e:
+                print(f"    KPSS 2024 {typ} HATA: {url.split('/')[-1]} {e}")
+        maps[typ] = m
+        print(f"    KPSS 2024 {typ}: {len(m)} kadro")
+    hit = 0
+    for r in kpss:
+        m = re.search(r"\(([^)]+)\)", r.get("donem", ""))
+        mp = maps.get(m.group(1) if m else "")
+        if mp:
+            v = mp.get(_kpss_key(r))
+            if v is not None:
+                r["tp24"] = v
+                hit += 1
+    print(f"    KPSS tp24 eşleşme: {hit}/{len(kpss)} (%{100*hit//len(kpss) if kpss else 0})")
+    return kpss
+
+
 def norm_kpss(rows, duzey, donem):
     out = []
     for r in rows:
@@ -340,6 +391,7 @@ def main():
             print(f"    +{len(rows)}")
         except Exception as e:
             print(f"    HATA: {e}")
+    enrich_kpss_history(kpss)  # tp24 (tür-duyarlı 2024 eşleşmesi)
     (DATA / "osym_kpss.json").write_text(
         json.dumps(kpss, ensure_ascii=False, separators=(",", ":")), encoding="utf-8")
     print(f"  KPSS toplam: {len(kpss)} kadro → osym_kpss.json")
