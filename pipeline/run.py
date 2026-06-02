@@ -93,6 +93,12 @@ def main():
     else:
         print("[--build-only] fetch adımları atlandı")
 
+    # PG system-of-record senkronu: data/*.json → PG → data/*.json (merkezî 'sinav' şeması).
+    # Fail-safe: PG ulaşılamazsa pg.py exit 0 → build mevcut data/*.json'dan sürer.
+    if not build_only:
+        print("\n=== PG SYNC (system-of-record: sinav şeması) ===", flush=True)
+        subprocess.run([sys.executable, "-m", "pipeline.pg", "sync"], cwd=str(ROOT))
+
     print("\n=== BUILD ===", flush=True)
     b = subprocess.run([sys.executable, str(ROOT / "build.py")], cwd=str(ROOT))
 
