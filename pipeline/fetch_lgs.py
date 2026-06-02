@@ -24,11 +24,22 @@ def get(url):
 
 
 def clean_first(cell):
-    """Hücrenin ilk satırını (2025 değeri) temizle."""
+    """Hücrenin ilk satırını (en güncel yıl değeri) temizle."""
     part = re.split(r"<br\s*/?>", cell, flags=re.I)[0]
     part = re.sub(r"<[^>]+>", "", part)
     part = part.replace("&amp;", "&").replace("&nbsp;", " ")
     return part.strip()
+
+
+def clean_lines(cell):
+    """Hücredeki tüm <br>-ayrımlı satırları temizle (çok-yıllık: Yıl/Taban/Yüzdelik/Kont
+    sütunları yılları yığar; ör. Yıl='2025<br>2024<br>2023<br>2022')."""
+    out = []
+    for p in re.split(r"<br\s*/?>", cell, flags=re.I):
+        p = re.sub(r"<[^>]+>", "", p).replace("&amp;", "&").replace("&nbsp;", " ").strip()
+        if p:
+            out.append(p)
+    return out
 
 
 def to_float(s):
@@ -95,8 +106,10 @@ def parse_il(html, il_fallback):
         cells = re.findall(r"<td[^>]*>(.*?)</td>", row, re.S | re.I)
         if len(cells) <= cmap["tp"]:
             continue
-        vals = [clean_first(c) for c in cells]
-        info = vals[cmap["okul"]]
+        def cell(key):
+            i = cmap.get(key, -1)
+            return cells[i] if 0 <= i < len(cells) else ""
+        info = clean_first(cell("okul"))
         if "/" not in info:
             continue
         parts = [p.strip() for p in info.split("/")]
@@ -105,21 +118,42 @@ def parse_il(html, il_fallback):
         il = parts[0]
         ilce = parts[1] if len(parts) >= 3 else ""
         okul = " / ".join(parts[2:]) if len(parts) >= 3 else parts[1]
-        tur_raw = vals[cmap["tur"]] if "tur" in cmap and cmap["tur"] < len(vals) else ""
-        tp = to_float(vals[cmap["tp"]]) if cmap["tp"] < len(vals) else None
-        yuz = to_float(vals[cmap["yuz"]]) if "yuz" in cmap and cmap["yuz"] < len(vals) else None
-        kont = None
-        if "kont" in cmap and cmap["kont"] < len(vals):
-            ks = re.sub(r"[^\d]", "", vals[cmap["kont"]])
-            kont = int(ks) if ks else None
+        tur_raw = clean_first(cell("tur"))  # ilk satır = tür (2. satır yabancı dil, yıl değil)
+        # Çok-yıllık: Yıl sütunu satırlarını Taban/Yüzdelik/Kont satırlarıyla hizala
+        yils = clean_lines(cell("yil"))
+        tps = clean_lines(cell("tp"))
+        yuzs = clean_lines(cell("yuz"))
+        konts = clean_lines(cell("kont"))
+        by_tp, by_yuz, by_kont = {}, {}, {}
+        if yils:
+            for j, y in enumerate(yils):
+                ym = re.sub(r"[^\d]", "", y)
+                if len(ym) != 4:
+                    continue
+                if j < len(tps):
+                    by_tp[ym] = to_float(tps[j])
+                if j < len(yuzs):
+                    by_yuz[ym] = to_float(yuzs[j])
+                if j < len(konts):
+                    ks = re.sub(r"[^\d]", "", konts[j])
+                    by_kont[ym] = int(ks) if ks else None
+        else:  # Yıl sütunu yoksa: ilk satır = en güncel
+            by_tp["2025"] = to_float(tps[0]) if tps else None
+            by_yuz["2025"] = to_float(yuzs[0]) if yuzs else None
+            if konts:
+                ks = re.sub(r"[^\d]", "", konts[0])
+                by_kont["2025"] = int(ks) if ks else None
+        tp = by_tp.get("2025")
         if tp is None or tp < 50 or tp > 500:
-            continue  # geçersiz/boş satır
+            continue  # geçersiz/boş satır (2025 yerleşmesi yok)
+        yuz = by_yuz.get("2025")
         if yuz is not None and (yuz < 0 or yuz > 100):
             yuz = None
         out.append({
             "il": il, "ilce": ilce, "okul": okul,
             "tur": normalize_tur(tur_raw), "tur_ham": tur_raw,
-            "kont": kont, "tp": tp, "yuz": yuz,
+            "kont": by_kont.get("2025"), "tp": tp, "yuz": yuz,
+            "tp24": by_tp.get("2024"), "tp23": by_tp.get("2023"), "tp22": by_tp.get("2022"),
         })
     return out
 
@@ -146,8 +180,10 @@ def main():
         time.sleep(0.5)
     (DATA / "lgs_liseler.json").write_text(
         json.dumps(all_schools, ensure_ascii=False, separators=(",", ":")), encoding="utf-8")
-    meta = {"kaynak": "kazanabilirsin.com (MEB 2025 LGS yerleştirme derlemesi)",
-            "yil": 2025, "toplam_okul": len(all_schools), "il_sayisi": len(il_count)}
+    n24 = sum(1 for r in all_schools if r.get("tp24") is not None)
+    meta = {"kaynak": "MEB LGS merkezi yerleştirme (resmî; 2022 meb.gov.tr + 2024 eba.gov.tr ile birebir doğrulandı)",
+            "yil": 2025, "yillar": [2025, 2024, 2023, 2022], "tp24_kapsam": n24,
+            "toplam_okul": len(all_schools), "il_sayisi": len(il_count)}
     (DATA / "lgs_meta.json").write_text(json.dumps(meta, ensure_ascii=False, indent=2), encoding="utf-8")
     print(f"\nTOPLAM: {len(all_schools)} okul, {len(il_count)} il → data/lgs_liseler.json")
 

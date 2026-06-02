@@ -1557,9 +1557,9 @@ def load_lgs():
 
 
 def write_lgs_veri(lgs):
-    # [il, ilce, okul, türKodu, kontenjan, taban, yüzdelik]
+    # [il, ilce, okul, türKodu, kontenjan, taban(2025), yüzdelik, tp24, tp23, trend] — çok-yıllık
     rows = [[r["il"], r["ilce"], r["okul"], LISE_TUR_CODE.get(r["tur"], "D"),
-             r["kont"], r["tp"], r["yuz"]] for r in lgs]
+             r["kont"], r["tp"], r["yuz"], r.get("tp24"), r.get("tp23"), _osym_trend(r)] for r in lgs]
     rows.sort(key=lambda x: (x[5] is None, -(x[5] or 0)))
     (ROOT / "veri").mkdir(exist_ok=True)
     path = ROOT / "veri" / "liseler.json"
@@ -1590,7 +1590,7 @@ LISE_SEARCH_JS = r"""<script nonce="__NONCE__">
       return true;
     });
   }
-  var sortI=null,sortD=1,SCOLS=[[2,0],[0,0],[3,0],[4,1],[5,1],[6,1]];
+  var sortI=null,sortD=1,SCOLS=[[2,0],[0,0],[3,0],[4,1],[5,1],[7,1],[8,1],[9,0],[6,1]];
   function applySort(rows){
     if(sortI==null||sortI>=SCOLS.length)return rows;
     var f=SCOLS[sortI][0],num=SCOLS[sortI][1];
@@ -1609,7 +1609,9 @@ LISE_SEARCH_JS = r"""<script nonce="__NONCE__">
       var tr=document.createElement('tr');
       tr.innerHTML='<td><strong>'+(r[2]||'')+'</strong></td><td>'+(r[0]||'')+(r[1]?' / '+r[1]:'')+'</td>'+
         '<td><span class="tag tag-other">'+(TUR[r[3]]||'—')+'</span></td>'+
-        '<td>'+nf(r[4])+'</td><td><strong>'+pf(r[5])+'</strong></td><td>'+(r[6]==null?'—':'%'+pf(r[6]))+'</td>';
+        '<td>'+nf(r[4])+'</td><td><strong>'+pf(r[5])+'</strong></td>'+
+        '<td>'+pf(r[7])+'</td><td>'+pf(r[8])+'</td><td>'+(r[9]||'')+'</td>'+
+        '<td>'+(r[6]==null?'—':'%'+pf(r[6]))+'</td>';
       tb.appendChild(tr);
     });
     el('moreWrap').style.display=(shown<rows.length)?'block':'none';
@@ -1646,7 +1648,7 @@ def page_lise_taban_index(lgs, il_slugs):
 </div>
 <div class="data-table-wrap">
 <table class="data-table" data-live="1">
-<thead><tr><th>Lise</th><th>İl / İlçe</th><th>Tür</th><th>Kont.</th><th>Taban Puan</th><th>Yüzdelik</th></tr></thead>
+<thead><tr><th>Lise</th><th>İl / İlçe</th><th>Tür</th><th>Kont.</th><th>2025 Taban</th><th>2024</th><th>2023</th><th>Trend</th><th>Yüzdelik</th></tr></thead>
 <tbody id="tbody"></tbody>
 </table>
 </div>
@@ -1684,6 +1686,9 @@ def gen_lise_il_pages(lgs):
                      "<td>" + (r.get("tur") or "—") + "</td>"
                      "<td>" + fmt_sira(r.get("kont")) + "</td>"
                      "<td><strong>" + fmt_puan(r.get("tp")) + "</strong></td>"
+                     "<td>" + fmt_puan(r.get("tp24")) + "</td>"
+                     "<td>" + fmt_puan(r.get("tp23")) + "</td>"
+                     "<td>" + _osym_trend(r) + "</td>"
                      "<td>" + yuz + "</td></tr>")
         tabans = [r["tp"] for r in recs if r.get("tp")]
         fen = [r for r in recs if r["tur"] == "Fen Lisesi"]
@@ -1691,11 +1696,11 @@ def gen_lise_il_pages(lgs):
                    + (f"; taban puanları <strong>{fmt_puan(min(tabans))}</strong> – <strong>{fmt_puan(max(tabans))}</strong> aralığında." if tabans else "."))
         body = f"""
 <div class="crumb"><a href="/index.html">Ana Sayfa</a> / <a href="/lise-taban-puanlari.html">LGS Liseler</a> / {il}</div>
-<div class="page-title"><h1>{il} Liseleri Taban Puanları 2025 (LGS)</h1><span class="sub">{len(recs)} sınavla öğrenci alan lise · MEB 2025 · taban puanı + yüzdelik dilim</span></div>
-<div class="info-box">{summary} Tablo taban puanına göre sıralıdır (yüksek puan = daha yüksek başarı).</div>
+<div class="page-title"><h1>{il} Liseleri Taban Puanları (LGS · 3 Yıllık Trend)</h1><span class="sub">{len(recs)} sınavla öğrenci alan lise · MEB resmî · 2023-2024-2025 taban + yüzdelik dilim</span></div>
+<div class="info-box">{summary} 2024/2023 sütunları geçmiş yıl tabanı, Trend sütunu 2025'in bir önceki yıla göre değişimidir. Tablo 2025 tabanına göre sıralıdır; başlığa tıklayarak yeniden sıralayabilirsiniz.</div>
 <div class="data-table-wrap">
 <table class="data-table">
-<thead><tr><th>Lise</th><th>İlçe</th><th>Tür</th><th>Kont.</th><th>Taban Puan</th><th>Yüzdelik</th></tr></thead>
+<thead><tr><th>Lise</th><th>İlçe</th><th>Tür</th><th>Kont.</th><th>2025 Taban</th><th>2024</th><th>2023</th><th>Trend</th><th>Yüzdelik</th></tr></thead>
 <tbody>{rows}</tbody>
 </table>
 </div>
