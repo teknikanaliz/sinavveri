@@ -288,6 +288,22 @@ footer a[href*="trveri.com"]:hover { color: var(--accent-light) !important; }
 .cmp-col dt { color: var(--fg-faded); }
 .cmp-col dd { color: var(--fg); font-weight: 700; text-align: right; }
 
+/* ── Mobil kart görünümü (yalnızca .cardify tablolar, dar ekran) ── */
+@media (max-width: 640px) {
+  table.cardify thead { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+  table.cardify, table.cardify tbody, table.cardify tr, table.cardify td { display: block; width: 100%; }
+  table.cardify tbody tr { border: 1px solid var(--border); border-radius: 11px; margin: 0 0 10px; padding: 4px 2px; background: var(--bg-card) !important; box-shadow: var(--shadow-sm); }
+  table.cardify tbody td { display: flex; justify-content: space-between; align-items: baseline; gap: 14px; border: none; border-bottom: 1px solid var(--border-soft); padding: 7px 13px; text-align: right; font-size: 13px; }
+  table.cardify tbody td:last-child { border-bottom: none; }
+  table.cardify tbody td::before { content: attr(data-label); font-weight: 700; color: var(--fg-faded); text-align: left; flex: 0 0 auto; font-size: 11.5px; text-transform: uppercase; letter-spacing: .3px; }
+  table.cardify tbody td:first-child { display: block; background: var(--bg-table-head); border-radius: 9px 9px 0 0; padding: 9px 13px; text-align: left; }
+  table.cardify tbody td:first-child::before { display: none; }
+  table.cardify tbody td:first-child small { color: var(--fg-faded); }
+  table.cardify tbody td:first-child strong { color: var(--accent); font-size: 14px; }
+  table.cardify tbody td[data-label]:empty { display: none; }
+  .data-table-wrap:has(table.cardify) { overflow: visible; border: none; background: none; box-shadow: none; }
+}
+
 /* ── Global search results page ── */
 .ara-group { margin-bottom: 22px; }
 .ara-group h2 { font-size: 15px; color: var(--accent); font-weight: 800; margin-bottom: 8px; }

@@ -9,7 +9,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).parent
 SITE = "https://sinavveri.com"
-ASSET_VER = "20260603a"
+ASSET_VER = "20260603b"
 
 NAV = [
     ("/index.html", "Ana Sayfa"),
@@ -187,6 +187,24 @@ HEADER_SEARCH_JS = r"""<script nonce="__NONCE__">
 </script>"""
 
 
+CARD_LABEL_JS = r"""<script nonce="__NONCE__">
+(function(){
+  function label(tbl){
+    var ths=tbl.querySelectorAll('thead th'); if(!ths.length)return;
+    var L=Array.prototype.map.call(ths,function(t){return t.textContent.trim();});
+    tbl.querySelectorAll('tbody>tr').forEach(function(tr){
+      Array.prototype.forEach.call(tr.children,function(td,i){ if(L[i]!=null && !td.hasAttribute('data-label')) td.setAttribute('data-label',L[i]); });
+    });
+  }
+  document.querySelectorAll('table.cardify').forEach(function(tbl){
+    label(tbl);
+    var b=tbl.querySelector('tbody');
+    if(b && window.MutationObserver){ new MutationObserver(function(){label(tbl);}).observe(b,{childList:true}); }
+  });
+})();
+</script>"""
+
+
 def breadcrumb_ld(items):
     """items: [(name, slug_or_None)]. Son öğe genelde slug'sız (mevcut sayfa)."""
     el = []
@@ -311,6 +329,7 @@ def base(slug, title, desc, body, *, extra_head="", extra_ld=None):
 }})();
 </script>
 {HEADER_SEARCH_JS}
+{CARD_LABEL_JS}
 <script nonce="__NONCE__">if('serviceWorker' in navigator){{navigator.serviceWorker.register('/sw.js').catch(function(){{}});}}</script>
 </body>
 </html>"""
@@ -1625,7 +1644,7 @@ def page_taban_index():
 </div>
 
 <div class="data-table-wrap">
-<table class="data-table" data-live="1">
+<table class="data-table cardify" data-live="1">
 <thead><tr><th>Program / Üniversite</th><th>İl</th><th>Tür</th><th>Kont. / Yerleşen</th><th>Taban Puan</th><th>Başarı Sırası</th><th>Doluluk</th><th data-nosort title="Karşılaştırmak için seç">Kıyas</th></tr></thead>
 <tbody id="tbody"></tbody>
 </table>
