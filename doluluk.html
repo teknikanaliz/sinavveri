@@ -93,28 +93,42 @@
 
 <div class="section"><h2>Boş Kalan / Tam Dolmayan Bölümler</h2>
 <div class="section-sub">Kontenjanı tamamen dolmayan (yerleşen &lt; kontenjan) programlar · 2.829 program · en çok boş kalan üstte</div>
-<div style="display:flex;gap:8px;flex-wrap:wrap;margin:10px 0 14px" id="bostabs">
-  <button type="button" class="btn btn-primary" data-tab="D">Devlet</button>
-  <button type="button" class="btn btn-ghost" data-tab="V">Özel (Vakıf)</button>
-  <button type="button" class="btn btn-ghost" data-tab="K">KKTC</button>
-  <button type="button" class="btn btn-ghost" data-tab="L">Lisans</button>
-  <button type="button" class="btn btn-ghost" data-tab="O">Önlisans</button>
+<div class="calc-card" style="margin-bottom:14px">
+  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px">
+    <input id="bq" type="text" placeholder="Program / üniversite ara…" style="padding:9px 10px;border:1px solid var(--border);border-radius:8px;background:var(--bg-card-alt);color:var(--fg);font-family:inherit;font-size:13px">
+    <select id="bil" class="btn btn-ghost" style="text-align:left"><option value="">Tüm iller</option></select>
+    <select id="btur" class="btn btn-ghost" style="text-align:left"><option value="">Tüm türler</option><option value="D">Devlet</option><option value="V">Özel (Vakıf)</option><option value="K">KKTC</option></select>
+    <select id="bduz" class="btn btn-ghost" style="text-align:left"><option value="">Tüm düzeyler</option><option value="L">Lisans</option><option value="O">Önlisans</option></select>
+  </div>
+  <div id="bstatus" style="margin-top:12px;font-size:13px;color:var(--accent);font-weight:700">Yükleniyor…</div>
 </div>
-<div id="bstatus" style="font-size:13px;color:var(--accent);font-weight:700;margin-bottom:8px">Yükleniyor…</div>
 <div class="data-table-wrap"><table class="data-table" data-live="1">
 <thead><tr><th>Program / Üniversite</th><th>İl</th><th>Tür</th><th>Düzey</th><th>Kont.</th><th>Yerleşen</th><th>Boş</th><th>Doluluk</th></tr></thead>
 <tbody id="bbody"></tbody></table></div>
-<div id="bhint" style="display:none;font-size:12px;color:var(--fg-faded);margin-top:8px;text-align:center"></div></div>
+<div style="display:flex;justify-content:center;align-items:center;gap:14px;margin-top:14px">
+  <button type="button" class="btn btn-ghost" id="bprev">← Geri</button>
+  <span id="bpginfo" style="font-size:13px;color:var(--fg-faded);min-width:180px;text-align:center"></span>
+  <button type="button" class="btn btn-ghost" id="bnext">İleri →</button>
+</div></div>
 <script nonce="__NONCE__">
 (function(){
   var TUR={D:'Devlet',V:'Özel (Vakıf)',K:'KKTC','?':'—'},DUZ={L:'Lisans',O:'Önlisans'};
-  var data=[],tab='D',sortI=null,sortD=1;
+  var data=[],page=0,PAGE=20,sortI=null,sortD=1;
   var SCOLS=[[1,0],[2,0],[3,0],[4,0],[5,1],[6,1],['bos',1],[7,1]];
   function el(i){return document.getElementById(i);}
   var nf=function(n){return n==null?'—':Number(n).toLocaleString('tr-TR');};
   function val(r,f){return f==='bos'?(r[5]-r[6]):r[f];}
-  function match(r){return (tab==='D'||tab==='V'||tab==='K')?r[3]===tab:r[4]===tab;}
-  function applySort(rows){
+  function filtered(){
+    var q=(el('bq').value||'').toLocaleLowerCase('tr').trim(),il=el('bil').value,tu=el('btur').value,du=el('bduz').value;
+    return data.filter(function(r){
+      if(il&&r[2]!==il)return false;
+      if(tu&&r[3]!==tu)return false;
+      if(du&&r[4]!==du)return false;
+      if(q&&((r[1]+' '+r[0]).toLocaleLowerCase('tr').indexOf(q)<0))return false;
+      return true;
+    });
+  }
+  function sortRows(rows){
     if(sortI==null)return rows;
     var c=SCOLS[sortI],f=c[0],num=c[1];
     rows.sort(function(a,b){var x=val(a,f),y=val(b,f);
@@ -123,10 +137,12 @@
     return rows;
   }
   function render(){
-    var rows=applySort(data.filter(match));
-    el('bstatus').textContent=rows.length.toLocaleString('tr-TR')+' boş kalan program ('+(TUR[tab]||DUZ[tab])+')';
-    var tb=el('bbody');tb.innerHTML='';
-    rows.slice(0,500).forEach(function(r){
+    var rows=sortRows(filtered());
+    var total=rows.length,pages=Math.max(1,Math.ceil(total/PAGE));
+    if(page>=pages)page=pages-1; if(page<0)page=0;
+    el('bstatus').textContent=total.toLocaleString('tr-TR')+' boş kalan program bulundu';
+    var start=page*PAGE,tb=el('bbody');tb.innerHTML='';
+    rows.slice(start,start+PAGE).forEach(function(r){
       var tr=document.createElement('tr');
       tr.innerHTML='<td><strong>'+(r[1]||'')+'</strong><br><small>'+(r[0]||'')+'</small></td>'+
         '<td>'+(r[2]||'—')+'</td><td>'+(TUR[r[3]]||'—')+'</td><td>'+(DUZ[r[4]]||'—')+'</td>'+
@@ -134,24 +150,26 @@
         '<td><span class="tag tag-other">%'+r[7]+'</span></td>';
       tb.appendChild(tr);
     });
-    el('bhint').style.display=rows.length>500?'block':'none';
-    el('bhint').textContent='İlk 500 gösteriliyor (en çok boş). Başlığa tıklayarak sıralayın.';
+    el('bpginfo').textContent=total?((start+1)+'–'+Math.min(start+PAGE,total)+' / '+total.toLocaleString('tr-TR')+' · sayfa '+(page+1)+'/'+pages):'sonuç yok';
+    el('bprev').disabled=page<=0; el('bnext').disabled=page>=pages-1;
+    el('bprev').style.opacity=page<=0?'.45':'1'; el('bnext').style.opacity=page>=pages-1?'.45':'1';
   }
-  fetch('/veri/doluluk_bos.json').then(function(r){return r.json();}).then(function(j){data=j;render();})
-    .catch(function(){el('bstatus').textContent='Veri yüklenemedi.';});
-  var tabs=el('bostabs').querySelectorAll('button');
-  tabs.forEach(function(b){b.addEventListener('click',function(){
-    tab=b.getAttribute('data-tab');
-    tabs.forEach(function(o){o.className='btn btn-ghost';});b.className='btn btn-primary';
+  function reset(){page=0;render();}
+  fetch('/veri/doluluk_bos.json').then(function(r){return r.json();}).then(function(j){
+    data=j;
+    var set={};data.forEach(function(r){if(r[2])set[r[2]]=1;});
+    var sel=el('bil');Object.keys(set).sort(function(a,b){return a.localeCompare(b,'tr');})
+      .forEach(function(i){var o=document.createElement('option');o.value=i;o.textContent=i;sel.appendChild(o);});
     render();
-  });});
-  (function(){var ths=document.querySelectorAll('#bbody').length?null:null;
-    var hs=document.querySelectorAll('.section table[data-live] thead th');
-    hs.forEach(function(th,i){th.style.cursor='pointer';th.title='Sıralamak için tıklayın';
-      th.addEventListener('click',function(){sortD=(sortI===i)?-sortD:1;sortI=i;
-        hs.forEach(function(o){var a=o.querySelector('.s-arrow');if(a)a.remove();});
-        var ar=document.createElement('span');ar.className='s-arrow';ar.textContent=sortD>0?' ▲':' ▼';th.appendChild(ar);render();});});
-  })();
+  }).catch(function(){el('bstatus').textContent='Veri yüklenemedi.';});
+  ['bq','bil','btur','bduz'].forEach(function(id){el(id).addEventListener('input',reset);el(id).addEventListener('change',reset);});
+  el('bprev').addEventListener('click',function(){page--;render();});
+  el('bnext').addEventListener('click',function(){page++;render();});
+  var hs=document.querySelectorAll('.section table[data-live] thead th');
+  hs.forEach(function(th,i){th.style.cursor='pointer';th.title='Sıralamak için tıklayın';
+    th.addEventListener('click',function(){sortD=(sortI===i)?-sortD:1;sortI=i;
+      hs.forEach(function(o){var a=o.querySelector('.s-arrow');if(a)a.remove();});
+      var ar=document.createElement('span');ar.className='s-arrow';ar.textContent=sortD>0?' ▲':' ▼';th.appendChild(ar);reset();});});
 })();
 </script>
 
