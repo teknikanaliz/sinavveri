@@ -1161,7 +1161,7 @@ ROBOT_JS = r"""<script nonce="__NONCE__">
 def page_tercih_robotu():
     body = """
 <div class="crumb"><a href="/index.html">Ana Sayfa</a> / Tercih Robotu</div>
-<div class="page-title"><h1>YKS Tercih Robotu 2025</h1><span class="sub">Başarı sıranı gir, yerleşebileceğin programları gör · YÖK Atlas 2025 verisi</span></div>
+<div class="page-title"><h1>2026 YKS Tercih Robotu</h1><span class="sub">Başarı sıranı gir, yerleşebileceğin programları gör · 2025 YÖK Atlas yerleştirme verisine göre</span></div>
 """ + robot_nav("tercih-robotu.html") + """
 
 <div class="calc-card" style="margin-bottom:18px">
@@ -1209,8 +1209,8 @@ Bu bir tahmindir; 2026 taban puanları kontenjan ve tercih yoğunluğuna göre d
 })();
 </script>"""
     body += fill
-    return base("tercih-robotu.html", "YKS Tercih Robotu 2025 — Sıralamana Göre Bölüm Bul | SınavVeri",
-                "Başarı sıranı gir, 2025 YÖK Atlas verisiyle yerleşebileceğin üniversite programlarını anında gör. Ücretsiz YKS tercih robotu.",
+    return base("tercih-robotu.html", "2026 YKS Tercih Robotu — Sıralamana Göre Bölüm Bul | SınavVeri",
+                "2026 YKS tercih robotu: başarı sıranı gir, 2025 YÖK Atlas yerleştirme verisine göre yerleşebileceğin üniversite programlarını anında gör. Ücretsiz.",
                 body)
 
 
@@ -1288,7 +1288,8 @@ PUAN_ROBOT_JS = r"""<script nonce="__NONCE__">
 
 def robot_nav(active):
     items = [("tercih-robotu.html", "YKS"), ("dgs-tercih-robotu.html", "DGS"),
-             ("lgs-tercih-robotu.html", "LGS"), ("kpss-tercih-robotu.html", "KPSS")]
+             ("tus-tercih-robotu.html", "TUS"), ("dus-tercih-robotu.html", "DUS"),
+             ("kpss-tercih-robotu.html", "KPSS"), ("lgs-tercih-robotu.html", "LGS")]
     out = []
     for slug, lbl in items:
         if slug == active:
@@ -1341,23 +1342,51 @@ def page_dgs_robot():
     if not (ROOT / "veri" / "dgs.json").exists():
         return None
     return puan_robot_page(
-        "dgs-tercih-robotu.html", "DGS Tercih Robotu 2025 — Puanına Göre Bölüm Bul | SınavVeri",
-        "DGS puanını gir, 2025 ÖSYM verisiyle yerleşebileceğin lisans programlarını anında gör. Ücretsiz DGS tercih robotu.",
-        "DGS Tercih Robotu", "Dikey Geçiş · DGS puanını gir, yerleşebileceğin programları gör · ÖSYM 2025",
+        "dgs-tercih-robotu.html", "2026 DGS Tercih Robotu — Puanına Göre Bölüm Bul | SınavVeri",
+        "2026 DGS tercih robotu: DGS puanını gir, 2025 ÖSYM yerleştirme verisine göre yerleşebileceğin lisans programlarını anında gör. Ücretsiz.",
+        "2026 DGS Tercih Robotu", "Dikey Geçiş · DGS puanını gir, yerleşebileceğin programları gör · 2025 ÖSYM verisine göre",
         "/veri/dgs.json", 1, 0, [], 3, [],
         "programa", 15, 4,
         "DGS puanını girin; o puanla yerleşebileceğin (taban puanı ≤ senin puanın) tüm lisans programlarını en yüksek tabandan başlayarak listeler. "
         "DGS net hesaplama için <a href='/dgs-puan-hesaplama.html'>DGS puan hesaplama</a>.",
-        "ÖSYM 2025 DGS resmî yerleştirme verisi.", "DGS Puanın", "örn. 290,5")
+        "2025 DGS resmî ÖSYM yerleştirme verisi.", "DGS Puanın", "örn. 290,5")
+
+
+def page_tus_robot():
+    if not (ROOT / "veri" / "tus.json").exists():
+        return None
+    return puan_robot_page(
+        "tus-tercih-robotu.html", "2026 TUS Tercih Robotu — Puanına Göre Uzmanlık Dalı Bul | SınavVeri",
+        "2026 TUS tercih robotu: TUS puanını gir, 2025 ÖSYM yerleştirme verisine göre girebileceğin uzmanlık dalı ve kurumları gör. Ücretsiz.",
+        "2026 TUS Tercih Robotu", "Tıpta Uzmanlık · TUS puanını gir, girebileceğin dal/kurumları gör · 2025 ÖSYM verisine göre",
+        "/veri/tus.json", 1, 0, [(2, "Tür")], 4, [(9, "Uzmanlık Dalı"), (2, "Kontenjan Türü")],
+        "uzmanlık dalına", 4, 1,
+        "TUS puanını girin; o puanla girebileceğin (taban ≤ puanın) kurum ve uzmanlık dallarını en yüksek tabandan başlayarak listeler. "
+        "Uzmanlık dalı ve kontenjan türüne göre filtreleyebilirsin. TUS hesaplama için <a href='/yks-puan-hesaplama.html'>puan araçları</a>.",
+        "2025 TUS 1. dönem resmî ÖSYM yerleştirme verisi.", "TUS Puanın", "örn. 58,40")
+
+
+def page_dus_robot():
+    if not (ROOT / "veri" / "dus.json").exists():
+        return None
+    return puan_robot_page(
+        "dus-tercih-robotu.html", "2026 DUS Tercih Robotu — Puanına Göre Uzmanlık Dalı Bul | SınavVeri",
+        "2026 DUS tercih robotu: DUS puanını gir, 2025 ÖSYM yerleştirme verisine göre girebileceğin diş hekimliği uzmanlık dalı ve kurumları gör. Ücretsiz.",
+        "2026 DUS Tercih Robotu", "Diş Hekimliği Uzmanlık · DUS puanını gir, girebileceğin dal/kurumları gör · 2025 ÖSYM verisine göre",
+        "/veri/dus.json", 1, 0, [(2, "Tür")], 4, [(9, "Uzmanlık Dalı"), (2, "Kontenjan Türü")],
+        "uzmanlık dalına", 4, 1,
+        "DUS puanını girin; o puanla girebileceğin (taban ≤ puanın) kurum ve diş hekimliği uzmanlık dallarını listeler. "
+        "Uzmanlık dalı ve kontenjan türüne göre filtreleyebilirsin.",
+        "2025 DUS resmî ÖSYM yerleştirme verisi.", "DUS Puanın", "örn. 55,20")
 
 
 def page_kpss_robot():
     if not (ROOT / "veri" / "kpss.json").exists():
         return None
     return puan_robot_page(
-        "kpss-tercih-robotu.html", "KPSS Tercih Robotu 2025 — Puanına Göre Kadro Bul | SınavVeri",
-        "KPSS puanını gir, 2025 ÖSYM atama verisiyle yerleşebileceğin kadro/pozisyonları gör. Ücretsiz KPSS tercih robotu (Lisans/Önlisans/Ortaöğretim).",
-        "KPSS Tercih Robotu", "KPSS puanını gir, atanabileceğin kadroları gör · ÖSYM 2025 yerleştirmeleri",
+        "kpss-tercih-robotu.html", "2026 KPSS Tercih Robotu — Puanına Göre Kadro Bul | SınavVeri",
+        "2026 KPSS tercih robotu: KPSS puanını gir, 2025 ÖSYM atama verisine göre yerleşebileceğin kadro/pozisyonları gör. Ücretsiz (Lisans/Önlisans/Ortaöğretim).",
+        "2026 KPSS Tercih Robotu", "KPSS puanını gir, atanabileceğin kadroları gör · 2025 ÖSYM yerleştirmelerine göre",
         "/veri/kpss.json", 1, 0, [(2, "İl"), (3, "Düzey")], 6, [(2, "İl"), (3, "Düzey"), (4, "Dönem")],
         "kadroya", 4, 1,
         "KPSS puanını girin ve öğrenim düzeyinizi (Lisans/Önlisans/Ortaöğretim) seçin; o puanla atanabileceğin (taban ≤ puanın) kadroları listeler. "
@@ -1369,9 +1398,9 @@ def page_lgs_robot(lgs):
     if not lgs or not (ROOT / "veri" / "liseler.json").exists():
         return None
     return puan_robot_page(
-        "lgs-tercih-robotu.html", "LGS Tercih Robotu 2025 — Puanına Göre Lise Bul | SınavVeri",
-        "LGS puanını gir, 2025 verisiyle yerleşebileceğin liseleri il ve ilçeye göre gör. Ücretsiz LGS tercih robotu.",
-        "LGS Tercih Robotu", "LGS puanını gir, yerleşebileceğin liseleri gör · 2025 yerleştirme",
+        "lgs-tercih-robotu.html", "2026 LGS Tercih Robotu — Puanına Göre Lise Bul | SınavVeri",
+        "2026 LGS tercih robotu: LGS puanını gir, 2025 MEB yerleştirme verisine göre yerleşebileceğin liseleri il ve ilçeye göre gör. Ücretsiz.",
+        "2026 LGS Tercih Robotu", "LGS puanını gir, yerleşebileceğin liseleri gör · 2025 MEB yerleştirmesine göre",
         "/veri/liseler.json", 2, None, [(0, "İl"), (1, "İlçe")], 5, [(0, "İl"), (1, "İlçe")],
         "liseye", 15, 4,
         "LGS puanını girin ve ilini seçin; o puanla yerleşebileceğin (taban ≤ puanın) liseleri en yüksek tabandan başlayarak listeler. "
@@ -2449,7 +2478,8 @@ def main():
             W(slug, html)
     print(f"  → toplam {len(hub_slugs)} ÖSYM hub sayfası")
     W("tercih-robotu.html", page_tercih_robotu())
-    for slug, fn in [("dgs-tercih-robotu.html", page_dgs_robot), ("kpss-tercih-robotu.html", page_kpss_robot)]:
+    for slug, fn in [("dgs-tercih-robotu.html", page_dgs_robot), ("tus-tercih-robotu.html", page_tus_robot),
+                     ("dus-tercih-robotu.html", page_dus_robot), ("kpss-tercih-robotu.html", page_kpss_robot)]:
         html = fn()
         if html:
             W(slug, html)
