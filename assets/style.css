@@ -97,7 +97,8 @@ main { max-width: 1180px; margin: 0 auto; padding: 24px 20px 48px; }
 .hero h1 { font-size: 30px; font-weight: 800; margin-bottom: 10px; letter-spacing: -0.6px; }
 .hero p { font-size: 15.5px; max-width: 640px; color: rgba(255,255,255,.86); line-height: 1.65; }
 .hero .hero-badges { margin-top: 18px; display: flex; gap: 8px; flex-wrap: wrap; }
-.hero .hero-badges span { background: rgba(255,255,255,.14); border: 1px solid rgba(255,255,255,.18); padding: 5px 12px; border-radius: 999px; font-size: 12.5px; font-weight: 600; }
+.hero .hero-badges span, .hero .hero-badges a { background: rgba(255,255,255,.14); border: 1px solid rgba(255,255,255,.18); padding: 5px 12px; border-radius: 999px; font-size: 12.5px; font-weight: 600; color: #fff; transition: background .14s, border-color .14s; }
+.hero .hero-badges a:hover { background: rgba(255,255,255,.26); border-color: rgba(255,255,255,.45); text-decoration: none; }
 @media (max-width: 640px) { .hero { padding: 28px 20px; } .hero h1 { font-size: 23px; } }
 
 /* ── Page title ── */

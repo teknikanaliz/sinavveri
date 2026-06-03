@@ -9,7 +9,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).parent
 SITE = "https://sinavveri.com"
-ASSET_VER = "20260604b"
+ASSET_VER = "20260604c"
 
 NAV = [
     ("/index.html", "Ana Sayfa"),
@@ -593,7 +593,7 @@ def page_index():
 <div class="hero">
   <h1>Türkiye Sınav Verileri Tek Çatıda</h1>
   <p>2026 tercih robotu, 2025 üniversite LGS TUS DUS DGS KPSS taban puanları, puan hesaplama araçları ve güncel sınav takvimi. Sade, hızlı ve detaylı bilgi.</p>
-  <div class="hero-badges"><span>📊 21.602 Program</span><span>🎯 Tercih Robotu</span><span>🧮 Puan Hesaplama</span><span>📅 2026 Takvimi</span></div>
+  <div class="hero-badges"><a href="/taban-puanlari.html">📊 21.602 Program</a><a href="/tercih-robotu.html">🎯 Tercih Robotu</a><a href="/puan-hesaplama.html">🧮 Puan Hesaplama</a><a href="/takvim.html">📅 2026 Takvimi</a></div>
 </div>
 
 <div class="spotlight" id="spotlight"></div>
