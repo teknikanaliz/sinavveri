@@ -93,7 +93,7 @@
     <input id="fQ" type="text" placeholder="Program / üniversite ara…" style="padding:9px 10px;border:1px solid var(--border);border-radius:8px;background:var(--bg-card-alt);color:var(--fg);font-family:inherit;font-size:13px">
     <select id="fIl" class="btn btn-ghost" style="text-align:left"><option value="">Tüm iller</option></select>
     <select id="fTur" class="btn btn-ghost" style="text-align:left">
-      <option value="">Tüm türler</option><option value="D">Devlet</option><option value="V">Vakıf</option><option value="K">KKTC</option><option value="DK">Devlet (KKTC Kampüs)</option>
+      <option value="">Tüm türler</option><option value="D">Devlet</option><option value="V">Vakıf</option><option value="K">KKTC</option><option value="DK">Devlet (KKTC Kampüs)</option><option value="DU">Devlet (Ücretli)</option>
     </select>
     <label style="display:flex;align-items:center;gap:6px;font-size:13px;color:var(--fg-muted)"><input type="checkbox" id="fBurs"> Sadece burslu</label>
   </div>
@@ -117,7 +117,7 @@ o programa <b>en son yerleşen</b> adayın verisidir. Yerleşen olmayan programl
 <script nonce="__NONCE__">
 (function(){
   var IDX={k:0,u:1,b:2,g:3,il:4,t:5,o:6,dil:7,bs:8,kont:9,tp:10,sira:11,yer:12};
-  var TUR={D:'Devlet',V:'Vakıf',K:'KKTC',DK:'Devlet (KKTC Kampüs)',Y:'Diğer','?':'—'};
+  var TUR={D:'Devlet',V:'Vakıf',K:'KKTC',DK:'Devlet (KKTC Kampüs)',DU:'Devlet (Ücretli)',Y:'Diğer','?':'—'};
   function doluluk(r){var k=r[IDX.kont],y=r[IDX.yer];if(!k||y==null)return '—';var p=Math.round(y/k*100);var c=p>=100?'tag-lgs':(p>=70?'tag-kpss':'tag-other');return '<span class="tag '+c+'">%'+p+'</span>';}
   var data=[], shown=0, PAGE=50, cache={};
   var nf=function(n){return n==null?'—':n.toLocaleString('tr-TR');};

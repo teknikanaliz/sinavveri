@@ -93,7 +93,7 @@
     <div><label style="font-size:12px;color:var(--fg-faded);font-weight:700">İl (ops.)</label>
       <select id="rIl" class="btn btn-ghost" style="text-align:left;width:100%;margin-top:4px"><option value="">Tüm iller</option></select></div>
     <div><label style="font-size:12px;color:var(--fg-faded);font-weight:700">Tür (ops.)</label>
-      <select id="rTur" class="btn btn-ghost" style="text-align:left;width:100%;margin-top:4px"><option value="">Hepsi</option><option value="D">Devlet</option><option value="V">Vakıf</option><option value="K">KKTC</option><option value="DK">Devlet (KKTC Kampüs)</option></select></div>
+      <select id="rTur" class="btn btn-ghost" style="text-align:left;width:100%;margin-top:4px"><option value="">Hepsi</option><option value="D">Devlet</option><option value="V">Vakıf</option><option value="K">KKTC</option><option value="DK">Devlet (KKTC Kampüs)</option><option value="DU">Devlet (Ücretli)</option></select></div>
     <button type="button" class="btn btn-primary" id="rBtn">Programları Göster</button>
   </div>
   <div id="rstatus" style="margin-top:14px;font-size:14px;color:var(--accent);font-weight:700"></div>
@@ -114,7 +114,7 @@ Bu bir tahmindir; 2026 taban puanları kontenjan ve tercih yoğunluğuna göre d
 <script nonce="__NONCE__">
 (function(){
   var IDX={k:0,u:1,b:2,g:3,il:4,t:5,o:6,dil:7,bs:8,kont:9,tp:10,sira:11};
-  var TUR={D:'Devlet',V:'Vakıf',K:'KKTC',DK:'Devlet (KKTC Kampüs)',Y:'Diğer','?':'—'};
+  var TUR={D:'Devlet',V:'Vakıf',K:'KKTC',DK:'Devlet (KKTC Kampüs)',DU:'Devlet (Ücretli)',Y:'Diğer','?':'—'};
   var data=[],cache={};
   var nf=function(n){return n==null?'—':n.toLocaleString('tr-TR');};
   var pf=function(n){return n==null?'—':n.toLocaleString('tr-TR',{minimumFractionDigits:2,maximumFractionDigits:2});};
