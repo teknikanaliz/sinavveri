@@ -401,6 +401,10 @@ def load_programs():
     # Türk devlet üniversitelerinin KKTC kampüsleri (ODTÜ/İTÜ/ASBÜ Kıbrıs) normal ücretsiz
     # devlet programı DEĞİL → ayrı tür "DK". (YÖK Atlas universiteTuru=DEVLET döner; gösterim/filtre için ayrıştırılır.)
     for r in progs:
+        # Türkçe büyük-İ artefaktı: .title() "İZMİR"→"İzmi̇r" (i + U+0307 birleşik nokta) üretir → temizle
+        for f in ("il", "ilce"):
+            if r.get(f):
+                r[f] = r[f].replace("̇", "")
         if r.get("t") == "D" and "KKTC Uyruklu" in (r.get("b") or ""):
             r["t"] = "DKU"  # Devlet üniv.'de KKTC uyruklu özel kontenjan (ad zaten "(KKTC Uyruklu)" içerir)
             continue
@@ -2703,6 +2707,17 @@ def write_osym_veri():
     # KPSS: [kurum, kadro, il, duzey, donem, kont, tp(2025), tavan, tp24, trend]
     d = _load_osym("kpss")
     if d:
+        # Aynı kurum+kadro+il+dönem birden çok kez açılır (farklı nitelik şartı) → kadro koduyla ayırt et.
+        # Kadro kodu ÖSYM tercih kılavuzunda nitelikleri aramak için benzersiz anahtardır.
+        from collections import defaultdict
+        grp = defaultdict(list)
+        for r in d:
+            grp[(r.get("kurum"), r.get("kadro"), r.get("il"), r.get("donem"))].append(r)
+        for rs in grp.values():
+            if len(rs) > 1:
+                for r in rs:
+                    if r.get("kod"):
+                        r["kadro"] = f'{r["kadro"]} (Kadro Kodu: {r["kod"]})'
         rows = [[r["kurum"], r["kadro"], r["il"], r["duzey"], r.get("donem", ""), r["kont"], r["tp"], r["tavan"],
                  r.get("tp24"), _osym_trend(r)] for r in d]
         rows.sort(key=lambda x: (x[6] is None, -(x[6] or 0)))

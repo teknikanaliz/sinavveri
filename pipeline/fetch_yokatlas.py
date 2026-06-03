@@ -25,6 +25,22 @@ SCOPES = [
     (47, "TYT"),
 ]
 
+_TRLOW = {"I": "ı", "İ": "i", "Ş": "ş", "Ğ": "ğ", "Ü": "ü", "Ö": "ö", "Ç": "ç"}
+_TRUP = {"i": "İ", "ı": "I", "ş": "Ş", "ğ": "Ğ", "ü": "Ü", "ö": "Ö", "ç": "Ç"}
+
+
+def tr_title(s):
+    """Türkçe-doğru başlık biçimi: İ→i, I→ı (Python .title() yanlış yapar:
+    'ADIYAMAN'→'Adiyaman', 'İZMİR'→'İzmi̇r'). Kelime başı büyük, geri kalan Türkçe küçük."""
+    s = (s or "").strip()
+    if not s:
+        return ""
+    def lo(c):
+        return _TRLOW.get(c, c.lower())
+    def up(c):
+        return _TRUP.get(c, c.upper())
+    return " ".join((up(w[0]) + "".join(lo(c) for c in w[1:])) if w else w for w in s.split(" "))
+
 
 def post(body):
     req = urllib.request.Request(URL, data=json.dumps(body).encode("utf-8"), headers=HEADERS, method="POST")
@@ -81,8 +97,8 @@ def trim(r):
         "u": (r.get("universiteAdi") or "").strip(),
         "b": (r.get("birimAdi") or "").strip(),
         "g": (r.get("birimGrupAdi") or "").strip(),
-        "il": (r.get("ilAdi") or "").strip().title(),
-        "ilce": (r.get("ilceAdi") or "").strip().title(),
+        "il": tr_title(r.get("ilAdi")),
+        "ilce": tr_title(r.get("ilceAdi")),
         "fak": (r.get("fymkAdi") or "").strip(),  # Fakülte/Yüksekokul/MYO — aynı-ad ayırt edici
         "t": {"DEVLET": "D", "VAKIF": "V", "KKTC": "K", "YÖK": "Y"}.get((r.get("universiteTuru") or "").strip(), "?"),
         "o": (r.get("ogrenimTuruAdi") or "").strip(),

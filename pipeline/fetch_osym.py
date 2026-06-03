@@ -63,6 +63,19 @@ def num(x):
     return "X"
 
 
+_TRLOW = {"I": "ı", "İ": "i", "Ş": "ş", "Ğ": "ğ", "Ü": "ü", "Ö": "ö", "Ç": "ç"}
+
+
+def tr_title(s):
+    """Türkçe-doğru başlık biçimi (İ→i, I→ı)."""
+    s = (s or "").strip()
+    if not s:
+        return ""
+    lo = lambda c: _TRLOW.get(c, c.lower())
+    up = lambda c: {"i": "İ", "ı": "I", "ş": "Ş", "ğ": "Ğ", "ü": "Ü", "ö": "Ö", "ç": "Ç"}.get(c, c.upper())
+    return " ".join((up(w[0]) + "".join(lo(c) for c in w[1:])) if w else w for w in s.split(" "))
+
+
 def parse_rows(txt):
     rows = []
     for line in txt.splitlines():
@@ -355,7 +368,8 @@ def norm_kpss(rows, duzey, donem):
             tail = parts[-1].strip()  # "TAŞRA HEMŞİRE" / "MERKEZ AVUKAT"
             m = re.match(r"^(TAŞRA|MERKEZ|YURTDIŞI)\s+(.*)$", tail)
             kadro = m.group(2).strip() if m else tail
-        out.append({"kurum": kurum, "il": il.title(), "kadro": kadro, "duzey": duzey, "donem": donem,
+        out.append({"kod": r["kod"], "kurum": kurum, "il": tr_title(il), "kadro": kadro,
+                    "duzey": duzey, "donem": donem,
                     "kont": r["kont"], "yer": r["yer"], "tp": r["min"], "tavan": r["max"]})
     return out
 
