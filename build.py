@@ -830,6 +830,64 @@ def page_ales():
         ], has_calc=False)
 
 
+def page_tus_rehber():
+    return guide("tus.html", "TUS", "Tıpta Uzmanlık Eğitimi Giriş Sınavı", "🩺", "",
+        "TUS, tıp fakültesi mezunlarının uzmanlık eğitimi (asistanlık) için girdiği merkezi sınavdır. ÖSYM tarafından yılda iki dönem (ilkbahar/sonbahar) yapılır.",
+        [
+            ("TUS Nedir?", [
+                "Tıpta Uzmanlık Eğitimi Giriş Sınavı (TUS), tıp doktorlarının kardiyoloji, genel cerrahi, radyoloji gibi uzmanlık dallarında eğitim almak üzere yerleştirilmesinde kullanılan ÖSYM sınavıdır. Yılda 2 dönem (1. ve 2. dönem) düzenlenir.",
+                "Sınav iki testten oluşur: <strong>Temel Tıp Bilimleri Testi (TTBT)</strong> ve <strong>Klinik Tıp Bilimleri Testi (KTBT)</strong>.",
+            ]),
+            ("Soru Dağılımı (2023'ten itibaren 200 soru)", [
+                "Eylül 2023 itibarıyla toplam soru sayısı 240'tan <strong>200'e</strong> düşürülmüştür:",
+                "<strong>Temel Tıp Bilimleri Testi — 100 soru:</strong>",
+                ("ul", ["Anatomi, Fizyoloji, Biyokimya", "Mikrobiyoloji, Patoloji, Farmakoloji"]),
+                "<strong>Klinik Tıp Bilimleri Testi — 100 soru:</strong>",
+                ("ul", ["Dahiliye (İç Hastalıkları), Pediatri (Çocuk Sağlığı)", "Genel Cerrahi, Kadın Hastalıkları ve Doğum", "Küçük stajlar (KBB, Göz, Psikiyatri, Nöroloji vb.)"]),
+            ]),
+            ("Puan Mantığı", [
+                "Her test için <strong>Net = Doğru − (Yanlış ÷ 4)</strong> uygulanır (4 yanlış 1 doğruyu götürür).",
+                "Ham puanlar, her test için ortalaması <strong>50</strong>, standart sapması <strong>10</strong> olan <strong>standart puanlara</strong> dönüştürülür. Bu standart puanlardan ağırlık katsayılarıyla <strong>Ağırlıklı Temel (Ağırlıklı T)</strong>, <strong>Ağırlıklı Klinik (Ağırlıklı K)</strong> ve <strong>Ağırlıklı (Ağırlıklı A)</strong> puanları üretilir; her uzmanlık dalı için kullanılan puan türü ÖSYM kılavuzunda belirtilir.",
+                "Yerleştirme, adayın TUS puanı ve tercihlerine göre ÖSYM tarafından yapılır. Kurum ve dal bazında taban puanları için <a href='/tus-taban-puanlari.html'>TUS taban puanları</a> ve <a href='/tus-tercih-robotu.html'>TUS tercih robotu</a>.",
+            ]),
+            ("2026 TUS Tarihleri (ÖSYM resmî kılavuzu)", [
+                "<strong>1. Dönem:</strong>",
+                ("ul", ["Başvuru: 28 Ocak – 5 Şubat 2026 (geç başvuru: 12 Şubat)", "Sınav: 15 Mart 2026"]),
+                "<strong>2. Dönem:</strong>",
+                ("ul", ["Başvuru: 8 – 16 Temmuz 2026 (geç başvuru: 24 Temmuz)", "Sınav: 23 Ağustos 2026"]),
+            ]),
+        ], has_calc=False)
+
+
+def page_dus_rehber():
+    return guide("dus.html", "DUS", "Diş Hekimliği Uzmanlık Eğitimi Giriş Sınavı", "🦷", "",
+        "DUS, diş hekimliği fakültesi mezunlarının uzmanlık eğitimi için girdiği merkezi sınavdır. ÖSYM tarafından düzenlenir.",
+        [
+            ("DUS Nedir?", [
+                "Diş Hekimliği Uzmanlık Eğitimi Giriş Sınavı (DUS), diş hekimlerinin ortodonti, ağız-diş-çene cerrahisi, protetik diş tedavisi gibi dallarda uzmanlık eğitimi almak için girdiği ÖSYM sınavıdır.",
+                "Sınav iki testten oluşur: <strong>Diş Hekimliği Temel Bilimler Testi</strong> ve <strong>Diş Hekimliği Klinik Bilimler Testi</strong>.",
+            ]),
+            ("Soru Dağılımı (tek oturum · 150 dk · 120 soru)", [
+                "DUS tek oturumda (saat 10.15, 150 dakika) yapılır ve iki testten oluşur:",
+                "<strong>Diş Hekimliği Temel Bilimler Testi — 40 soru:</strong>",
+                ("ul", ["Anatomi, Fizyoloji, Biyokimya, Mikrobiyoloji, Patoloji, Farmakoloji (temel tıp + diş)"]),
+                "<strong>Diş Hekimliği Klinik Bilimler Testi — 80 soru:</strong>",
+                ("ul", ["Restoratif diş tedavisi, Endodonti, Protetik diş tedavisi", "Ağız-diş-çene cerrahisi/radyolojisi, Ortodonti, Periodontoloji, Pedodonti"]),
+            ]),
+            ("Puan Mantığı", [
+                "Her test için <strong>Net = Doğru − (Yanlış ÷ 4)</strong> uygulanır.",
+                "Ham puanlar ortalaması 50, standart sapması 10 olan standart puanlara dönüştürülür; DUS puanı Temel ve Klinik standart puanların ağırlıklı birleşimidir.",
+                "Kurum ve dal bazında taban puanları için <a href='/dus-taban-puanlari.html'>DUS taban puanları</a> ve <a href='/dus-tercih-robotu.html'>DUS tercih robotu</a>.",
+            ]),
+            ("2026 DUS Tarihleri (ÖSYM resmî kılavuzu)", [
+                "<strong>1. Dönem:</strong>",
+                ("ul", ["Başvuru: 10 – 17 Mart 2026", "Sınav: 26 Nisan 2026"]),
+                "<strong>2. Dönem:</strong>",
+                ("ul", ["Başvuru: 16 – 24 Eylül 2026", "Sınav: 1 Kasım 2026"]),
+            ]),
+        ], has_calc=False)
+
+
 # ───────────────────────── HATA SAYFALARI ─────────────────────────
 def page_error(code, msg):
     body = f"""
@@ -2385,17 +2443,19 @@ Araçlarımız net hesabını kesin verir; puan tahminleri standart puan sistemi
 def page_rehberler_hub():
     g = [("yks.html", "🎓", "YKS", "Üniversite giriş sınavı rehberi"),
          ("lgs.html", "🏫", "LGS", "Liselere geçiş sınavı rehberi"),
-         ("kpss.html", "🏛️", "KPSS", "Kamu personel seçme sınavı"),
          ("dgs.html", "📈", "DGS", "Dikey geçiş sınavı"),
+         ("tus.html", "🩺", "TUS", "Tıpta uzmanlık eğitimi giriş sınavı"),
+         ("dus.html", "🦷", "DUS", "Diş hekimliği uzmanlık giriş sınavı"),
+         ("kpss.html", "🏛️", "KPSS", "Kamu personel seçme sınavı"),
          ("ales.html", "📚", "ALES", "Akademik personel / lisansüstü")]
     cards = "".join(f'<a class="tool-btn" href="/{h}"><span class="tb-icon">{i}</span><span class="tb-text"><b>{t}</b><span>{s}</span></span></a>' for h, i, t, s in g)
     body = f"""
 <div class="crumb"><a href="/index.html">Ana Sayfa</a> / Rehberler</div>
-<div class="page-title"><h1>Sınav Rehberleri</h1><span class="sub">Her sınavın formatı, soru dağılımı ve puan mantığı</span></div>
+<div class="page-title"><h1>Sınav Rehberleri</h1><span class="sub">Her sınavın formatı, soru dağılımı ve puan mantığı · resmî (ÖSYM/MEB) bilgilere göre</span></div>
 <div class="tool-row">{cards}</div>
 """
-    return base("rehberler.html", "Sınav Rehberleri — YKS, LGS, KPSS, DGS, ALES | SınavVeri",
-                "YKS, LGS, KPSS, DGS ve ALES sınav rehberleri: format, soru dağılımı, puan hesaplama ve 2026 tarihleri.",
+    return base("rehberler.html", "Sınav Rehberleri — YKS, LGS, DGS, TUS, DUS, KPSS, ALES | SınavVeri",
+                "YKS, LGS, DGS, TUS, DUS, KPSS ve ALES sınav rehberleri: format, soru dağılımı, puan mantığı ve 2026 tarihleri. ÖSYM/MEB resmî bilgilerine göre.",
                 body)
 
 
@@ -2491,6 +2551,8 @@ def main():
     W("lgs.html", page_lgs())
     W("kpss.html", page_kpss())
     W("dgs.html", page_dgs())
+    W("tus.html", page_tus_rehber())
+    W("dus.html", page_dus_rehber())
     W("ales.html", page_ales())
     W("yks-puan-hesaplama.html", page_yks_calc())
     W("lgs-puan-hesaplama.html", page_lgs_calc())
