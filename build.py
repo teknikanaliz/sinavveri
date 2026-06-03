@@ -9,7 +9,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).parent
 SITE = "https://sinavveri.com"
-ASSET_VER = "20260603b"
+ASSET_VER = "20260604a"
 
 NAV = [
     ("/index.html", "Ana Sayfa"),
@@ -196,7 +196,7 @@ CARD_LABEL_JS = r"""<script nonce="__NONCE__">
       Array.prototype.forEach.call(tr.children,function(td,i){ if(L[i]!=null && !td.hasAttribute('data-label')) td.setAttribute('data-label',L[i]); });
     });
   }
-  document.querySelectorAll('table.cardify').forEach(function(tbl){
+  document.querySelectorAll('table.data-table').forEach(function(tbl){
     label(tbl);
     var b=tbl.querySelector('tbody');
     if(b && window.MutationObserver){ new MutationObserver(function(){label(tbl);}).observe(b,{childList:true}); }
