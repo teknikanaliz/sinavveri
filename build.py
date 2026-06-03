@@ -1767,9 +1767,11 @@ def page_taban_hub():
         f'<a class="exam-card" href="{h}"><div class="ec-top"><span class="ec-icon">{i}</span>'
         f'<div><div class="ec-title">{t}</div></div></div><div class="ec-desc">{d}</div>'
         f'<div class="ec-meta"><span>Görüntüle →</span></div></a>' for h, i, t, d in live)
-    roadmap = ["KPSS atama — diğer yerleştirme dönemleri (2025/2, /3, /4 ...) eklenmesi",
-               "YDUS (Yan Dal Uzmanlık) taban puanları",
-               "Çok yıllık taban puan trendi (2022-2025)"]
+    # ⚠️ BU LİSTE YAYINLANAN "Yakında Eklenecekler"DİR — bir madde tamamlanınca BURADAN ÇIKAR (güncel tut).
+    # Tamamlananlar (artık canlı): KPSS tüm 2025 dönemleri · çok-yıllık trend (DGS/TUS/DUS/LGS 2022-2025, KPSS 2024).
+    roadmap = ["YDUS (Yan Dal Uzmanlık) taban puanları",
+               "Çok yıllık taban puanı için interaktif trend grafikleri",
+               "KPSS: kadro unvanı bazlı yıllık ortalama puan trendi"]
     rm = "".join(f"<li>{x}</li>" for x in roadmap)
     body = f"""
 <div class="crumb"><a href="/index.html">Ana Sayfa</a> / Taban Puanları</div>
