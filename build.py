@@ -1998,7 +1998,7 @@ def page_lgs_robot(lgs):
         "lgs-tercih-robotu.html", "2026 LGS Tercih Robotu — Puanına Göre Lise Bul | SınavVeri",
         "2026 LGS tercih robotu: LGS puanını gir, 2025 MEB yerleştirme verisine göre yerleşebileceğin liseleri il ve ilçeye göre gör. Ücretsiz.",
         "2026 LGS Tercih Robotu", "LGS puanını gir, yerleşebileceğin liseleri gör · 2025 MEB yerleştirmesine göre",
-        "/veri/liseler.json", 2, None, [(0, "İl"), (1, "İlçe")], 5, [(0, "İl"), (1, "İlçe")],
+        "/veri/liseler.json", 2, None, [(0, "İl"), (1, "İlçe")], 5, [(0, "İl"), (1, "İlçe"), (10, "Yabancı Dil")],
         "liseye", 15, 4,
         "LGS puanını girin ve ilini seçin; o puanla yerleşebileceğin (taban ≤ puanın) liseleri en yüksek tabandan başlayarak listeler. "
         "LGS hesaplama için <a href='/lgs-puan-hesaplama.html'>LGS puan hesaplama</a>.",
@@ -2242,9 +2242,10 @@ def load_lgs():
 
 
 def write_lgs_veri(lgs):
-    # [il, ilce, okul, türKodu, kontenjan, taban(2025), yüzdelik, tp24, tp23, trend] — çok-yıllık
+    # [il, ilce, okul, türKodu, kontenjan, taban(2025), yüzdelik, tp24, tp23, trend, ydil] — çok-yıllık
     rows = [[r["il"], r["ilce"], r["okul"], LISE_TUR_CODE.get(r["tur"], "D"),
-             r["kont"], r["tp"], r["yuz"], r.get("tp24"), r.get("tp23"), _osym_trend(r)] for r in lgs]
+             r["kont"], r["tp"], r["yuz"], r.get("tp24"), r.get("tp23"), _osym_trend(r),
+             r.get("ydil") or ""] for r in lgs]
     rows.sort(key=lambda x: (x[5] is None, -(x[5] or 0)))
     (ROOT / "veri").mkdir(exist_ok=True)
     path = ROOT / "veri" / "liseler.json"
@@ -2260,31 +2261,39 @@ LISE_SEARCH_JS = r"""<script nonce="__NONCE__">
   var pf=function(n){return n==null?'—':n.toLocaleString('tr-TR',{minimumFractionDigits:2,maximumFractionDigits:2});};
   function el(id){return document.getElementById(id);}
   if(SV.skel)SV.skel('tbody',9,7);
-  fetch('/veri/liseler.json').then(function(r){return r.json();}).then(function(j){data=j;fillIl();applyQS();render();})
+  fetch('/veri/liseler.json').then(function(r){return r.json();}).then(function(j){data=j;fillIl();fillDil();applyQS();render();})
     .catch(function(){el('status').textContent='Veri yüklenemedi.';});
   function fillIl(){
     var set={};data.forEach(function(r){if(r[0])set[r[0]]=1;});
     var ils=Object.keys(set).sort(function(a,b){return a.localeCompare(b,'tr');});
     var sel=el('fIl');ils.forEach(function(i){var o=document.createElement('option');o.value=i;o.textContent=i;sel.appendChild(o);});
   }
-  function applyQS(){var qs=SV.qsGet?SV.qsGet():{};if(qs.q!=null)el('fQ').value=qs.q;if(qs.il!=null)el('fIl').value=qs.il;if(qs.tur!=null)el('fTur').value=qs.tur;}
-  function syncQS(){var o={};var q=el('fQ').value.trim();if(q)o.q=q;if(el('fIl').value)o.il=el('fIl').value;if(el('fTur').value)o.tur=el('fTur').value;if(SV.qsSet)SV.qsSet(o);drawChips();}
+  function fillDil(){
+    var sel=el('fDil');if(!sel)return;
+    var cnt={};data.forEach(function(r){if(r[10])cnt[r[10]]=(cnt[r[10]]||0)+1;});
+    var dils=Object.keys(cnt).sort(function(a,b){return cnt[b]-cnt[a]||a.localeCompare(b,'tr');});
+    dils.forEach(function(d){var o=document.createElement('option');o.value=d;o.textContent=d+' ('+cnt[d]+')';sel.appendChild(o);});
+  }
+  function applyQS(){var qs=SV.qsGet?SV.qsGet():{};if(qs.q!=null)el('fQ').value=qs.q;if(qs.il!=null)el('fIl').value=qs.il;if(qs.tur!=null)el('fTur').value=qs.tur;if(qs.dil!=null&&el('fDil'))el('fDil').value=qs.dil;}
+  function syncQS(){var o={};var q=el('fQ').value.trim();if(q)o.q=q;if(el('fIl').value)o.il=el('fIl').value;if(el('fTur').value)o.tur=el('fTur').value;if(el('fDil')&&el('fDil').value)o.dil=el('fDil').value;if(SV.qsSet)SV.qsSet(o);drawChips();}
   function drawChips(){
     if(!SV.chips)return;var items=[];var q=el('fQ').value.trim();
     if(q)items.push({key:'q',label:'“'+q+'”'});
     if(el('fIl').value)items.push({key:'il',label:'İl: '+el('fIl').value});
     if(el('fTur').value)items.push({key:'tur',label:'Tür: '+(TUR[el('fTur').value]||el('fTur').value)});
+    if(el('fDil')&&el('fDil').value)items.push({key:'dil',label:'Dil: '+el('fDil').value});
     SV.chips('chips',items,function(key){
-      if(key==='__all__'){el('fQ').value='';el('fIl').value='';el('fTur').value='';}
-      else if(key==='q')el('fQ').value='';else if(key==='il')el('fIl').value='';else if(key==='tur')el('fTur').value='';
+      if(key==='__all__'){el('fQ').value='';el('fIl').value='';el('fTur').value='';if(el('fDil'))el('fDil').value='';}
+      else if(key==='q')el('fQ').value='';else if(key==='il')el('fIl').value='';else if(key==='tur')el('fTur').value='';else if(key==='dil'&&el('fDil'))el('fDil').value='';
       render(true);
     });
   }
   function filtered(){
-    var q=(el('fQ').value||'').toLocaleLowerCase('tr').trim(),il=el('fIl').value,tur=el('fTur').value;
+    var q=(el('fQ').value||'').toLocaleLowerCase('tr').trim(),il=el('fIl').value,tur=el('fTur').value,dil=el('fDil')?el('fDil').value:'';
     return data.filter(function(r){
       if(il&&r[0]!==il)return false;
       if(tur&&r[3]!==tur)return false;
+      if(dil&&r[10]!==dil)return false;
       if(q){var hay=(r[2]||'')+' '+(r[1]||'')+' '+(r[0]||'');if(SV.tokMatch?!SV.tokMatch(hay,q):hay.toLocaleLowerCase('tr').indexOf(q)<0)return false;}
       return true;
     });
@@ -2317,7 +2326,7 @@ LISE_SEARCH_JS = r"""<script nonce="__NONCE__">
     el('moreWrap').style.display=(shown<rows.length)?'block':'none';
     el('moreInfo').textContent=shown+' / '+rows.length.toLocaleString('tr-TR');
   }
-  ['fQ','fIl','fTur'].forEach(function(id){el(id).addEventListener('input',function(){render(true);});});
+  ['fQ','fIl','fTur','fDil'].forEach(function(id){var e=el(id);if(e)e.addEventListener('input',function(){render(true);});});
   el('moreBtn').addEventListener('click',function(){render(false);});
   (function(){var ths=document.querySelectorAll('.data-table thead th');ths.forEach(function(th,i){
     th.style.cursor='pointer';th.title='Sıralamak için tıklayın';
@@ -2343,6 +2352,7 @@ def page_lise_taban_index(lgs, il_slugs):
       <option value="">Tüm türler</option><option value="F">Fen Lisesi</option><option value="S">Sosyal Bilimler</option>
       <option value="A">Anadolu Lisesi</option><option value="I">Anadolu İmam Hatip</option><option value="M">Mesleki ve Teknik</option>
     </select>
+    <select id="fDil" class="btn btn-ghost" style="text-align:left"><option value="">Tüm yabancı diller</option></select>
   </div>
   <div class="filter-chips" id="chips" style="display:none"></div>
   <div id="status" style="margin-top:12px;font-size:13px;color:var(--accent);font-weight:700">Yükleniyor…</div>

@@ -227,7 +227,7 @@
   <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;align-items:end">
     <div><label style="font-size:12px;color:var(--fg-faded);font-weight:700">LGS Puanın</label>
       <input id="rPuan" type="text" inputmode="decimal" placeholder="örn. 420,5" style="width:100%;margin-top:4px;padding:9px 10px;border:1px solid var(--border);border-radius:8px;background:var(--bg-card-alt);color:var(--fg);font-family:inherit;font-size:14px"></div>
-    <div><label style="font-size:12px;color:var(--fg-faded);font-weight:700">İl</label><select id="rf0" class="btn btn-ghost" style="text-align:left;width:100%;margin-top:4px"><option value="">Tümü</option></select></div><div><label style="font-size:12px;color:var(--fg-faded);font-weight:700">İlçe</label><select id="rf1" class="btn btn-ghost" style="text-align:left;width:100%;margin-top:4px"><option value="">Tümü</option></select></div>
+    <div><label style="font-size:12px;color:var(--fg-faded);font-weight:700">İl</label><select id="rf0" class="btn btn-ghost" style="text-align:left;width:100%;margin-top:4px"><option value="">Tümü</option></select></div><div><label style="font-size:12px;color:var(--fg-faded);font-weight:700">İlçe</label><select id="rf1" class="btn btn-ghost" style="text-align:left;width:100%;margin-top:4px"><option value="">Tümü</option></select></div><div><label style="font-size:12px;color:var(--fg-faded);font-weight:700">Yabancı Dil</label><select id="rf2" class="btn btn-ghost" style="text-align:left;width:100%;margin-top:4px"><option value="">Tümü</option></select></div>
     <button type="button" class="btn btn-primary" id="rBtn">Yerleşebileceklerimi Göster</button>
   </div>
   <div class="filter-chips" id="chips" style="display:none"></div>
@@ -244,7 +244,7 @@
 kontenjan ve tercih yoğunluğuna göre değişir. <b>Kaynak:</b> MEB 2025 LGS yerleştirme verisi. Resmî tercih için <a href="https://www.osym.gov.tr" target="_blank" rel="noopener">ÖSYM</a> esastır.</div>
 <script nonce="__NONCE__">
 (function(){
-  var CFG={"file": "/veri/liseler.json", "nb": 2, "ns": null, "show": [[0, "İl"], [1, "İlçe"]], "taban": 5, "filters": [[0, "İl"], [1, "İlçe"]], "noun": "liseye", "t1": 15, "t2": 4, "ns_key": "lgs"}, SV=window.SV||{}, NCOL=CFG.show.length+4;
+  var CFG={"file": "/veri/liseler.json", "nb": 2, "ns": null, "show": [[0, "İl"], [1, "İlçe"]], "taban": 5, "filters": [[0, "İl"], [1, "İlçe"], [10, "Yabancı Dil"]], "noun": "liseye", "t1": 15, "t2": 4, "ns_key": "lgs"}, SV=window.SV||{}, NCOL=CFG.show.length+4;
   var data=[],byId={};
   var fav=SV.initFav?SV.initFav({ns:CFG.ns_key||'robot',barId:'favBar',panelId:'favPanel',btnId:'favBtn'}):null;
   function el(id){return document.getElementById(id);}
