@@ -2148,6 +2148,17 @@ def page_doluluk(programs):
     valid = [r for r in programs if r.get("kont") and r.get("yer") is not None]
     tk, ty, tp = agg(valid)
 
+    # Boş kalan / tam dolmayan programlar (yer < kont) → istemci JSON (tab'lı bölüm)
+    # satır: [uni, program, il, tür(D/V/K), düzey(L/O), kont, yer, doluluk%]
+    bos_list = sorted(
+        [[r.get("u") or "", r.get("b") or "", r.get("il") or "", r.get("t") or "?",
+          ("O" if r.get("p") == "TYT" else "L"), r["kont"], r["yer"], round(r["yer"] / r["kont"] * 100, 1)]
+         for r in valid if r["yer"] < r["kont"]],
+        key=lambda x: -(x[5] - x[6]))
+    (ROOT / "veri").mkdir(exist_ok=True)
+    (ROOT / "veri" / "doluluk_bos.json").write_text(
+        json.dumps(bos_list, ensure_ascii=False, separators=(",", ":")), encoding="utf-8")
+
     # tür bazında
     tur_rows = ""
     for code, name in [("D", "Devlet"), ("V", "Vakıf"), ("K", "KKTC")]:
@@ -2210,6 +2221,70 @@ def page_doluluk(programs):
 <div class="data-table-wrap"><table class="data-table">
 <thead><tr><th>Kategori</th><th>Kontenjan</th><th>Yerleşen</th><th>Doluluk</th></tr></thead>
 <tbody>{tur_rows}{duzey_rows}</tbody></table></div></div>
+
+<div class="section"><h2>Boş Kalan / Tam Dolmayan Bölümler</h2>
+<div class="section-sub">Kontenjanı tamamen dolmayan (yerleşen &lt; kontenjan) programlar · {fmt_sira(len(bos_list))} program · en çok boş kalan üstte</div>
+<div style="display:flex;gap:8px;flex-wrap:wrap;margin:10px 0 14px" id="bostabs">
+  <button type="button" class="btn btn-primary" data-tab="D">Devlet</button>
+  <button type="button" class="btn btn-ghost" data-tab="V">Özel (Vakıf)</button>
+  <button type="button" class="btn btn-ghost" data-tab="K">KKTC</button>
+  <button type="button" class="btn btn-ghost" data-tab="L">Lisans</button>
+  <button type="button" class="btn btn-ghost" data-tab="O">Önlisans</button>
+</div>
+<div id="bstatus" style="font-size:13px;color:var(--accent);font-weight:700;margin-bottom:8px">Yükleniyor…</div>
+<div class="data-table-wrap"><table class="data-table" data-live="1">
+<thead><tr><th>Program / Üniversite</th><th>İl</th><th>Tür</th><th>Düzey</th><th>Kont.</th><th>Yerleşen</th><th>Boş</th><th>Doluluk</th></tr></thead>
+<tbody id="bbody"></tbody></table></div>
+<div id="bhint" style="display:none;font-size:12px;color:var(--fg-faded);margin-top:8px;text-align:center"></div></div>
+<script nonce="__NONCE__">
+(function(){{
+  var TUR={{D:'Devlet',V:'Özel (Vakıf)',K:'KKTC','?':'—'}},DUZ={{L:'Lisans',O:'Önlisans'}};
+  var data=[],tab='D',sortI=null,sortD=1;
+  var SCOLS=[[1,0],[2,0],[3,0],[4,0],[5,1],[6,1],['bos',1],[7,1]];
+  function el(i){{return document.getElementById(i);}}
+  var nf=function(n){{return n==null?'—':Number(n).toLocaleString('tr-TR');}};
+  function val(r,f){{return f==='bos'?(r[5]-r[6]):r[f];}}
+  function match(r){{return (tab==='D'||tab==='V'||tab==='K')?r[3]===tab:r[4]===tab;}}
+  function applySort(rows){{
+    if(sortI==null)return rows;
+    var c=SCOLS[sortI],f=c[0],num=c[1];
+    rows.sort(function(a,b){{var x=val(a,f),y=val(b,f);
+      if(num){{x=(x==null?null:Number(x));y=(y==null?null:Number(y));if(x==null&&y==null)return 0;if(x==null)return 1;if(y==null)return -1;return (x-y)*sortD;}}
+      return String(x==null?'':x).localeCompare(String(y==null?'':y),'tr')*sortD;}});
+    return rows;
+  }}
+  function render(){{
+    var rows=applySort(data.filter(match));
+    el('bstatus').textContent=rows.length.toLocaleString('tr-TR')+' boş kalan program ('+(TUR[tab]||DUZ[tab])+')';
+    var tb=el('bbody');tb.innerHTML='';
+    rows.slice(0,500).forEach(function(r){{
+      var tr=document.createElement('tr');
+      tr.innerHTML='<td><strong>'+(r[1]||'')+'</strong><br><small>'+(r[0]||'')+'</small></td>'+
+        '<td>'+(r[2]||'—')+'</td><td>'+(TUR[r[3]]||'—')+'</td><td>'+(DUZ[r[4]]||'—')+'</td>'+
+        '<td>'+nf(r[5])+'</td><td>'+nf(r[6])+'</td><td><strong>'+nf(r[5]-r[6])+'</strong></td>'+
+        '<td><span class="tag tag-other">%'+r[7]+'</span></td>';
+      tb.appendChild(tr);
+    }});
+    el('bhint').style.display=rows.length>500?'block':'none';
+    el('bhint').textContent='İlk 500 gösteriliyor (en çok boş). Başlığa tıklayarak sıralayın.';
+  }}
+  fetch('/veri/doluluk_bos.json').then(function(r){{return r.json();}}).then(function(j){{data=j;render();}})
+    .catch(function(){{el('bstatus').textContent='Veri yüklenemedi.';}});
+  var tabs=el('bostabs').querySelectorAll('button');
+  tabs.forEach(function(b){{b.addEventListener('click',function(){{
+    tab=b.getAttribute('data-tab');
+    tabs.forEach(function(o){{o.className='btn btn-ghost';}});b.className='btn btn-primary';
+    render();
+  }});}});
+  (function(){{var ths=document.querySelectorAll('#bbody').length?null:null;
+    var hs=document.querySelectorAll('.section table[data-live] thead th');
+    hs.forEach(function(th,i){{th.style.cursor='pointer';th.title='Sıralamak için tıklayın';
+      th.addEventListener('click',function(){{sortD=(sortI===i)?-sortD:1;sortI=i;
+        hs.forEach(function(o){{var a=o.querySelector('.s-arrow');if(a)a.remove();}});
+        var ar=document.createElement('span');ar.className='s-arrow';ar.textContent=sortD>0?' ▲':' ▼';th.appendChild(ar);render();}});}});
+  }})();
+}})();
+</script>
 
 <div class="section"><h2>En Düşük Doluluklu Bölümler</h2>
 <div class="section-sub">En az 30 programı olan bölüm grupları · doluluk artan sıra</div>
