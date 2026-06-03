@@ -9,7 +9,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).parent
 SITE = "https://sinavveri.com"
-ASSET_VER = "20260604a"
+ASSET_VER = "20260604b"
 
 NAV = [
     ("/index.html", "Ana Sayfa"),
@@ -187,6 +187,16 @@ HEADER_SEARCH_JS = r"""<script nonce="__NONCE__">
 </script>"""
 
 
+NAV_TOGGLE_JS = r"""<script nonce="__NONCE__">
+(function(){
+  var b=document.getElementById('navToggle'), n=document.getElementById('mainNav'); if(!b||!n)return;
+  function close(){ n.classList.remove('open'); b.setAttribute('aria-expanded','false'); b.textContent='☰'; }
+  b.addEventListener('click',function(e){ e.stopPropagation(); var o=n.classList.toggle('open'); b.setAttribute('aria-expanded',o?'true':'false'); b.textContent=o?'✕':'☰'; });
+  n.addEventListener('click',function(e){ if(e.target.tagName==='A')close(); });
+  document.addEventListener('click',function(e){ if(n.classList.contains('open') && !n.contains(e.target) && e.target!==b)close(); });
+})();
+</script>"""
+
 CARD_LABEL_JS = r"""<script nonce="__NONCE__">
 (function(){
   function label(tbl){
@@ -267,7 +277,8 @@ def base(slug, title, desc, body, *, extra_head="", extra_ld=None):
         <input type="search" name="q" id="hsQ" placeholder="Üniversite, bölüm, lise, kadro…" aria-label="Sitede ara">
         <div class="hs-drop" id="hsDrop" role="listbox"></div>
       </form>
-      <nav>{nav_html}</nav>
+      <button type="button" class="nav-toggle" id="navToggle" aria-label="Menü" aria-expanded="false">☰</button>
+      <nav id="mainNav">{nav_html}</nav>
       <button type="button" class="theme-toggle" id="themeToggle" aria-label="Tema değiştir" title="Açık/Koyu tema"><span class="toggle-icon">🌙</span><span class="toggle-text">Koyu Tema</span></button>
     </div>
   </div>
@@ -329,6 +340,7 @@ def base(slug, title, desc, body, *, extra_head="", extra_ld=None):
 }})();
 </script>
 {HEADER_SEARCH_JS}
+{NAV_TOGGLE_JS}
 {CARD_LABEL_JS}
 <script nonce="__NONCE__">if('serviceWorker' in navigator){{navigator.serviceWorker.register('/sw.js').catch(function(){{}});}}</script>
 </body>
@@ -1584,6 +1596,7 @@ SEARCH_JS = r"""<script nonce="__NONCE__">
       h+='<dt>Doluluk</dt><dd>'+doluluk(r)+'</dd></dl></div>';
     });
     h+='</div>';panel.innerHTML=h;panel.classList.add('open');
+    try{panel.scrollIntoView({behavior:'smooth',block:'center'});}catch(e){}
   }
   el('tbody').addEventListener('change',function(e){
     var cb=e.target;if(!cb.classList||!cb.classList.contains('cmp-cb'))return;
@@ -2134,6 +2147,7 @@ DETAIL_TOOLS_JS = r"""<script nonce="__NONCE__">
       for(var i=1;i<ncol-1;i++){h+='<dt>'+ths[i]+'</dt><dd>'+(c[i]?c[i].textContent.trim():'—')+'</dd>';}
       h+='</dl></div>';});
     p.innerHTML=h+'</div>';p.classList.add('open');
+    try{p.scrollIntoView({behavior:'smooth',block:'center'});}catch(e){}
   }
   tb.addEventListener('change',function(e){var cb=e.target;if(!cb.classList||!cb.classList.contains('dcmp'))return;
     var idx=rows.indexOf(cb.closest('tr'));

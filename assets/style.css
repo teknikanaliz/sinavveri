@@ -226,8 +226,16 @@ footer { background: var(--footer-bg); color: var(--footer-fg); margin-top: 48px
 footer a[href*="trveri.com"] { color: #fff !important; font-weight: 600; text-decoration: underline; text-underline-offset: 2px; }
 footer a[href*="trveri.com"]:hover { color: var(--accent-light) !important; }
 
+/* ── Mobil menü (hamburger) ── */
+.nav-toggle { display: none; background: rgba(255,255,255,.12); color: var(--header-fg); border: 1px solid rgba(255,255,255,.22); border-radius: 6px; width: 38px; height: 32px; font-size: 18px; cursor: pointer; margin-left: 8px; align-items: center; justify-content: center; flex-shrink: 0; }
 @media (max-width: 700px) {
-  nav { display: none; }
+  .nav-toggle { display: inline-flex; }
+  nav { display: none; position: absolute; top: 54px; left: 0; right: 0; flex-direction: column; gap: 0; background: var(--header-bg); border-top: 1px solid rgba(255,255,255,.12); box-shadow: var(--shadow-md); padding: 6px 10px 10px; z-index: 120; }
+  nav.open { display: flex; }
+  nav a { padding: 11px 12px; font-size: 15px; border-radius: 8px; border-bottom: 1px solid rgba(255,255,255,.07); }
+  nav a:last-child { border-bottom: none; }
+  .theme-toggle .toggle-text { display: none; }
+  .theme-toggle { padding: 6px 9px; margin-left: 8px; }
   .subj-row, .subj-head { grid-template-columns: 1fr 56px 56px 52px; gap: 5px; }
   .hero::after { font-size: 90px; }
 }

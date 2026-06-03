@@ -171,7 +171,7 @@
   };
 })();
 </script>
-<link rel="stylesheet" href="/assets/style.css?v=20260604a">
+<link rel="stylesheet" href="/assets/style.css?v=20260604b">
 <link rel="manifest" href="/manifest.json">
 <script nonce="__NONCE__" src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
 </head>
@@ -185,7 +185,8 @@
         <input type="search" name="q" id="hsQ" placeholder="Üniversite, bölüm, lise, kadro…" aria-label="Sitede ara">
         <div class="hs-drop" id="hsDrop" role="listbox"></div>
       </form>
-      <nav><a href="/index.html">Ana Sayfa</a>
+      <button type="button" class="nav-toggle" id="navToggle" aria-label="Menü" aria-expanded="false">☰</button>
+      <nav id="mainNav"><a href="/index.html">Ana Sayfa</a>
 <a href="/taban-puanlari.html">Taban Puanları</a>
 <a href="/tercih-robotu.html">Tercih Robotu</a>
 <a href="/puan-hesaplama.html">Puan Hesaplama</a>
@@ -252,6 +253,7 @@
       for(var i=1;i<ncol-1;i++){h+='<dt>'+ths[i]+'</dt><dd>'+(c[i]?c[i].textContent.trim():'—')+'</dd>';}
       h+='</dl></div>';});
     p.innerHTML=h+'</div>';p.classList.add('open');
+    try{p.scrollIntoView({behavior:'smooth',block:'center'});}catch(e){}
   }
   tb.addEventListener('change',function(e){var cb=e.target;if(!cb.classList||!cb.classList.contains('dcmp'))return;
     var idx=rows.indexOf(cb.closest('tr'));
@@ -351,6 +353,15 @@ Doluluk = yerleşen ÷ kontenjan. Daha fazlası: <a href="/taban-puanlari.html">
     links.forEach(function(l,i){ l.classList.toggle('sel',i===sel); });
   });
   document.addEventListener('click',function(e){ if(!form.contains(e.target)) close(); });
+})();
+</script>
+<script nonce="__NONCE__">
+(function(){
+  var b=document.getElementById('navToggle'), n=document.getElementById('mainNav'); if(!b||!n)return;
+  function close(){ n.classList.remove('open'); b.setAttribute('aria-expanded','false'); b.textContent='☰'; }
+  b.addEventListener('click',function(e){ e.stopPropagation(); var o=n.classList.toggle('open'); b.setAttribute('aria-expanded',o?'true':'false'); b.textContent=o?'✕':'☰'; });
+  n.addEventListener('click',function(e){ if(e.target.tagName==='A')close(); });
+  document.addEventListener('click',function(e){ if(n.classList.contains('open') && !n.contains(e.target) && e.target!==b)close(); });
 })();
 </script>
 <script nonce="__NONCE__">
