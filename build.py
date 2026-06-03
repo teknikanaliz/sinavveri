@@ -2181,13 +2181,12 @@ def _disambiguate_lise(lgs):
     for r in lgs:
         g[(r["il"], r["ilce"], r["okul"])].append(r)
     for group in g.values():
-        ydils = {r.get("ydil") for r in group if r.get("ydil")}
         hazs = {_lise_haz_flag(r) for r in group if _lise_haz_flag(r)}
         dup = len(group) > 1
         for r in group:
             parts = []
             yd = r.get("ydil")
-            if yd and (yd != "İngilizce" or len(ydils) > 1):
+            if yd:  # yabancı dili olan HER okula yaz (İngilizce dahil)
                 parts.append(yd)
             hf = _lise_haz_flag(r)
             if dup and hf and len(hazs) > 1:
