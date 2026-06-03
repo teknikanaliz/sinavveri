@@ -118,7 +118,13 @@ def parse_il(html, il_fallback):
         il = parts[0]
         ilce = parts[1] if len(parts) >= 3 else ""
         okul = " / ".join(parts[2:]) if len(parts) >= 3 else parts[1]
-        tur_raw = clean_first(cell("tur"))  # ilk satır = tür (2. satır yabancı dil, yıl değil)
+        # "Okul Türü / Yabancı Dil" hücresi: 1. <br> satırı = tür, 2. satır = yabancı dil
+        tur_lines = clean_lines(cell("tur"))
+        tur_raw = tur_lines[0] if tur_lines else ""
+        ydil = tur_lines[1].strip() if len(tur_lines) >= 2 else None
+        # ydil bir dil olmalı: rakam/uzun metin/"lises" içeriyorsa yabancı dil değildir
+        if ydil and (re.search(r"\d", ydil) or "lises" in ydil.lower() or len(ydil) > 24):
+            ydil = None
         # Çok-yıllık: Yıl sütunu satırlarını Taban/Yüzdelik/Kont satırlarıyla hizala
         yils = clean_lines(cell("yil"))
         tps = clean_lines(cell("tp"))
@@ -151,7 +157,7 @@ def parse_il(html, il_fallback):
             yuz = None
         out.append({
             "il": il, "ilce": ilce, "okul": okul,
-            "tur": normalize_tur(tur_raw), "tur_ham": tur_raw,
+            "tur": normalize_tur(tur_raw), "tur_ham": tur_raw, "ydil": ydil,
             "kont": by_kont.get("2025"), "tp": tp, "yuz": yuz,
             "tp24": by_tp.get("2024"), "tp23": by_tp.get("2023"), "tp22": by_tp.get("2022"),
         })

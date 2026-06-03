@@ -106,6 +106,12 @@
     clr.addEventListener('click',function(){ onRemove('__all__'); });
     c.appendChild(clr);
   };
+  SV.tokMatch = function(hay, q){
+    hay = (hay || '').toLocaleLowerCase('tr');
+    var ts = (q || '').toLocaleLowerCase('tr').trim().split(/\s+/);
+    for (var i = 0; i < ts.length; i++){ if (ts[i] && hay.indexOf(ts[i]) < 0) return false; }
+    return true;
+  };
   SV.skel = function(tbodyId, cols, n){
     var tb=document.getElementById(tbodyId); if(!tb) return;
     var h=''; for(var r=0;r<(n||8);r++){ h+='<tr>'; for(var c=0;c<cols;c++){ h+='<td><div class="skel-cell"></div></td>'; } h+='</tr>'; }
@@ -299,8 +305,8 @@ o programa <b>en son yerleşen</b> adayın verisidir. Yerleşen olmayan programl
       if(tur&&r[IDX.t]!==tur)return false;
       if(bursOnly&&!/Burslu/i.test(r[IDX.bs]||''))return false;
       if(q){
-        var hay=((r[IDX.b]||'')+' '+(r[IDX.u]||'')+' '+(r[IDX.g]||'')).toLocaleLowerCase('tr');
-        if(hay.indexOf(q)<0)return false;
+        var hay=(r[IDX.b]||'')+' '+(r[IDX.u]||'')+' '+(r[IDX.g]||'')+' '+(r[IDX.il]||'');
+        if(SV.tokMatch?!SV.tokMatch(hay,q):hay.toLocaleLowerCase('tr').indexOf(q)<0)return false;
       }
       return true;
     });
@@ -451,13 +457,16 @@ o programa <b>en son yerleşen</b> adayın verisidir. Yerleşen olmayan programl
   function load(cb){ if(DATA){cb&&cb();return;} if(loading)return; loading=true;
     fetch('/veri/arama.json').then(function(r){return r.json();}).then(function(j){DATA=j;loading=false;cb&&cb();}).catch(function(){loading=false;}); }
   function norm(s){return (s||'').toLocaleLowerCase('tr');}
-  function search(q){ if(!DATA)return []; q=norm(q).trim(); if(q.length<2)return [];
-    var out=[]; for(var i=0;i<DATA.length && out.length<8;i++){ var d=DATA[i]; if(norm(d.n).indexOf(q)>=0||norm(d.s||'').indexOf(q)>=0){ out.push(d); } } return out; }
+  function tok(hay,q){ var SV=window.SV; if(SV&&SV.tokMatch)return SV.tokMatch(hay,q); return norm(hay).indexOf(norm(q))>=0; }
+  function search(q){ if(!DATA)return []; if(q.trim().length<2)return [];
+    var out=[]; for(var i=0;i<DATA.length && out.length<8;i++){ var d=DATA[i]; if(tok((d.n||'')+' '+(d.s||''),q)){ out.push(d); } } return out; }
   function esc(s){ return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
   function close(){ drop.classList.remove('open'); drop.innerHTML=''; sel=-1; }
   function show(){ var q=inp.value; if(!q||q.trim().length<2){ close(); return; } var res=search(q);
-    if(!res.length){ drop.innerHTML='<a class="hs-item" href="/ara.html?q='+encodeURIComponent(q)+'">"'+esc(q)+'" için tüm sonuçlar…</a>'; drop.classList.add('open'); return; }
-    var h=''; res.forEach(function(d){ h+='<a class="hs-item" href="'+d.u+'"><span class="hs-kind">'+esc(d.t)+'</span>'+esc(d.n)+(d.s?'<small>'+esc(d.s)+'</small>':'')+'</a>'; });
+    var multi=q.trim().split(/\s+/).filter(Boolean).length>=2;
+    var prog=multi?'<a class="hs-item" href="/universite-taban-puanlari.html?q='+encodeURIComponent(q)+'"><span class="hs-kind">Program →</span>🎓 “'+esc(q)+'” programları</a>':'';
+    if(!res.length){ drop.innerHTML=prog+'<a class="hs-item" href="/ara.html?q='+encodeURIComponent(q)+'">"'+esc(q)+'" için tüm sonuçlar…</a>'; drop.classList.add('open'); return; }
+    var h=prog; res.forEach(function(d){ h+='<a class="hs-item" href="'+d.u+'"><span class="hs-kind">'+esc(d.t)+'</span>'+esc(d.n)+(d.s?'<small>'+esc(d.s)+'</small>':'')+'</a>'; });
     h+='<a class="hs-item" href="/ara.html?q='+encodeURIComponent(q)+'" style="text-align:center;color:var(--accent);font-weight:700">Tüm sonuçlar →</a>';
     drop.innerHTML=h; drop.classList.add('open'); sel=-1;
   }

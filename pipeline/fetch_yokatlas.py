@@ -82,6 +82,8 @@ def trim(r):
         "b": (r.get("birimAdi") or "").strip(),
         "g": (r.get("birimGrupAdi") or "").strip(),
         "il": (r.get("ilAdi") or "").strip().title(),
+        "ilce": (r.get("ilceAdi") or "").strip().title(),
+        "fak": (r.get("fymkAdi") or "").strip(),  # Fakülte/Yüksekokul/MYO — aynı-ad ayırt edici
         "t": {"DEVLET": "D", "VAKIF": "V", "KKTC": "K", "YÖK": "Y"}.get((r.get("universiteTuru") or "").strip(), "?"),
         "o": (r.get("ogrenimTuruAdi") or "").strip(),
         "dil": (r.get("ogrenimDiliAdi") or "").strip(),

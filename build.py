@@ -63,6 +63,12 @@ SV_HELPER_JS = r"""<script nonce="__NONCE__">
     clr.addEventListener('click',function(){ onRemove('__all__'); });
     c.appendChild(clr);
   };
+  SV.tokMatch = function(hay, q){
+    hay = (hay || '').toLocaleLowerCase('tr');
+    var ts = (q || '').toLocaleLowerCase('tr').trim().split(/\s+/);
+    for (var i = 0; i < ts.length; i++){ if (ts[i] && hay.indexOf(ts[i]) < 0) return false; }
+    return true;
+  };
   SV.skel = function(tbodyId, cols, n){
     var tb=document.getElementById(tbodyId); if(!tb) return;
     var h=''; for(var r=0;r<(n||8);r++){ h+='<tr>'; for(var c=0;c<cols;c++){ h+='<td><div class="skel-cell"></div></td>'; } h+='</tr>'; }
@@ -132,13 +138,16 @@ HEADER_SEARCH_JS = r"""<script nonce="__NONCE__">
   function load(cb){ if(DATA){cb&&cb();return;} if(loading)return; loading=true;
     fetch('/veri/arama.json').then(function(r){return r.json();}).then(function(j){DATA=j;loading=false;cb&&cb();}).catch(function(){loading=false;}); }
   function norm(s){return (s||'').toLocaleLowerCase('tr');}
-  function search(q){ if(!DATA)return []; q=norm(q).trim(); if(q.length<2)return [];
-    var out=[]; for(var i=0;i<DATA.length && out.length<8;i++){ var d=DATA[i]; if(norm(d.n).indexOf(q)>=0||norm(d.s||'').indexOf(q)>=0){ out.push(d); } } return out; }
+  function tok(hay,q){ var SV=window.SV; if(SV&&SV.tokMatch)return SV.tokMatch(hay,q); return norm(hay).indexOf(norm(q))>=0; }
+  function search(q){ if(!DATA)return []; if(q.trim().length<2)return [];
+    var out=[]; for(var i=0;i<DATA.length && out.length<8;i++){ var d=DATA[i]; if(tok((d.n||'')+' '+(d.s||''),q)){ out.push(d); } } return out; }
   function esc(s){ return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
   function close(){ drop.classList.remove('open'); drop.innerHTML=''; sel=-1; }
   function show(){ var q=inp.value; if(!q||q.trim().length<2){ close(); return; } var res=search(q);
-    if(!res.length){ drop.innerHTML='<a class="hs-item" href="/ara.html?q='+encodeURIComponent(q)+'">"'+esc(q)+'" için tüm sonuçlar…</a>'; drop.classList.add('open'); return; }
-    var h=''; res.forEach(function(d){ h+='<a class="hs-item" href="'+d.u+'"><span class="hs-kind">'+esc(d.t)+'</span>'+esc(d.n)+(d.s?'<small>'+esc(d.s)+'</small>':'')+'</a>'; });
+    var multi=q.trim().split(/\s+/).filter(Boolean).length>=2;
+    var prog=multi?'<a class="hs-item" href="/universite-taban-puanlari.html?q='+encodeURIComponent(q)+'"><span class="hs-kind">Program →</span>🎓 “'+esc(q)+'” programları</a>':'';
+    if(!res.length){ drop.innerHTML=prog+'<a class="hs-item" href="/ara.html?q='+encodeURIComponent(q)+'">"'+esc(q)+'" için tüm sonuçlar…</a>'; drop.classList.add('open'); return; }
+    var h=prog; res.forEach(function(d){ h+='<a class="hs-item" href="'+d.u+'"><span class="hs-kind">'+esc(d.t)+'</span>'+esc(d.n)+(d.s?'<small>'+esc(d.s)+'</small>':'')+'</a>'; });
     h+='<a class="hs-item" href="/ara.html?q='+encodeURIComponent(q)+'" style="text-align:center;color:var(--accent);font-weight:700">Tüm sonuçlar →</a>';
     drop.innerHTML=h; drop.classList.add('open'); sel=-1;
   }
@@ -315,6 +324,57 @@ PT_LABEL = {"SAY": "Sayısal", "EA": "Eşit Ağırlık", "SÖZ": "Sözel", "DİL
 TUR_FULL = {"D": "Devlet", "V": "Vakıf", "K": "KKTC", "DK": "Devlet (KKTC Kampüs)", "DU": "Devlet (Ücretli)", "Y": "Diğer", "?": "—"}
 
 
+def _short_fak(f):
+    return (f or "").replace("Meslek Yüksekokulu", "MYO").replace(" Fakültesi", "").strip()
+
+
+def _disambiguate_programs(progs):
+    """Aynı (program, üniversite, il) görünen programları, birincil kaynaktaki (YÖK Atlas)
+    gerçek ayırt edici alanla parantez içinde işaretler. Öncelik: fakülte/MYO → ilçe →
+    yabancı dil → burs → ikinci öğretim → (son çare) kontenjan. Adı yerinde değiştirir."""
+    from collections import defaultdict
+    g = defaultdict(list)
+    for r in progs:
+        g[((r.get("b") or "").strip(), (r.get("u") or "").strip(), (r.get("il") or "").strip())].append(r)
+    for group in g.values():
+        if len(group) < 2:
+            continue
+        def vary(attr):
+            return len({(r.get(attr) or "") for r in group}) > 1
+        for r in group:
+            b = r.get("b") or ""
+            parts = []
+            if vary("fak") and r.get("fak"):
+                parts.append(_short_fak(r["fak"]))
+            if vary("ilce") and r.get("ilce"):
+                parts.append(r["ilce"])
+            if vary("dil") and r.get("dil") and r["dil"] not in b:
+                parts.append(r["dil"])
+            if vary("bs") and r.get("bs") and r["bs"] not in b:
+                parts.append(r["bs"])
+            if vary("o") and "İkinci" in (r.get("o") or ""):
+                parts.append("İÖ")
+            r["_lbl"] = parts
+        # aynı etikete düşenleri kontenjanla, hâlâ eşitse sırayla ayır
+        for _ in range(2):
+            buckets = defaultdict(list)
+            for r in group:
+                buckets[tuple(r["_lbl"])].append(r)
+            for lbl, rs in buckets.items():
+                if len(rs) > 1:
+                    if len({r.get("kont") for r in rs}) == len(rs) and all(r.get("kont") for r in rs):
+                        for r in rs:
+                            r["_lbl"] = list(lbl) + [f"{r['kont']} kont."]
+                    else:
+                        for i, r in enumerate(sorted(rs, key=lambda x: (x.get("tp") is None, -(x.get("tp") or 0))), 1):
+                            r["_lbl"] = list(lbl) + [str(i)]
+        for r in group:
+            if r.get("_lbl"):
+                r["b"] = r["b"] + " (" + ", ".join(r["_lbl"]) + ")"
+            r.pop("_lbl", None)
+    return progs
+
+
 def load_programs():
     progs = json.loads((ROOT / "data" / "programs_raw.json").read_text(encoding="utf-8"))
     # Türk devlet üniversitelerinin KKTC kampüsleri (ODTÜ/İTÜ/ASBÜ Kıbrıs) normal ücretsiz
@@ -330,7 +390,7 @@ def load_programs():
             r["u"] = u + " (KIBRIS)"
         elif r.get("t") == "D" and r.get("bs") == "Ücretli":
             r["t"] = "DU"  # Devlet üniv. ücretli program (ör. İTÜ UOLP) — ad zaten "(Ücretli)" içerir
-    return progs
+    return _disambiguate_programs(progs)
 
 
 def fmt_puan(v):
@@ -1381,8 +1441,8 @@ SEARCH_JS = r"""<script nonce="__NONCE__">
       if(tur&&r[IDX.t]!==tur)return false;
       if(bursOnly&&!/Burslu/i.test(r[IDX.bs]||''))return false;
       if(q){
-        var hay=((r[IDX.b]||'')+' '+(r[IDX.u]||'')+' '+(r[IDX.g]||'')).toLocaleLowerCase('tr');
-        if(hay.indexOf(q)<0)return false;
+        var hay=(r[IDX.b]||'')+' '+(r[IDX.u]||'')+' '+(r[IDX.g]||'')+' '+(r[IDX.il]||'');
+        if(SV.tokMatch?!SV.tokMatch(hay,q):hay.toLocaleLowerCase('tr').indexOf(q)<0)return false;
       }
       return true;
     });
@@ -2103,9 +2163,62 @@ LISE_TUR_CODE = {"Fen Lisesi": "F", "Sosyal Bilimler Lisesi": "S", "Anadolu Lise
 LISE_TUR_NAME = {v: k for k, v in LISE_TUR_CODE.items()}
 
 
+def _lise_haz_flag(r):
+    t = (r.get("tur_ham") or "").lower()
+    if "bulunan" in t:
+        return "Hazırlıklı"
+    if "bulunmayan" in t:
+        return "Hazırlıksız"
+    return None
+
+
+def _disambiguate_lise(lgs):
+    """Aynı il+ilçe+ad'a sahip okulları ayırt edici alanla (yabancı dil / hazırlık sınıfı /
+    son çare kontenjan) parantez içinde işaretler. Tekil okullarda yalnızca İngilizce-dışı
+    yabancı dil gösterilir. Adı yerinde değiştirir → tüm sayfalara (arama/robot/il) yayılır."""
+    from collections import defaultdict
+    g = defaultdict(list)
+    for r in lgs:
+        g[(r["il"], r["ilce"], r["okul"])].append(r)
+    for group in g.values():
+        ydils = {r.get("ydil") for r in group if r.get("ydil")}
+        hazs = {_lise_haz_flag(r) for r in group if _lise_haz_flag(r)}
+        dup = len(group) > 1
+        for r in group:
+            parts = []
+            yd = r.get("ydil")
+            if yd and (yd != "İngilizce" or len(ydils) > 1):
+                parts.append(yd)
+            hf = _lise_haz_flag(r)
+            if dup and hf and len(hazs) > 1:
+                parts.append(hf)
+            r["_lbl"] = parts
+        if dup:
+            # aynı etiketi paylaşan satırlara kontenjan, hâlâ eşitse sıra ekle
+            for _ in range(2):
+                buckets = defaultdict(list)
+                for r in group:
+                    buckets[tuple(r["_lbl"])].append(r)
+                for lbl, rs in buckets.items():
+                    if len(rs) > 1:
+                        if all(r.get("kont") for r in rs) and len({r["kont"] for r in rs}) == len(rs):
+                            for r in rs:
+                                r["_lbl"] = list(lbl) + [f"{r['kont']} kont."]
+                        else:
+                            for i, r in enumerate(sorted(rs, key=lambda x: -(x.get("tp") or 0)), 1):
+                                r["_lbl"] = list(lbl) + [str(i)]
+        for r in group:
+            if r.get("_lbl"):
+                r["okul"] = r["okul"] + " (" + ", ".join(r["_lbl"]) + ")"
+            r.pop("_lbl", None)
+    return lgs
+
+
 def load_lgs():
     p = ROOT / "data" / "lgs_liseler.json"
-    return json.loads(p.read_text(encoding="utf-8")) if p.exists() else []
+    if not p.exists():
+        return []
+    return _disambiguate_lise(json.loads(p.read_text(encoding="utf-8")))
 
 
 def write_lgs_veri(lgs):
@@ -2152,7 +2265,7 @@ LISE_SEARCH_JS = r"""<script nonce="__NONCE__">
     return data.filter(function(r){
       if(il&&r[0]!==il)return false;
       if(tur&&r[3]!==tur)return false;
-      if(q){var hay=((r[2]||'')+' '+(r[1]||'')+' '+(r[0]||'')).toLocaleLowerCase('tr');if(hay.indexOf(q)<0)return false;}
+      if(q){var hay=(r[2]||'')+' '+(r[1]||'')+' '+(r[0]||'');if(SV.tokMatch?!SV.tokMatch(hay,q):hay.toLocaleLowerCase('tr').indexOf(q)<0)return false;}
       return true;
     });
   }
@@ -2372,7 +2485,7 @@ GENERIC_SEARCH_JS = r"""<script nonce="__NONCE__">
     var q=(el('fQ').value||'').toLocaleLowerCase('tr').trim();
     return data.filter(function(r){
       for(var k=0;k<CFG.filters.length;k++){var f=CFG.filters[k];var s=el('fil'+f[1]);if(s&&s.value&&String(r[f[0]])!==s.value)return false;}
-      if(q){var hay='';CFG.search.forEach(function(i){hay+=' '+(r[i]||'');});if(hay.toLocaleLowerCase('tr').indexOf(q)<0)return false;}
+      if(q){var hay='';CFG.search.forEach(function(i){hay+=' '+(r[i]||'');});if(SV.tokMatch?!SV.tokMatch(hay,q):hay.toLocaleLowerCase('tr').indexOf(q)<0)return false;}
       return true;
     });
   }
@@ -3031,15 +3144,23 @@ ARA_JS = r"""<script nonce="__NONCE__">
   var DATA=null, ORDER=['Üniversite','Bölüm','Lise','Rehber','Araç'];
   function norm(s){return (s||'').toLocaleLowerCase('tr');}
   function esc(s){return (''+(s==null?'':s)).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+  function progCta(q){
+    return '<a class="ara-item" href="/universite-taban-puanlari.html?q='+encodeURIComponent(q)+'" style="border-color:var(--accent-light)">'+
+      '<span class="hs-kind" style="float:right;color:var(--accent);font-weight:700">Program ara →</span>'+
+      '<b>🎓 “'+esc(q)+'” için üniversite programları</b><small>Üniversite + bölüm birlikte yazdıysanız (örn. “ODTÜ kimya”) taban puanları sayfasında arayın</small></a>';
+  }
   function render(){
     var q=inp.value.trim();
     if(SV.qsSet)SV.qsSet(q?{q:q}:{});
     if(!DATA){st.textContent='Yükleniyor…';return;}
     if(q.length<2){st.textContent='Aramak için en az 2 karakter yazın.';out.innerHTML='';return;}
-    var nq=norm(q);
-    var hits=DATA.filter(function(d){return norm(d.n).indexOf(nq)>=0||norm(d.s||'').indexOf(nq)>=0;});
+    var hits=DATA.filter(function(d){return SV.tokMatch?SV.tokMatch((d.n||'')+' '+(d.s||''),q):(norm(d.n).indexOf(norm(q))>=0);});
+    var multi=q.split(/\s+/).filter(Boolean).length>=2;
     st.textContent=hits.length.toLocaleString('tr-TR')+' sonuç · “'+esc(q)+'”';
-    if(!hits.length){out.innerHTML='<div class="empty-state"><b>Sonuç bulunamadı</b>Farklı bir kelime deneyin: üniversite, bölüm, lise veya sınav adı.</div>';return;}
+    if(!hits.length){
+      out.innerHTML=(multi?progCta(q):'')+'<div class="empty-state"><b>Doğrudan eşleşme yok</b>Üniversite + bölüm birlikte ararken yukarıdaki “Program ara” bağlantısını kullanın; ya da tek tek (üniversite veya bölüm) yazın.</div>';
+      return;
+    }
     var groups={};hits.forEach(function(d){(groups[d.t]=groups[d.t]||[]).push(d);});
     var keys=Object.keys(groups).sort(function(a,b){var ia=ORDER.indexOf(a),ib=ORDER.indexOf(b);return (ia<0?99:ia)-(ib<0?99:ib);});
     var h='';keys.forEach(function(k){
@@ -3049,7 +3170,7 @@ ARA_JS = r"""<script nonce="__NONCE__">
       if(groups[k].length>30)h+='<div style="font-size:12px;color:var(--fg-faded);padding:4px 2px">… ve '+(groups[k].length-30)+' sonuç daha. Aramayı daraltın.</div>';
       h+='</div>';
     });
-    out.innerHTML=h;
+    out.innerHTML=(multi?progCta(q):'')+h;
   }
   fetch('/veri/arama.json').then(function(r){return r.json();}).then(function(j){DATA=j;render();}).catch(function(){st.textContent='Arama verisi yüklenemedi.';});
   inp.addEventListener('input',render);
