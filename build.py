@@ -79,6 +79,15 @@ SV_HELPER_JS = r"""<script nonce="__NONCE__">
     'çü':'çukurova','atatürk':'atatürk üniversitesi','asbü':'ankara sosyal bilimler','ybü':'yıldırım beyazıt',
     'gop':'gaziosmanpaşa','nef':'necmettin erbakan','marmara':'marmara üniversitesi','msü':'millî savunma'
   };
+  SV.spark = function(vals){
+    var pts=[]; for(var i=0;i<vals.length;i++){ var v=vals[i]; if(v!=null && !isNaN(v)) pts.push({i:i,v:Number(v)}); }
+    if(pts.length<2) return '';
+    var w=42,h=14,pad=2,xs=vals.length-1||1;
+    var vs=pts.map(function(p){return p.v;}); var mn=Math.min.apply(null,vs),mx=Math.max.apply(null,vs),rng=mx-mn||1;
+    var d=pts.map(function(p){var x=pad+(p.i/xs)*(w-2*pad);var y=h-pad-((p.v-mn)/rng)*(h-2*pad);return x.toFixed(1)+','+y.toFixed(1);}).join(' ');
+    var f=pts[0].v,l=pts[pts.length-1].v,col=l>f?'#16a34a':(l<f?'#dc2626':'#94a3b8');
+    return '<svg width="'+w+'" height="'+h+'" viewBox="0 0 '+w+' '+h+'" style="vertical-align:middle;margin-left:6px;flex:0 0 auto" aria-hidden="true"><polyline fill="none" stroke="'+col+'" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round" points="'+d+'"/></svg>';
+  };
   SV.tokMatch = function(hay, q){
     hay = (hay || '').toLocaleLowerCase('tr');
     var ts = (q || '').toLocaleLowerCase('tr').trim().split(/\s+/);
@@ -422,7 +431,10 @@ def _disambiguate_programs(progs):
                             r["_lbl"] = list(lbl) + [str(i)]
         for r in group:
             if r.get("_lbl"):
-                r["b"] = r["b"] + " (" + ", ".join(r["_lbl"]) + ")"
+                lbl = ", ".join(r["_lbl"])
+                b = r["b"]
+                # ad zaten "(...)" ile bitiyorsa çift parantez yerine tek parantez içine ekle
+                r["b"] = (b[:-1] + ", " + lbl + ")") if b.endswith(")") else (b + " (" + lbl + ")")
             r.pop("_lbl", None)
     return progs
 
@@ -593,7 +605,7 @@ def page_index():
 <div class="hero">
   <h1>Türkiye Sınav Verileri Tek Çatıda</h1>
   <p>2026 tercih robotu, 2025 üniversite LGS TUS DUS DGS KPSS taban puanları, puan hesaplama araçları ve güncel sınav takvimi. Sade, hızlı ve detaylı bilgi.</p>
-  <div class="hero-badges"><a href="/taban-puanlari.html">📊 21.602 Program</a><a href="/tercih-robotu.html">🎯 Tercih Robotu</a><a href="/puan-hesaplama.html">🧮 Puan Hesaplama</a><a href="/takvim.html">📅 2026 Takvimi</a></div>
+  <div class="hero-badges"><a href="/taban-puanlari.html">📊 21.602 Üniversite Programı</a><a href="/tercih-robotu.html">🎯 Tercih Robotu</a><a href="/puan-hesaplama.html">🧮 Puan Hesaplama</a><a href="/takvim.html">📅 2026 Takvimi</a></div>
 </div>
 
 <div class="spotlight" id="spotlight"></div>
@@ -1448,7 +1460,8 @@ def write_veri(programs):
             continue
         buckets[pt].append([r.get("k"), r.get("u"), r.get("b"), r.get("g"), r.get("il"),
                              r.get("t"), r.get("o"), r.get("dil"), r.get("bs"),
-                             r.get("kont"), r.get("tp"), r.get("sira"), r.get("yer")])
+                             r.get("kont"), r.get("tp"), r.get("sira"), r.get("yer"),
+                             hist_taban(r, 2024), hist_taban(r, 2023)])
     for pt, rows in buckets.items():
         rows.sort(key=lambda x: (x[11] is None, x[11] or 0))
         path = veri / f"{fname[pt]}.json"
@@ -1459,7 +1472,7 @@ def write_veri(programs):
 # ───────────────────────── TABAN PUANLARI (interaktif arama) ─────────────────────────
 SEARCH_JS = r"""<script nonce="__NONCE__">
 (function(){
-  var IDX={k:0,u:1,b:2,g:3,il:4,t:5,o:6,dil:7,bs:8,kont:9,tp:10,sira:11,yer:12};
+  var IDX={k:0,u:1,b:2,g:3,il:4,t:5,o:6,dil:7,bs:8,kont:9,tp:10,sira:11,yer:12,t24:13,t23:14};
   var TUR={D:'Devlet',V:'Vakıf',K:'KKTC',DK:'Devlet (KKTC Kampüs)',DU:'Devlet (Ücretli)',DKU:'Devlet (KKTC Uyruklu)',Y:'Diğer','?':'—'};
   var PTL={say:'Sayısal',ea:'Eşit Ağırlık',soz:'Sözel',dil:'Dil',tyt:'TYT (Önlisans)'};
   var SV=window.SV||{};
@@ -1574,7 +1587,7 @@ SEARCH_JS = r"""<script nonce="__NONCE__">
         '<td>'+(r[IDX.il]||'—')+'</td>'+
         '<td><span class="tag tag-other">'+(TUR[r[IDX.t]]||'—')+'</span></td>'+
         '<td>'+kc+'</td>'+
-        '<td><strong>'+pf(r[IDX.tp])+'</strong></td>'+
+        '<td><strong>'+pf(r[IDX.tp])+'</strong>'+(SV.spark?SV.spark([r[IDX.t23],r[IDX.t24],r[IDX.tp]]):'')+'</td>'+
         '<td>'+nf(r[IDX.sira])+'</td>'+
         '<td>'+doluluk(r)+'</td>'+
         '<td style="text-align:center"><input type="checkbox" class="cmp-cb" aria-label="Karşılaştır" data-k="'+k.replace(/"/g,'&quot;')+'"'+(cmp[k]?' checked':'')+'></td>';
@@ -2493,7 +2506,7 @@ LISE_SEARCH_JS = r"""<script nonce="__NONCE__">
       var tr=document.createElement('tr');
       tr.innerHTML='<td><strong>'+(r[2]||'')+'</strong></td><td>'+(r[0]||'')+(r[1]?' / '+r[1]:'')+'</td>'+
         '<td><span class="tag tag-other">'+(TUR[r[3]]||'—')+'</span></td>'+
-        '<td>'+nf(r[4])+'</td><td><strong>'+pf(r[5])+'</strong></td>'+
+        '<td>'+nf(r[4])+'</td><td><strong>'+pf(r[5])+'</strong>'+(SV.spark?SV.spark([r[8],r[7],r[5]]):'')+'</td>'+
         '<td>'+pf(r[7])+'</td><td>'+pf(r[8])+'</td><td>'+(r[9]||'')+'</td>'+
         '<td>'+(r[6]==null?'—':'%'+pf(r[6]))+'</td>';
       tb.appendChild(tr);
@@ -2717,7 +2730,7 @@ GENERIC_SEARCH_JS = r"""<script nonce="__NONCE__">
       var html='';
       CFG.cols.forEach(function(c){
         var v=r[c[0]],cell;
-        if(c[1]==='p')cell='<strong>'+pf(v)+'</strong>';
+        if(c[1]==='p')cell='<strong>'+pf(v)+'</strong>'+(CFG.spark&&SV.spark?SV.spark(CFG.spark.map(function(i){return r[i];})):'');
         else if(c[1]==='pv')cell=pf(v);
         else if(c[1]==='n')cell=nf(v);
         else if(c[1]==='b')cell='<strong>'+(v==null?'—':v)+'</strong>';
@@ -2748,7 +2761,7 @@ GENERIC_SEARCH_JS = r"""<script nonce="__NONCE__">
 </script>"""
 
 
-def minmax_page(slug, title, desc, h1, sub, file, cols, filters, search_idx, intro, kaynak, ph="Ara…", hub_html=""):
+def minmax_page(slug, title, desc, h1, sub, file, cols, filters, search_idx, intro, kaynak, ph="Ara…", hub_html="", spark=None):
     """Generic ÖSYM taban puanı interaktif arama sayfası.
     cols: [(dataIdx, label, kind)] kind: b=kalın metin, t=metin, n=tamsayı, p=taban(kalın), pv=tavan
     filters: [(dataIdx, label)] → dropdown
@@ -2759,7 +2772,7 @@ def minmax_page(slug, title, desc, h1, sub, file, cols, filters, search_idx, int
     for n, (idx, label) in enumerate(filters):
         fhtml += f'<select id="fil{n}" class="btn btn-ghost" style="text-align:left"><option value="">{label} (tümü)</option></select>'
     cfg = {"file": file, "cols": [[c[0], c[2]] for c in cols],
-           "filters": [[idx, n, label] for n, (idx, label) in enumerate(filters)], "search": search_idx}
+           "filters": [[idx, n, label] for n, (idx, label) in enumerate(filters)], "search": search_idx, "spark": spark}
     js = GENERIC_SEARCH_JS.replace("__CFG__", json.dumps(cfg, ensure_ascii=False))
     body = f"""
 <div class="crumb"><a href="/index.html">Ana Sayfa</a> / <a href="/taban-puanlari.html">Taban Puanları</a> / {h1}</div>
@@ -2881,7 +2894,7 @@ def page_tus(hubs=None):
         "<b>MAP</b> Misafir Askeri Personel, <b>KKTC</b> Kıbrıs, <b>ADL</b> Adalet Bakanlığı, <b>YBU</b> yabancı uyruklu. "
         "Aynı kurum+dalda birden çok kadro ayrı satırdır. Dal veya kurum/şehir arayın, uzmanlık dalına göre filtreleyin.",
         "ÖSYM 2023, 2024 ve 2025 TUS Yerleştirme 'En Küçük ve En Büyük Puanlar' resmî yayınları (dokuman.osym.gov.tr).",
-        ph="Dal / kurum / şehir ara…", hub_html=hub_links_html("tus", hubs))
+        ph="Dal / kurum / şehir ara…", hub_html=hub_links_html("tus", hubs), spark=[7, 6, 4])
 
 
 def page_dus(hubs=None):
@@ -2898,7 +2911,7 @@ def page_dus(hubs=None):
         "DUS'ta her kurum ve diş hekimliği uzmanlık dalı için ÖSYM'nin açıkladığı taban ve tavan puanlar, "
         "<b>son 3 yılın (2023-2024-2025) karşılaştırmasıyla</b>. Trend sütunu 2025 tabanının bir önceki yıla göre değişimini gösterir.",
         "ÖSYM 2023, 2024 ve 2025 DUS 'En Küçük ve En Büyük Puanlar' resmî yayınları (dokuman.osym.gov.tr).",
-        ph="Dal / kurum ara…", hub_html=hub_links_html("dus", hubs))
+        ph="Dal / kurum ara…", hub_html=hub_links_html("dus", hubs), spark=[7, 6, 4])
 
 
 def page_dgs_taban(hubs=None):
@@ -2917,7 +2930,7 @@ def page_dgs_taban(hubs=None):
         "(↑ yükseliş, ↓ düşüş). Program kodu yıllar arası eşleştirilir; yeni açılan programlarda geçmiş boştur. "
         "Program veya üniversite adı arayın. DGS net hesaplama için <a href='/dgs-puan-hesaplama.html'>DGS puan hesaplama</a>.",
         "ÖSYM 2023, 2024 ve 2025 'DGS Yerleştirme Sonuçlarına İlişkin En Küçük ve En Büyük Puanlar' resmî yayınları (dokuman.osym.gov.tr).",
-        ph="Program / üniversite ara…", hub_html=hub_links_html("dgs", hubs))
+        ph="Program / üniversite ara…", hub_html=hub_links_html("dgs", hubs), spark=[6, 5, 3])
 
 
 def page_kpss_atama(hubs=None):
@@ -2936,7 +2949,7 @@ def page_kpss_atama(hubs=None):
         "<b>Kapsam:</b> 2025 yılının tüm KPSS yerleştirmeleri (2025/1–2025/5: Genel, Çevre Bak., Sağlık Bak.). "
         "<b>2024</b> sütunu aynı kurum+il+kadronun bir önceki yıl (aynı tür yerleştirme) tabanıdır; Trend değişimi gösterir. "
         "KPSS atamaları tek-seferlik ilanlar olduğundan eşleşme kısmidir (Çevre Bak. için 2024 verisi yoktur).",
-        OSYM_KAYNAK, ph="Kadro / kurum ara…", hub_html=hub_links_html("kpss", hubs))
+        OSYM_KAYNAK, ph="Kadro / kurum ara…", hub_html=hub_links_html("kpss", hubs), spark=[8, 6])
 
 
 # ───────────────────────── ÖSYM KATEGORİ HUB SAYFALARI (SEO) ─────────────────────────

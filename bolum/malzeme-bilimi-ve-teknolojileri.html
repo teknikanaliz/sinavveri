@@ -100,6 +100,15 @@
     'çü':'çukurova','atatürk':'atatürk üniversitesi','asbü':'ankara sosyal bilimler','ybü':'yıldırım beyazıt',
     'gop':'gaziosmanpaşa','nef':'necmettin erbakan','marmara':'marmara üniversitesi','msü':'millî savunma'
   };
+  SV.spark = function(vals){
+    var pts=[]; for(var i=0;i<vals.length;i++){ var v=vals[i]; if(v!=null && !isNaN(v)) pts.push({i:i,v:Number(v)}); }
+    if(pts.length<2) return '';
+    var w=42,h=14,pad=2,xs=vals.length-1||1;
+    var vs=pts.map(function(p){return p.v;}); var mn=Math.min.apply(null,vs),mx=Math.max.apply(null,vs),rng=mx-mn||1;
+    var d=pts.map(function(p){var x=pad+(p.i/xs)*(w-2*pad);var y=h-pad-((p.v-mn)/rng)*(h-2*pad);return x.toFixed(1)+','+y.toFixed(1);}).join(' ');
+    var f=pts[0].v,l=pts[pts.length-1].v,col=l>f?'#16a34a':(l<f?'#dc2626':'#94a3b8');
+    return '<svg width="'+w+'" height="'+h+'" viewBox="0 0 '+w+' '+h+'" style="vertical-align:middle;margin-left:6px;flex:0 0 auto" aria-hidden="true"><polyline fill="none" stroke="'+col+'" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round" points="'+d+'"/></svg>';
+  };
   SV.tokMatch = function(hay, q){
     hay = (hay || '').toLocaleLowerCase('tr');
     var ts = (q || '').toLocaleLowerCase('tr').trim().split(/\s+/);
@@ -214,7 +223,7 @@
 <div class="data-table-wrap">
 <table class="data-table detail-table">
 <thead><tr><th>Üniversite</th><th>Program</th><th>İl</th><th>Tür</th><th>Kont.</th><th>Doluluk</th><th>Taban 2025</th><th>Taban 2024</th><th>Taban 2023</th><th>Sıra 2025</th><th data-nosort title="Karşılaştır">Kıyas</th></tr></thead>
-<tbody><tr data-dil="Almanca"><td><strong>TÜRK-ALMAN ÜNİVERSİTESİ (İSTANBUL)</strong></td><td>Malzeme Bilimi ve Teknolojileri (Almanca) (45 kont.)</td><td>İstanbul</td><td>Devlet</td><td>45</td><td><span class="tag tag-lgs">%100</span></td><td><strong>428,38</strong></td><td>414,21</td><td>447,31</td><td>67.047</td><td style="text-align:center"><input type="checkbox" class="dcmp" aria-label="Karşılaştır"></td></tr><tr data-dil="Almanca"><td><strong>TÜRK-ALMAN ÜNİVERSİTESİ (İSTANBUL)</strong></td><td>Malzeme Bilimi ve Teknolojileri (Almanca) (10 kont.)</td><td>İstanbul</td><td>Devlet</td><td>10</td><td><span class="tag tag-lgs">%100</span></td><td><strong>394,35</strong></td><td>375,47</td><td>397,11</td><td>105.908</td><td style="text-align:center"><input type="checkbox" class="dcmp" aria-label="Karşılaştır"></td></tr></tbody>
+<tbody><tr data-dil="Almanca"><td><strong>TÜRK-ALMAN ÜNİVERSİTESİ (İSTANBUL)</strong></td><td>Malzeme Bilimi ve Teknolojileri (Almanca, 45 kont.)</td><td>İstanbul</td><td>Devlet</td><td>45</td><td><span class="tag tag-lgs">%100</span></td><td><strong>428,38</strong></td><td>414,21</td><td>447,31</td><td>67.047</td><td style="text-align:center"><input type="checkbox" class="dcmp" aria-label="Karşılaştır"></td></tr><tr data-dil="Almanca"><td><strong>TÜRK-ALMAN ÜNİVERSİTESİ (İSTANBUL)</strong></td><td>Malzeme Bilimi ve Teknolojileri (Almanca, 10 kont.)</td><td>İstanbul</td><td>Devlet</td><td>10</td><td><span class="tag tag-lgs">%100</span></td><td><strong>394,35</strong></td><td>375,47</td><td>397,11</td><td>105.908</td><td style="text-align:center"><input type="checkbox" class="dcmp" aria-label="Karşılaştır"></td></tr></tbody>
 </table>
 </div>
 
