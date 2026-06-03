@@ -137,10 +137,31 @@
     clr.addEventListener('click',function(){ onRemove('__all__'); });
     c.appendChild(clr);
   };
+  // Üniversite kısaltmaları → ad içinde aranan bitişik ifade (yanlış eşleşmeyi önlemek için ifade-tam)
+  SV.alias = {
+    'odtü':'orta doğu teknik','odtu':'orta doğu teknik','metu':'orta doğu teknik',
+    'itü':'istanbul teknik','itu':'istanbul teknik',
+    'ytü':'yıldız teknik','ytu':'yıldız teknik',
+    'gtü':'gebze teknik','gtu':'gebze teknik',
+    'ktü':'karadeniz teknik','ktu':'karadeniz teknik',
+    'btü':'bursa teknik','btu':'bursa teknik',
+    'boun':'boğaziçi','boğaziçi':'boğaziçi',
+    'iü':'istanbul üniversitesi','iüc':'istanbul üniversitesi-cerrahpaşa','iü-c':'istanbul üniversitesi-cerrahpaşa',
+    'aü':'ankara üniversitesi','hü':'hacettepe','gü':'gazi üniversitesi','eü':'ege üniversitesi',
+    'deü':'dokuz eylül','msgsü':'mimar sinan','iyte':'izmir yüksek teknoloji','iztech':'izmir yüksek teknoloji',
+    'omü':'ondokuz mayıs','sdü':'süleyman demirel','akü':'afyon kocatepe','pau':'pamukkale',
+    'çü':'çukurova','atatürk':'atatürk üniversitesi','asbü':'ankara sosyal bilimler','ybü':'yıldırım beyazıt',
+    'gop':'gaziosmanpaşa','nef':'necmettin erbakan','marmara':'marmara üniversitesi','msü':'millî savunma'
+  };
   SV.tokMatch = function(hay, q){
     hay = (hay || '').toLocaleLowerCase('tr');
     var ts = (q || '').toLocaleLowerCase('tr').trim().split(/\s+/);
-    for (var i = 0; i < ts.length; i++){ if (ts[i] && hay.indexOf(ts[i]) < 0) return false; }
+    for (var i = 0; i < ts.length; i++){
+      var t = ts[i]; if (!t) continue;
+      var exp = SV.alias[t];
+      if (exp){ if (hay.indexOf(exp) < 0) return false; }
+      else if (hay.indexOf(t) < 0) return false;
+    }
     return true;
   };
   SV.skel = function(tbodyId, cols, n){
