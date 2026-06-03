@@ -656,8 +656,8 @@ def page_takvim():
 </tbody>
 </table>
 </div>
-<div class="notice"><b>Not:</b> Tarihler ÖSYM'nin 14.11.2025 tarihli 2026 Yılı Sınav Takvimi ve MEB LGS duyurusuna dayanır.
-Başvuru ve sonuç tarihleri ÖSYM tarafından güncellenebilir; kesin bilgi için <a href="https://www.osym.gov.tr" target="_blank" rel="noopener">osym.gov.tr</a> takip edilmelidir.</div>
+<div class="notice"><b>Not:</b> Tarihler ÖSYM 2026 Yılı Sınav Takvimi ve her sınavın resmî <b>kılavuz/duyurularıyla</b> (YKS, LGS, KPSS, DGS, ALES, TUS, DUS, YDS…) teyit edilmiştir.
+Yaklaşmayan sınavların başvuru tarihleri ilgili kılavuz yayımlanınca kesinleşir; güncel bilgi için <a href="https://www.osym.gov.tr" target="_blank" rel="noopener">osym.gov.tr</a> ve <a href="https://www.meb.gov.tr" target="_blank" rel="noopener">meb.gov.tr</a> esastır.</div>
 """
     ev = [{"@type": "Event", "name": s["ad"], "startDate": s["sinav"],
            "eventAttendanceMode": "https://schema.org/OfflineEventAttendanceMode",
@@ -1054,8 +1054,9 @@ def page_lgs():
                 "Ders katsayıları: Türkçe, Matematik ve Fen Bilimleri <strong>×4</strong>; İnkılap Tarihi, Din Kültürü ve Yabancı Dil <strong>×1</strong>.",
                 "LGS puanı 100–500 arasında, standart puan yöntemiyle hesaplanır. Tahmini için <a href='lgs-puan-hesaplama.html'>LGS Puan Hesaplama</a> aracını kullanın.",
             ]),
-            ("2026 LGS Tarihi", [
-                ("ul", ["Sınav: 14 Haziran 2026", "Sonuç: Temmuz 2026 (MEB tarafından açıklanır)"]),
+            ("2026 LGS Tarihleri (MEB resmî kılavuzu)", [
+                ("ul", ["Başvuru: 23 Mart – 10 Nisan 2026 (e-Okul üzerinden)", "Sınav giriş belgesi: 3 Haziran 2026",
+                        "Sınav: 14 Haziran 2026 (Pazar)", "Sonuç: Haziran 2026 sonu"]),
             ]),
         ])
 
@@ -1200,7 +1201,12 @@ def page_yds_rehber():
                 "Puan ayrıca harf notu/CEFR seviyesine karşılık gelir (ör. 90+ A, 80+ B …).",
             ]),
             ("Dönemler", [
-                "Yılda iki ana dönem (İlkbahar/Sonbahar) yapılır; ayrıca bilgisayar tabanlı <strong>e-YDS</strong> ile yıl içinde ek dönemler açılır. Kesin tarihler ÖSYM sınav takviminde duyurulur.",
+                "Yılda iki ana dönem (İlkbahar/Sonbahar) yapılır; ayrıca bilgisayar tabanlı <strong>e-YDS</strong> ile yıl içinde ek dönemler açılır.",
+            ]),
+            ("2026 YDS Tarihleri (ÖSYM)", [
+                ("ul", ["<strong>YDS/1 (İlkbahar):</strong> 5 Nisan 2026 — başvuru 18–26 Şubat (geç: 4 Mart), sonuç 28 Nisan 2026",
+                        "<strong>YDS/2 (Sonbahar):</strong> 22 Kasım 2026 — başvuru 30 Eylül–8 Ekim (geç: 14 Ekim), sonuç 10 Aralık 2026",
+                        "e-YDS: yıl içinde 12 ayrı dönem (İngilizce ve diğer diller) ÖSYM e-sınav merkezlerinde"]),
             ]),
         ], has_calc=False)
 
@@ -1220,6 +1226,12 @@ def page_yokdil_rehber():
             ("Puan Mantığı", [
                 "Her doğru <strong>1,25 puan</strong>, 100 üzerinden; <strong>yanlış doğruyu götürmez</strong>. Geçerlilik ve kullanım YDS'ye benzer (lisansüstü başvuru, akademik kadrolar).",
             ]),
+            ("2026 YÖKDİL Tarihleri (ÖSYM)", [
+                ("ul", ["<strong>YÖKDİL/1:</strong> 8 Mart 2026 — başvuru 21–29 Ocak (geç: 4 Şubat), sonuç 18 Mart 2026",
+                        "<strong>YÖKDİL/2:</strong> 9 Ağustos 2026 — başvuru 16–24 Haziran (geç: 30 Haziran), sonuç 26 Ağustos 2026",
+                        "Ayrıca e-YÖKDİL (elektronik) dönemleri yıl içinde açılır."]),
+                "Kesin başvuru tarihleri her dönemin <strong>kılavuzunda</strong> duyurulur.",
+            ]),
         ], has_calc=False)
 
 
@@ -1237,8 +1249,9 @@ def page_msu_rehber():
             ("Puan Mantığı", [
                 "Net = Doğru − (Yanlış ÷ 4). Ham puanlar standart puana dönüştürülür ve farklı puan türlerinde ağırlıklı olarak hesaplanır.",
             ]),
-            ("2026 MSÜ", [
-                ("ul", ["Sınav: 1 Mart 2026 (ÖSYM)"]),
+            ("2026 MSÜ Tarihleri (ÖSYM)", [
+                ("ul", ["Başvuru: 5 – 29 Ocak 2026 (geç başvuru: 3 Şubat)", "Sınav: 1 Mart 2026", "Sonuç: 24 Mart 2026"]),
+                "Sınav sonrası fizikî yeterlilik ve mülakat aşamaları MSÜ tarafından ayrıca duyurulur.",
             ]),
         ], has_calc=False)
 
@@ -1254,6 +1267,9 @@ def page_ydus_rehber():
                 "İlgili ana dala göre ayrı düzenlenen tek bir testten oluşur; sorular adayın ana dal alanındandır. Net = Doğru − (Yanlış ÷ 4); ham puan standart puana dönüştürülür ve yerleştirme bu puanla yapılır.",
                 "Her ana dalın soru sayısı ve yan dal kontenjanları ÖSYM kılavuzunda belirtilir.",
             ]),
+            ("2026 YDUS Tarihleri (ÖSYM)", [
+                ("ul", ["Başvuru: 13 – 23 Mart 2026 (geç başvuru: 2 Nisan)", "Sınav: 2 Mayıs 2026", "Sonuç: 4 Haziran 2026"]),
+            ]),
         ], has_calc=False)
 
 
@@ -1267,8 +1283,13 @@ def page_sts_rehber():
             ("Format ve Başarı", [
                 "Çoktan seçmeli olup temel ve klinik tıp/diş hekimliği bilgisini ölçer. Denklik için ÖSYM/YÖK tarafından belirlenen <strong>baraj puanının</strong> (genellikle 100 üzerinden 50) aşılması gerekir.",
             ]),
-            ("2026 STS", [
-                ("ul", ["STS Tıp Doktorluğu 1. Dönem: 15 Mart 2026 (TUS 1. dönem ile aynı tarih)"]),
+            ("2026 STS Tarihleri (ÖSYM)", [
+                "<strong>Tıp Doktorluğu:</strong>",
+                ("ul", ["1. Dönem: 15 Mart 2026 (sonuç 15 Nisan)", "2. Dönem: 23 Ağustos 2026 (sonuç 17 Eylül)"]),
+                "<strong>Diş Hekimliği:</strong>",
+                ("ul", ["1. Dönem: 26 Nisan 2026 (sonuç 22 Mayıs)", "2. Dönem: 1 Kasım 2026 (sonuç 26 Kasım)"]),
+                "<strong>Eczacılık:</strong> 7 Kasım 2026 · <strong>Öğretmenlik:</strong> 13 Haziran 2026.",
+                "Başvuru tarihleri her dönemin kılavuzunda açıklanır; denklik baraj puanı YÖK/ÖSYM tarafından belirlenir.",
             ]),
         ], has_calc=False)
 
