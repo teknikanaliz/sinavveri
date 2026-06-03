@@ -389,14 +389,30 @@ def page_index():
 
 
 # ───────────────────────── TAKVİM ─────────────────────────
+_GUIDE_SLUG = [("YÖKDİL", "yokdil.html"), ("YDUS", "ydus.html"), ("YKS", "yks.html"),
+               ("YDS", "yds.html"), ("LGS", "lgs.html"), ("KPSS", "kpss.html"),
+               ("DGS", "dgs.html"), ("DUS", "dus.html"), ("TUS", "tus.html"),
+               ("ALES", "ales.html"), ("MSÜ", "msu.html"), ("STS", "sts.html")]
+
+
+def _guide_for(ad):
+    a = (ad or "").upper()
+    for key, slug in _GUIDE_SLUG:
+        if a.startswith(key):
+            return slug
+    return None
+
+
 def page_takvim():
     rows = ""
     for s in CAL["sinavlar"]:
         lbl, cls = TUR_LABEL.get(s["tur"], TUR_LABEL["other"])
         sinav = fmt_date(s["sinav"]) if s["sinav"].count("-") == 2 else s["sinav"]
+        gslug = _guide_for(s["ad"])
+        ad_html = f'<a href="/{gslug}" title="{s["ad"]} sınav rehberi">{s["ad"]}</a>' if gslug else s["ad"]
         rows += f"""<tr>
   <td><span class="tag {cls}">{lbl}</span></td>
-  <td><strong>{s['ad']}</strong>{('<br><small class="soon">'+s['not']+'</small>') if s['not'] else ''}</td>
+  <td><strong>{ad_html}</strong>{('<br><small class="soon">'+s['not']+'</small>') if s['not'] else ''}</td>
   <td>{s['basvuru']}</td>
   <td><strong>{sinav}</strong></td>
   <td>{s['sonuc']}</td>
