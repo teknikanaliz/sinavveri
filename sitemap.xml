@@ -659,6 +659,11 @@
   <url><loc>https://sinavveri.com/tus.html</loc><changefreq>weekly</changefreq><priority>0.7</priority></url>
   <url><loc>https://sinavveri.com/dus.html</loc><changefreq>weekly</changefreq><priority>0.7</priority></url>
   <url><loc>https://sinavveri.com/ales.html</loc><changefreq>weekly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://sinavveri.com/msu.html</loc><changefreq>weekly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://sinavveri.com/yds.html</loc><changefreq>weekly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://sinavveri.com/yokdil.html</loc><changefreq>weekly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://sinavveri.com/ydus.html</loc><changefreq>weekly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://sinavveri.com/sts.html</loc><changefreq>weekly</changefreq><priority>0.7</priority></url>
   <url><loc>https://sinavveri.com/yks-puan-hesaplama.html</loc><changefreq>weekly</changefreq><priority>0.7</priority></url>
   <url><loc>https://sinavveri.com/lgs-puan-hesaplama.html</loc><changefreq>weekly</changefreq><priority>0.7</priority></url>
   <url><loc>https://sinavveri.com/kpss-puan-hesaplama.html</loc><changefreq>weekly</changefreq><priority>0.7</priority></url>
@@ -1349,6 +1354,7 @@
   <url><loc>https://sinavveri.com/universite/suleyman-demirel-universitesi-isparta.html</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
   <url><loc>https://sinavveri.com/universite/manisa-celâl-bayar-universitesi.html</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
   <url><loc>https://sinavveri.com/universite/mugla-sitki-kocman-universitesi.html</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://sinavveri.com/universite/istanbul-teknik-universitesi-kibris.html</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
   <url><loc>https://sinavveri.com/universite/sakarya-universitesi.html</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
   <url><loc>https://sinavveri.com/universite/trakya-universitesi-edirne.html</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
   <url><loc>https://sinavveri.com/universite/ataturk-universitesi-erzurum.html</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
@@ -1425,6 +1431,7 @@
   <url><loc>https://sinavveri.com/universite/piri-reis-universitesi-istanbul.html</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
   <url><loc>https://sinavveri.com/universite/bingol-universitesi.html</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
   <url><loc>https://sinavveri.com/universite/igdir-universitesi.html</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://sinavveri.com/universite/orta-dogu-teknik-universitesi-kibris.html</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
   <url><loc>https://sinavveri.com/universite/anadolu-universitesi-eskisehir.html</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
   <url><loc>https://sinavveri.com/universite/kirgizistan-turkiye-manas-universitesi-biskek-kirgizistan.html</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
   <url><loc>https://sinavveri.com/universite/lefke-avrupa-universitesi-kktc-lefke.html</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
@@ -1498,6 +1505,7 @@
   <url><loc>https://sinavveri.com/universite/ibn-haldun-universitesi-istanbul.html</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
   <url><loc>https://sinavveri.com/universite/ankara-sosyal-bilimler-universitesi.html</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
   <url><loc>https://sinavveri.com/universite/cag-universitesi-mersin.html</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://sinavveri.com/universite/ankara-sosyal-bilimler-universitesi-kibris.html</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
   <url><loc>https://sinavveri.com/universite/akdeniz-karpaz-universitesi-kktc-lefkosa.html</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
   <url><loc>https://sinavveri.com/universite/azerbaycan-devlet-pedagoji-universitesi-baku-azerbaycan.html</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
   <url><loc>https://sinavveri.com/universite/ankara-muzik-ve-guzel-sanatlar-universitesi.html</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>

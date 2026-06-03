@@ -183,6 +183,11 @@ def load_programs():
         il = (r.get("il") or "").replace("İ", "i").replace("I", "i").replace("ı", "i").lower()
         if r.get("t") == "D" and il in ("kibris", "kktc"):
             r["t"] = "DK"
+            # Kıbrıs kampüsünü AYRI üniversite kartı yap: "… (ANKARA)" → "… (KIBRIS)"
+            u = (r.get("u") or "").strip()
+            if u.endswith(")") and "(" in u:
+                u = u[:u.rfind("(")].strip()  # sondaki (ŞEHİR) ekini at
+            r["u"] = u + " (KIBRIS)"
     return progs
 
 
@@ -884,6 +889,94 @@ def page_dus_rehber():
                 ("ul", ["Başvuru: 10 – 17 Mart 2026", "Sınav: 26 Nisan 2026"]),
                 "<strong>2. Dönem:</strong>",
                 ("ul", ["Başvuru: 16 – 24 Eylül 2026", "Sınav: 1 Kasım 2026"]),
+            ]),
+        ], has_calc=False)
+
+
+def page_yds_rehber():
+    return guide("yds.html", "YDS", "Yabancı Dil Bilgisi Seviye Tespit Sınavı", "🌐", "",
+        "YDS, akademik ve mesleki amaçlarla yabancı dil bilgisini ölçen ÖSYM sınavıdır; doktora başvurusu, akademik kadrolar ve bazı kamu görevlerinde kullanılır.",
+        [
+            ("YDS Nedir?", [
+                "Yabancı Dil Bilgisi Seviye Tespit Sınavı (YDS), ÖSYM tarafından İngilizce, Almanca, Fransızca, Arapça, Rusça gibi dillerde yapılan merkezi yabancı dil sınavıdır. Sonuç açıklandığı tarihten itibaren <strong>5 yıl</strong> geçerlidir.",
+            ]),
+            ("Format ve Soru Dağılımı", [
+                "Tek oturumda, tek kitapçıkla yapılır ve <strong>80 çoktan seçmeli soru</strong> içerir. Sorular; kelime bilgisi, dil bilgisi, cloze test, cümle tamamlama, çeviri (TR↔YD), paragraf ve okuma-anlama gibi bölümlerden oluşur.",
+            ]),
+            ("Puan Mantığı", [
+                "Her doğru cevap <strong>1,25 puan</strong>; toplam 100 puan üzerinden değerlendirilir. <strong>Yanlış cevaplar doğruları GÖTÜRMEZ</strong> (net = doğru sayısı).",
+                "Puan ayrıca harf notu/CEFR seviyesine karşılık gelir (ör. 90+ A, 80+ B …).",
+            ]),
+            ("Dönemler", [
+                "Yılda iki ana dönem (İlkbahar/Sonbahar) yapılır; ayrıca bilgisayar tabanlı <strong>e-YDS</strong> ile yıl içinde ek dönemler açılır. Kesin tarihler ÖSYM sınav takviminde duyurulur.",
+            ]),
+        ], has_calc=False)
+
+
+def page_yokdil_rehber():
+    return guide("yokdil.html", "YÖKDİL", "Yükseköğretim Kurumları Yabancı Dil Sınavı", "🎓", "",
+        "YÖKDİL, yükseköğretimde (lisansüstü ve akademik) yabancı dil şartını karşılamak için alan bazlı yapılan ÖSYM sınavıdır.",
+        [
+            ("YÖKDİL Nedir?", [
+                "Yükseköğretim Kurumları Yabancı Dil Sınavı (YÖKDİL), YDS ile aynı formatta ancak adayın <strong>alanına göre</strong> hazırlanan akademik yabancı dil sınavıdır. ÖSYM tarafından yılda iki kez yapılır.",
+            ]),
+            ("Alanlar ve Format", [
+                "Üç ayrı alanda uygulanır:",
+                ("ul", ["Sağlık Bilimleri", "Sosyal Bilimler", "Fen Bilimleri"]),
+                "Tek oturum, <strong>80 soru</strong>; soru tipleri ve süre YDS ile aynıdır. Metinler adayın alanından seçilir.",
+            ]),
+            ("Puan Mantığı", [
+                "Her doğru <strong>1,25 puan</strong>, 100 üzerinden; <strong>yanlış doğruyu götürmez</strong>. Geçerlilik ve kullanım YDS'ye benzer (lisansüstü başvuru, akademik kadrolar).",
+            ]),
+        ], has_calc=False)
+
+
+def page_msu_rehber():
+    return guide("msu.html", "MSÜ", "Millî Savunma Üniversitesi Askerî Öğrenci Aday Belirleme Sınavı", "🎖️", "",
+        "MSÜ, Harp Okulları ve Astsubay Meslek Yüksekokullarına askerî öğrenci olmak isteyen adayların girdiği, ÖSYM tarafından yapılan ön eleme sınavıdır.",
+        [
+            ("MSÜ Nedir?", [
+                "Millî Savunma Üniversitesi Askerî Öğrenci Aday Belirleme Sınavı (MSÜ), ÖSYM tarafından 81 ilde uygulanır. Sınavda yeterli puanı alan adaylar, fizikî yeterlilik ve mülakat gibi <strong>seçim aşamalarına</strong> çağrılır.",
+            ]),
+            ("Soru Dağılımı (120 soru · 165 dk)", [
+                ("ul", ["Türkçe — 40 soru", "Sosyal Bilimler — 20 soru", "Temel Matematik — 40 soru", "Fen Bilimleri — 20 soru"]),
+                "İçerik TYT ile benzerdir.",
+            ]),
+            ("Puan Mantığı", [
+                "Net = Doğru − (Yanlış ÷ 4). Ham puanlar standart puana dönüştürülür ve farklı puan türlerinde ağırlıklı olarak hesaplanır.",
+            ]),
+            ("2026 MSÜ", [
+                ("ul", ["Sınav: 1 Mart 2026 (ÖSYM)"]),
+            ]),
+        ], has_calc=False)
+
+
+def page_ydus_rehber():
+    return guide("ydus.html", "YDUS", "Tıpta Yan Dal Uzmanlık Eğitimi Giriş Sınavı", "🩺", "",
+        "YDUS, ana dal uzmanlığını tamamlamış hekimlerin yan dal uzmanlık eğitimi (ör. iç hastalıkları → kardiyoloji) için girdiği ÖSYM sınavıdır.",
+        [
+            ("YDUS Nedir?", [
+                "Tıpta Yan Dal Uzmanlık Eğitimi Giriş Sınavı (YDUS), uzman hekimlerin yan dal kontenjanlarına yerleşmek için girdiği sınavdır. Her aday yalnızca kendi <strong>ana dalının</strong> testine girer.",
+            ]),
+            ("Format ve Puan", [
+                "İlgili ana dala göre ayrı düzenlenen tek bir testten oluşur; sorular adayın ana dal alanındandır. Net = Doğru − (Yanlış ÷ 4); ham puan standart puana dönüştürülür ve yerleştirme bu puanla yapılır.",
+                "Her ana dalın soru sayısı ve yan dal kontenjanları ÖSYM kılavuzunda belirtilir.",
+            ]),
+        ], has_calc=False)
+
+
+def page_sts_rehber():
+    return guide("sts.html", "STS", "Seviye Tespit Sınavı (Yurt Dışı Diploma Denkliği)", "📋", "",
+        "STS, yurt dışında tıp veya diş hekimliği eğitimi alıp Türkiye'de mesleğini icra etmek isteyenlerin diploma denkliği için girdiği ÖSYM sınavıdır.",
+        [
+            ("STS Nedir?", [
+                "Seviye Tespit Sınavı (STS), YÖK'ün diploma denklik sürecinde uygulanır. İki ayrı sınav vardır: <strong>STS Tıp Doktorluğu</strong> ve <strong>STS Diş Hekimliği</strong>.",
+            ]),
+            ("Format ve Başarı", [
+                "Çoktan seçmeli olup temel ve klinik tıp/diş hekimliği bilgisini ölçer. Denklik için ÖSYM/YÖK tarafından belirlenen <strong>baraj puanının</strong> (genellikle 100 üzerinden 50) aşılması gerekir.",
+            ]),
+            ("2026 STS", [
+                ("ul", ["STS Tıp Doktorluğu 1. Dönem: 15 Mart 2026 (TUS 1. dönem ile aynı tarih)"]),
             ]),
         ], has_calc=False)
 
@@ -2441,21 +2534,31 @@ Araçlarımız net hesabını kesin verir; puan tahminleri standart puan sistemi
 
 
 def page_rehberler_hub():
+    # Popüler/ana sınavlar üstte
     g = [("yks.html", "🎓", "YKS", "Üniversite giriş sınavı rehberi"),
          ("lgs.html", "🏫", "LGS", "Liselere geçiş sınavı rehberi"),
+         ("kpss.html", "🏛️", "KPSS", "Kamu personel seçme sınavı"),
          ("dgs.html", "📈", "DGS", "Dikey geçiş sınavı"),
          ("tus.html", "🩺", "TUS", "Tıpta uzmanlık eğitimi giriş sınavı"),
          ("dus.html", "🦷", "DUS", "Diş hekimliği uzmanlık giriş sınavı"),
-         ("kpss.html", "🏛️", "KPSS", "Kamu personel seçme sınavı"),
          ("ales.html", "📚", "ALES", "Akademik personel / lisansüstü")]
-    cards = "".join(f'<a class="tool-btn" href="/{h}"><span class="tb-icon">{i}</span><span class="tb-text"><b>{t}</b><span>{s}</span></span></a>' for h, i, t, s in g)
+    # Diğer / akademik & özel sınavlar altta
+    g2 = [("msu.html", "🎖️", "MSÜ", "Millî Savunma Üniversitesi askerî öğrenci"),
+          ("yds.html", "🌐", "YDS", "Yabancı dil seviye tespit sınavı"),
+          ("yokdil.html", "🎓", "YÖKDİL", "Akademik yabancı dil (alan bazlı)"),
+          ("ydus.html", "🩺", "YDUS", "Tıpta yan dal uzmanlık sınavı"),
+          ("sts.html", "📋", "STS", "Yurt dışı diploma denklik sınavı")]
+    mk = lambda lst: "".join(f'<a class="tool-btn" href="/{h}"><span class="tb-icon">{i}</span><span class="tb-text"><b>{t}</b><span>{s}</span></span></a>' for h, i, t, s in lst)
     body = f"""
 <div class="crumb"><a href="/index.html">Ana Sayfa</a> / Rehberler</div>
 <div class="page-title"><h1>Sınav Rehberleri</h1><span class="sub">Her sınavın formatı, soru dağılımı ve puan mantığı · resmî (ÖSYM/MEB) bilgilere göre</span></div>
-<div class="tool-row">{cards}</div>
+<div class="tool-row">{mk(g)}</div>
+<h2 style="margin:26px 0 4px;font-size:18px">Diğer Sınavlar</h2>
+<div class="section-sub">Akademik ve özel amaçlı sınavlar</div>
+<div class="tool-row">{mk(g2)}</div>
 """
-    return base("rehberler.html", "Sınav Rehberleri — YKS, LGS, DGS, TUS, DUS, KPSS, ALES | SınavVeri",
-                "YKS, LGS, DGS, TUS, DUS, KPSS ve ALES sınav rehberleri: format, soru dağılımı, puan mantığı ve 2026 tarihleri. ÖSYM/MEB resmî bilgilerine göre.",
+    return base("rehberler.html", "Sınav Rehberleri — YKS, LGS, KPSS, DGS, TUS, DUS, ALES, MSÜ, YDS, YÖKDİL | SınavVeri",
+                "Tüm sınav rehberleri: YKS, LGS, KPSS, DGS, TUS, DUS, ALES, MSÜ, YDS, YÖKDİL, YDUS, STS — format, soru dağılımı, puan mantığı ve 2026 tarihleri (ÖSYM/MEB resmî).",
                 body)
 
 
@@ -2554,6 +2657,11 @@ def main():
     W("tus.html", page_tus_rehber())
     W("dus.html", page_dus_rehber())
     W("ales.html", page_ales())
+    W("msu.html", page_msu_rehber())
+    W("yds.html", page_yds_rehber())
+    W("yokdil.html", page_yokdil_rehber())
+    W("ydus.html", page_ydus_rehber())
+    W("sts.html", page_sts_rehber())
     W("yks-puan-hesaplama.html", page_yks_calc())
     W("lgs-puan-hesaplama.html", page_lgs_calc())
     W("kpss-puan-hesaplama.html", page_kpss_calc())
