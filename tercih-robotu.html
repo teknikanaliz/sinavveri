@@ -230,6 +230,8 @@
       <select id="rIl" class="btn btn-ghost" style="text-align:left;width:100%;margin-top:4px"><option value="">Tüm iller</option></select></div>
     <div><label style="font-size:12px;color:var(--fg-faded);font-weight:700">Tür (ops.)</label>
       <select id="rTur" class="btn btn-ghost" style="text-align:left;width:100%;margin-top:4px"><option value="">Hepsi</option><option value="D">Devlet</option><option value="V">Vakıf</option><option value="K">KKTC</option><option value="DK">Devlet (KKTC Kampüs)</option><option value="DU">Devlet (Ücretli)</option></select></div>
+    <div><label style="font-size:12px;color:var(--fg-faded);font-weight:700">Öğrenim Dili (ops.)</label>
+      <select id="rDil" class="btn btn-ghost" style="text-align:left;width:100%;margin-top:4px"><option value="">Tüm diller</option></select></div>
     <button type="button" class="btn btn-primary" id="rBtn">Programları Göster</button>
   </div>
   <div class="filter-chips" id="chips" style="display:none"></div>
@@ -262,6 +264,7 @@ Bu bir tahmindir; 2026 taban puanları kontenjan ve tercih yoğunluğuna göre d
   var pf=function(n){return n==null?'—':n.toLocaleString('tr-TR',{minimumFractionDigits:2,maximumFractionDigits:2});};
   function el(id){return document.getElementById(id);}
   function rkey(r){return (r[IDX.b]||'')+'|'+(r[IDX.u]||'');}
+  function bdil(s){ s=s||''; var i=s.indexOf(' ('); return i>0?s.slice(0,i):s; }
   function load(pt,cb){
     if(cache[pt]){data=cache[pt];cb();return;}
     if(SV.skel)SV.skel('rbody',7,6);
@@ -272,6 +275,7 @@ Bu bir tahmindir; 2026 taban puanları kontenjan ve tercih yoğunluğuna göre d
   function syncQS(){
     var o={pt:el('rPt').value};var s=el('rSira').value.replace(/\D/g,'');if(s)o.sira=s;
     if(el('rIl').value)o.il=el('rIl').value;if(el('rTur').value)o.tur=el('rTur').value;
+    if(el('rDil')&&el('rDil').value)o.dil=el('rDil').value;
     if(SV.qsSet)SV.qsSet(o);drawChips();
   }
   function drawChips(){
@@ -279,10 +283,11 @@ Bu bir tahmindir; 2026 taban puanları kontenjan ve tercih yoğunluğuna göre d
     var s=el('rSira').value.replace(/\D/g,'');if(s)items.push({key:'sira',label:'Sıra: '+Number(s).toLocaleString('tr-TR')});
     if(el('rIl').value)items.push({key:'il',label:'İl: '+el('rIl').value});
     if(el('rTur').value)items.push({key:'tur',label:'Tür: '+(TUR[el('rTur').value]||el('rTur').value)});
+    if(el('rDil')&&el('rDil').value)items.push({key:'dil',label:'Dil: '+el('rDil').value});
     SV.chips('chips',items,function(key){
       if(key==='pt')return;
-      if(key==='__all__'){el('rSira').value='';el('rIl').value='';el('rTur').value='';}
-      else if(key==='sira')el('rSira').value='';else if(key==='il')el('rIl').value='';else if(key==='tur')el('rTur').value='';
+      if(key==='__all__'){el('rSira').value='';el('rIl').value='';el('rTur').value='';if(el('rDil'))el('rDil').value='';}
+      else if(key==='sira')el('rSira').value='';else if(key==='il')el('rIl').value='';else if(key==='tur')el('rTur').value='';else if(key==='dil'&&el('rDil'))el('rDil').value='';
       run();
     });
   }
@@ -319,12 +324,13 @@ Bu bir tahmindir; 2026 taban puanları kontenjan ve tercih yoğunluğuna göre d
       syncQS();
       var sira=parseInt((el('rSira').value||'').replace(/\D/g,''),10);
       if(!sira||sira<1){el('rstatus').textContent='Lütfen geçerli bir başarı sıranızı girin.';el('rbody').innerHTML='';return;}
-      var il=el('rIl').value, tur=el('rTur').value;
+      var il=el('rIl').value, tur=el('rTur').value, dilSel=el('rDil')?el('rDil').value:'';
       lastSira=sira;
       lastReach=data.filter(function(r){
         if(r[IDX.sira]==null)return false;
         if(il&&r[IDX.il]!==il)return false;
         if(tur&&r[IDX.t]!==tur)return false;
+        if(dilSel&&bdil(r[IDX.dil])!==dilSel)return false;
         return r[IDX.sira]>=sira;
       });
       sortReach();
@@ -350,17 +356,23 @@ Bu bir tahmindir; 2026 taban puanları kontenjan ve tercih yoğunluğuna göre d
     if(qs.pt&&PTL[qs.pt])el('rPt').value=qs.pt;
     if(qs.tur)el('rTur').value=qs.tur;
     if(qs.il){var s=el('rIl');var o=document.createElement('option');o.value=qs.il;o.textContent=qs.il;o.selected=true;s.appendChild(o);}
+    if(qs.dil&&el('rDil')){var sd=el('rDil');var od=document.createElement('option');od.value=qs.dil;od.textContent=qs.dil;od.selected=true;sd.appendChild(od);}
     if(qs.sira){el('rSira').value=qs.sira;run();}else{drawChips();}
   })();
 })();
 </script><script nonce="__NONCE__">
 (function(){
-  var sel=document.getElementById('rIl'),ptSel=document.getElementById('rPt');
+  var sel=document.getElementById('rIl'),dsel=document.getElementById('rDil'),ptSel=document.getElementById('rPt');
+  function bdil(s){s=s||'';var i=s.indexOf(' (');return i>0?s.slice(0,i):s;}
   function fill(){fetch('/veri/'+ptSel.value+'.json').then(function(r){return r.json();}).then(function(j){
     var set={};j.forEach(function(r){if(r[4])set[r[4]]=1;});
     var ils=Object.keys(set).sort(function(a,b){return a.localeCompare(b,'tr');});
     var cur=sel.value; sel.innerHTML='<option value="">Tüm iller</option>';
     ils.forEach(function(i){var o=document.createElement('option');o.value=i;o.textContent=i;if(i===cur)o.selected=true;sel.appendChild(o);});
+    if(dsel){var cnt={};j.forEach(function(r){var b=bdil(r[7]);if(b)cnt[b]=(cnt[b]||0)+1;});
+      var ks=Object.keys(cnt).sort(function(a,b){return cnt[b]-cnt[a]||a.localeCompare(b,'tr');});
+      var dc=dsel.value; dsel.innerHTML='<option value="">Tüm diller</option>';
+      ks.forEach(function(k){var o=document.createElement('option');o.value=k;o.textContent=k+' ('+cnt[k]+')';if(k===dc)o.selected=true;dsel.appendChild(o);});}
   }).catch(function(){});}
   ptSel.addEventListener('change',fill); fill();
 })();

@@ -1419,22 +1419,32 @@ SEARCH_JS = r"""<script nonce="__NONCE__">
       cache[pt]=j; data=j; afterLoad();
     }).catch(function(){el('status').textContent='Veri yüklenemedi. Lütfen tekrar deneyin.';});
   }
+  function bdil(s){ s=s||''; var i=s.indexOf(' ('); return i>0?s.slice(0,i):s; }
   function fillIl(){
     var set={}; data.forEach(function(r){if(r[IDX.il])set[r[IDX.il]]=1;});
     var ils=Object.keys(set).sort(function(a,b){return a.localeCompare(b,'tr');});
     var cur=el('fIl').value; var sel=el('fIl'); sel.innerHTML='<option value="">Tüm iller</option>';
     ils.forEach(function(i){var o=document.createElement('option');o.value=i;o.textContent=i;if(i===cur)o.selected=true;sel.appendChild(o);});
   }
+  function fillDil(){
+    var sel=el('fDil');if(!sel)return;var cur=sel.value;
+    var cnt={};data.forEach(function(r){var b=bdil(r[IDX.dil]);if(b)cnt[b]=(cnt[b]||0)+1;});
+    var ks=Object.keys(cnt).sort(function(a,b){return cnt[b]-cnt[a]||a.localeCompare(b,'tr');});
+    sel.innerHTML='<option value="">Tüm öğrenim dilleri</option>';
+    ks.forEach(function(k){var o=document.createElement('option');o.value=k;o.textContent=k+' ('+cnt[k]+')';if(k===cur)o.selected=true;sel.appendChild(o);});
+  }
   function applyQS(){
     var qs=SV.qsGet?SV.qsGet():{};
     if(qs.q!=null)el('fQ').value=qs.q;
     if(qs.tur!=null)el('fTur').value=qs.tur;
     if(qs.burs==='1'&&el('fBurs'))el('fBurs').checked=true;
-    if(qs.il!=null){var s=el('fIl');var o=document.createElement('option');o.value=qs.il;o.textContent=qs.il;o.selected=true;s.appendChild(o);}
+    if(qs.dil!=null&&el('fDil')){var s=el('fDil');var o=document.createElement('option');o.value=qs.dil;o.textContent=qs.dil;o.selected=true;s.appendChild(o);}
+    if(qs.il!=null){var si=el('fIl');var oi=document.createElement('option');oi.value=qs.il;oi.textContent=qs.il;oi.selected=true;si.appendChild(oi);}
   }
   function syncQS(){
     var o={pt:el('ptSel').value};var q=el('fQ').value.trim();if(q)o.q=q;
     if(el('fIl').value)o.il=el('fIl').value; if(el('fTur').value)o.tur=el('fTur').value;
+    if(el('fDil')&&el('fDil').value)o.dil=el('fDil').value;
     if(el('fBurs')&&el('fBurs').checked)o.burs='1';
     if(SV.qsSet)SV.qsSet(o); drawChips();
   }
@@ -1443,23 +1453,26 @@ SEARCH_JS = r"""<script nonce="__NONCE__">
     var q=el('fQ').value.trim();if(q)items.push({key:'q',label:'“'+q+'”'});
     if(el('fIl').value)items.push({key:'il',label:'İl: '+el('fIl').value});
     if(el('fTur').value)items.push({key:'tur',label:'Tür: '+(TUR[el('fTur').value]||el('fTur').value)});
+    if(el('fDil')&&el('fDil').value)items.push({key:'dil',label:'Dil: '+el('fDil').value});
     if(el('fBurs')&&el('fBurs').checked)items.push({key:'burs',label:'Sadece burslu'});
     SV.chips('chips',items,function(key){
       if(key==='pt')return;
-      if(key==='__all__'){el('fQ').value='';el('fIl').value='';el('fTur').value='';if(el('fBurs'))el('fBurs').checked=false;}
+      if(key==='__all__'){el('fQ').value='';el('fIl').value='';el('fTur').value='';if(el('fDil'))el('fDil').value='';if(el('fBurs'))el('fBurs').checked=false;}
       else if(key==='q')el('fQ').value='';else if(key==='il')el('fIl').value='';
-      else if(key==='tur')el('fTur').value='';else if(key==='burs'&&el('fBurs'))el('fBurs').checked=false;
+      else if(key==='tur')el('fTur').value='';else if(key==='dil'&&el('fDil'))el('fDil').value='';
+      else if(key==='burs'&&el('fBurs'))el('fBurs').checked=false;
       render(true);
     });
   }
-  function afterLoad(){fillIl();render();}
+  function afterLoad(){fillIl();fillDil();render();}
   function filtered(){
     var q=(el('fQ').value||'').toLocaleLowerCase('tr').trim();
-    var il=el('fIl').value, tur=el('fTur').value;
+    var il=el('fIl').value, tur=el('fTur').value, dilSel=el('fDil')?el('fDil').value:'';
     var bursOnly=el('fBurs')&&el('fBurs').checked;
     var out=data.filter(function(r){
       if(il&&r[IDX.il]!==il)return false;
       if(tur&&r[IDX.t]!==tur)return false;
+      if(dilSel&&bdil(r[IDX.dil])!==dilSel)return false;
       if(bursOnly&&!/Burslu/i.test(r[IDX.bs]||''))return false;
       if(q){
         var hay=(r[IDX.b]||'')+' '+(r[IDX.u]||'')+' '+(r[IDX.g]||'')+' '+(r[IDX.il]||'');
@@ -1537,7 +1550,7 @@ SEARCH_JS = r"""<script nonce="__NONCE__">
     cmp={};el('cmpPanel').classList.remove('open');updateBar();
     document.querySelectorAll('.cmp-cb').forEach(function(c){c.checked=false;});
   });
-  ['fQ','fIl','fTur'].forEach(function(id){var e=el(id);if(e)e.addEventListener('input',function(){render(true);});});
+  ['fQ','fIl','fTur','fDil'].forEach(function(id){var e=el(id);if(e)e.addEventListener('input',function(){render(true);});});
   if(el('fBurs'))el('fBurs').addEventListener('change',function(){render(true);});
   el('ptSel').addEventListener('change',function(){load(this.value);});
   el('moreBtn').addEventListener('click',function(){render(false);});
@@ -1574,6 +1587,7 @@ def page_taban_index():
     <select id="fTur" class="btn btn-ghost" style="text-align:left">
       <option value="">Tüm türler</option><option value="D">Devlet</option><option value="V">Vakıf</option><option value="K">KKTC</option><option value="DK">Devlet (KKTC Kampüs)</option><option value="DU">Devlet (Ücretli)</option>
     </select>
+    <select id="fDil" class="btn btn-ghost" style="text-align:left"><option value="">Tüm öğrenim dilleri</option></select>
     <label style="display:flex;align-items:center;gap:6px;font-size:13px;color:var(--fg-muted)"><input type="checkbox" id="fBurs"> Sadece burslu</label>
   </div>
   <div class="filter-chips" id="chips" style="display:none"></div>
@@ -1618,6 +1632,7 @@ ROBOT_JS = r"""<script nonce="__NONCE__">
   var pf=function(n){return n==null?'—':n.toLocaleString('tr-TR',{minimumFractionDigits:2,maximumFractionDigits:2});};
   function el(id){return document.getElementById(id);}
   function rkey(r){return (r[IDX.b]||'')+'|'+(r[IDX.u]||'');}
+  function bdil(s){ s=s||''; var i=s.indexOf(' ('); return i>0?s.slice(0,i):s; }
   function load(pt,cb){
     if(cache[pt]){data=cache[pt];cb();return;}
     if(SV.skel)SV.skel('rbody',7,6);
@@ -1628,6 +1643,7 @@ ROBOT_JS = r"""<script nonce="__NONCE__">
   function syncQS(){
     var o={pt:el('rPt').value};var s=el('rSira').value.replace(/\D/g,'');if(s)o.sira=s;
     if(el('rIl').value)o.il=el('rIl').value;if(el('rTur').value)o.tur=el('rTur').value;
+    if(el('rDil')&&el('rDil').value)o.dil=el('rDil').value;
     if(SV.qsSet)SV.qsSet(o);drawChips();
   }
   function drawChips(){
@@ -1635,10 +1651,11 @@ ROBOT_JS = r"""<script nonce="__NONCE__">
     var s=el('rSira').value.replace(/\D/g,'');if(s)items.push({key:'sira',label:'Sıra: '+Number(s).toLocaleString('tr-TR')});
     if(el('rIl').value)items.push({key:'il',label:'İl: '+el('rIl').value});
     if(el('rTur').value)items.push({key:'tur',label:'Tür: '+(TUR[el('rTur').value]||el('rTur').value)});
+    if(el('rDil')&&el('rDil').value)items.push({key:'dil',label:'Dil: '+el('rDil').value});
     SV.chips('chips',items,function(key){
       if(key==='pt')return;
-      if(key==='__all__'){el('rSira').value='';el('rIl').value='';el('rTur').value='';}
-      else if(key==='sira')el('rSira').value='';else if(key==='il')el('rIl').value='';else if(key==='tur')el('rTur').value='';
+      if(key==='__all__'){el('rSira').value='';el('rIl').value='';el('rTur').value='';if(el('rDil'))el('rDil').value='';}
+      else if(key==='sira')el('rSira').value='';else if(key==='il')el('rIl').value='';else if(key==='tur')el('rTur').value='';else if(key==='dil'&&el('rDil'))el('rDil').value='';
       run();
     });
   }
@@ -1675,12 +1692,13 @@ ROBOT_JS = r"""<script nonce="__NONCE__">
       syncQS();
       var sira=parseInt((el('rSira').value||'').replace(/\D/g,''),10);
       if(!sira||sira<1){el('rstatus').textContent='Lütfen geçerli bir başarı sıranızı girin.';el('rbody').innerHTML='';return;}
-      var il=el('rIl').value, tur=el('rTur').value;
+      var il=el('rIl').value, tur=el('rTur').value, dilSel=el('rDil')?el('rDil').value:'';
       lastSira=sira;
       lastReach=data.filter(function(r){
         if(r[IDX.sira]==null)return false;
         if(il&&r[IDX.il]!==il)return false;
         if(tur&&r[IDX.t]!==tur)return false;
+        if(dilSel&&bdil(r[IDX.dil])!==dilSel)return false;
         return r[IDX.sira]>=sira;
       });
       sortReach();
@@ -1706,6 +1724,7 @@ ROBOT_JS = r"""<script nonce="__NONCE__">
     if(qs.pt&&PTL[qs.pt])el('rPt').value=qs.pt;
     if(qs.tur)el('rTur').value=qs.tur;
     if(qs.il){var s=el('rIl');var o=document.createElement('option');o.value=qs.il;o.textContent=qs.il;o.selected=true;s.appendChild(o);}
+    if(qs.dil&&el('rDil')){var sd=el('rDil');var od=document.createElement('option');od.value=qs.dil;od.textContent=qs.dil;od.selected=true;sd.appendChild(od);}
     if(qs.sira){el('rSira').value=qs.sira;run();}else{drawChips();}
   })();
 })();
@@ -1731,6 +1750,8 @@ def page_tercih_robotu():
       <select id="rIl" class="btn btn-ghost" style="text-align:left;width:100%;margin-top:4px"><option value="">Tüm iller</option></select></div>
     <div><label style="font-size:12px;color:var(--fg-faded);font-weight:700">Tür (ops.)</label>
       <select id="rTur" class="btn btn-ghost" style="text-align:left;width:100%;margin-top:4px"><option value="">Hepsi</option><option value="D">Devlet</option><option value="V">Vakıf</option><option value="K">KKTC</option><option value="DK">Devlet (KKTC Kampüs)</option><option value="DU">Devlet (Ücretli)</option></select></div>
+    <div><label style="font-size:12px;color:var(--fg-faded);font-weight:700">Öğrenim Dili (ops.)</label>
+      <select id="rDil" class="btn btn-ghost" style="text-align:left;width:100%;margin-top:4px"><option value="">Tüm diller</option></select></div>
     <button type="button" class="btn btn-primary" id="rBtn">Programları Göster</button>
   </div>
   <div class="filter-chips" id="chips" style="display:none"></div>
@@ -1755,12 +1776,17 @@ Bu bir tahmindir; 2026 taban puanları kontenjan ve tercih yoğunluğuna göre d
     # rIl doldurma — robot da fillIl benzeri ister; basitçe SEARCH veri yüklenince doldurulmuyor.
     fill = r"""<script nonce="__NONCE__">
 (function(){
-  var sel=document.getElementById('rIl'),ptSel=document.getElementById('rPt');
+  var sel=document.getElementById('rIl'),dsel=document.getElementById('rDil'),ptSel=document.getElementById('rPt');
+  function bdil(s){s=s||'';var i=s.indexOf(' (');return i>0?s.slice(0,i):s;}
   function fill(){fetch('/veri/'+ptSel.value+'.json').then(function(r){return r.json();}).then(function(j){
     var set={};j.forEach(function(r){if(r[4])set[r[4]]=1;});
     var ils=Object.keys(set).sort(function(a,b){return a.localeCompare(b,'tr');});
     var cur=sel.value; sel.innerHTML='<option value="">Tüm iller</option>';
     ils.forEach(function(i){var o=document.createElement('option');o.value=i;o.textContent=i;if(i===cur)o.selected=true;sel.appendChild(o);});
+    if(dsel){var cnt={};j.forEach(function(r){var b=bdil(r[7]);if(b)cnt[b]=(cnt[b]||0)+1;});
+      var ks=Object.keys(cnt).sort(function(a,b){return cnt[b]-cnt[a]||a.localeCompare(b,'tr');});
+      var dc=dsel.value; dsel.innerHTML='<option value="">Tüm diller</option>';
+      ks.forEach(function(k){var o=document.createElement('option');o.value=k;o.textContent=k+' ('+cnt[k]+')';if(k===dc)o.selected=true;dsel.appendChild(o);});}
   }).catch(function(){});}
   ptSel.addEventListener('change',fill); fill();
 })();
