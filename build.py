@@ -696,6 +696,33 @@ Alan bilgisi (ÖABT vb.) ayrı oturumdur.</div>
 
 
 # ───────────────────────── REHBER SAYFALARI ─────────────────────────
+# Sınav → (taban puanları, tercih robotu, puan hesaplama) sayfaları. None = o sınavda yok.
+EXAM_TOOLS = {
+    "YKS": ("universite-taban-puanlari.html", "tercih-robotu.html", "yks-puan-hesaplama.html"),
+    "LGS": ("lise-taban-puanlari.html", "lgs-tercih-robotu.html", "lgs-puan-hesaplama.html"),
+    "KPSS": ("kpss-atama-taban-puanlari.html", "kpss-tercih-robotu.html", "kpss-puan-hesaplama.html"),
+    "DGS": ("dgs-taban-puanlari.html", "dgs-tercih-robotu.html", "dgs-puan-hesaplama.html"),
+    "TUS": ("tus-taban-puanlari.html", "tus-tercih-robotu.html", None),
+    "DUS": ("dus-taban-puanlari.html", "dus-tercih-robotu.html", None),
+    "ALES": (None, None, "ales-puan-hesaplama.html"),
+}
+
+
+def _exam_tool_cards(exam):
+    """Sınav sayfasının en üstündeki Taban / Robot / Hesaplama kartları (yan yana)."""
+    taban, robot, calc = EXAM_TOOLS.get(exam, (None, None, None))
+    items = [
+        (taban, "📊", "Taban Puanları", "Kurum/bölüm taban puanları"),
+        (robot, "🎯", "Tercih Robotu", "Puanına göre yerini bul"),
+        (calc, "🧮", "Puan Hesaplama", "Net ve puan hesapla"),
+    ]
+    cards = "".join(
+        f'<a class="tool-btn" href="/{h}"><span class="tb-icon">{i}</span>'
+        f'<span class="tb-text"><b>{exam} {t}</b><span>{s}</span></span></a>'
+        for h, i, t, s in items if h)
+    return f'<div class="tool-row" style="margin:0 0 22px">{cards}</div>' if cards else ""
+
+
 def guide(slug, exam, title_full, icon, calc_slug, intro, sections, has_calc=True):
     sec_html = ""
     for h, paras in sections:
@@ -708,15 +735,13 @@ def guide(slug, exam, title_full, icon, calc_slug, intro, sections, has_calc=Tru
                     sec_html += "<ol>" + "".join(f"<li>{x}</li>" for x in p[1]) + "</ol>"
             else:
                 sec_html += f"<p>{p}</p>"
-    calc_btn = (f'<a class="tool-btn" href="{calc_slug}" style="max-width:340px;margin:18px 0"><span class="tb-icon">🧮</span>'
-                f'<span class="tb-text"><b>{exam} Puan Hesaplama</b><span>Net ve puanını hesapla</span></span></a>') if has_calc else ""
     body = f"""
 <div class="crumb"><a href="index.html">Ana Sayfa</a> / {exam}</div>
 <div class="hero" style="padding:30px 28px">
   <h1>{icon} {exam} — {title_full}</h1>
   <p>{intro}</p>
 </div>
-{calc_btn}
+{_exam_tool_cards(exam)}
 <div class="prose">
 {sec_html}
 </div>
