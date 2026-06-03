@@ -50,13 +50,154 @@
       "publisher": {
         "@id": "https://sinavveri.com/#organization"
       }
+    },
+    {
+      "@type": "BreadcrumbList",
+      "itemListElement": [
+        {
+          "@type": "ListItem",
+          "position": 1,
+          "name": "Ana Sayfa",
+          "item": "https://sinavveri.com/"
+        },
+        {
+          "@type": "ListItem",
+          "position": 2,
+          "name": "ALES Rehberi"
+        }
+      ]
+    },
+    {
+      "@type": "FAQPage",
+      "mainEntity": [
+        {
+          "@type": "Question",
+          "name": "ALES Nedir?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Akademik Personel ve Lisansüstü Eğitimi Giriş Sınavı (ALES), lisansüstü eğitime başvuruda ve akademik personel alımında kullanılan ÖSYM sınavıdır. Sonuçlar 5 yıl geçerlidir."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Sınav Formatı",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "ALES, sayısal ve sözel bölümlerden oluşur: Sayısal-1 ve Sayısal-2 — 50 soru; Sözel-1 ve Sözel-2 — 50 soru Sayısal ve Sözel netlerden adayın puan türüne göre (Sayısal / Sözel / Eşit Ağırlık) ağırlıklı puan üretilir. 4 yanlış 1 doğruyu götürür."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Geçerlilik ve Kullanım",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Yüksek lisans / doktora başvuruları; Araştırma görevlisi ve öğretim görevlisi kadroları; Sonuçlar açıklandığı tarihten itibaren 5 yıl geçerlidir"
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "2026 ALES Tarihleri",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "ALES/1: 10 Mayıs 2026; ALES/2: 26 Temmuz 2026; ALES/3: 29 Kasım 2026"
+          }
+        }
+      ]
     }
   ]
 }</script>
 <script nonce="__NONCE__">
   (function(){ try { if (localStorage.getItem('sinavveri-theme') === 'dark') document.documentElement.setAttribute('data-theme','dark'); } catch(e){} })();
 </script>
-<link rel="stylesheet" href="/assets/style.css?v=20260530b">
+<script nonce="__NONCE__">
+(function(){
+  var SV = window.SV = window.SV || {};
+  SV.qsGet = function(){ var o={}; try{ new URLSearchParams(location.search).forEach(function(v,k){o[k]=v;}); }catch(e){} return o; };
+  SV.qsSet = function(obj){
+    try{
+      var p=new URLSearchParams();
+      Object.keys(obj).forEach(function(k){ var v=obj[k]; if(v!=null && v!=='') p.set(k,v); });
+      var s=p.toString();
+      history.replaceState(null,'',location.pathname+(s?'?'+s:'')+location.hash);
+    }catch(e){}
+  };
+  SV.chips = function(id, items, onRemove){
+    var c=document.getElementById(id); if(!c) return;
+    c.innerHTML='';
+    if(!items.length){ c.style.display='none'; return; }
+    c.style.display='flex';
+    items.forEach(function(it){
+      var ch=document.createElement('span'); ch.className='fchip';
+      ch.appendChild(document.createTextNode(it.label+' '));
+      var b=document.createElement('button'); b.type='button'; b.setAttribute('aria-label','Kaldır'); b.textContent='×';
+      b.addEventListener('click',function(){ onRemove(it.key); });
+      ch.appendChild(b); c.appendChild(ch);
+    });
+    var clr=document.createElement('button'); clr.type='button'; clr.className='fchip-clear'; clr.textContent='Tümünü temizle';
+    clr.addEventListener('click',function(){ onRemove('__all__'); });
+    c.appendChild(clr);
+  };
+  SV.skel = function(tbodyId, cols, n){
+    var tb=document.getElementById(tbodyId); if(!tb) return;
+    var h=''; for(var r=0;r<(n||8);r++){ h+='<tr>'; for(var c=0;c<cols;c++){ h+='<td><div class="skel-cell"></div></td>'; } h+='</tr>'; }
+    tb.innerHTML=h;
+  };
+  SV.empty = function(tbodyId, cols, msg){
+    var tb=document.getElementById(tbodyId); if(!tb) return;
+    tb.innerHTML='<tr><td colspan="'+cols+'"><div class="empty-state"><b>Eşleşme yok</b>'+(msg||'Filtreyi gevşetmeyi veya aramayı sadeleştirmeyi deneyin.')+'</div></td></tr>';
+  };
+  SV.copy = function(text, btn){
+    function done(){ if(btn){ var t=btn.getAttribute('data-lbl')||btn.textContent; btn.setAttribute('data-lbl',t); btn.textContent='Kopyalandı ✓'; setTimeout(function(){btn.textContent=t;},1600); } }
+    function fallback(){ try{ var ta=document.createElement('textarea'); ta.value=text; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); document.body.removeChild(ta); done(); }catch(e){} }
+    try{ if(navigator.clipboard&&navigator.clipboard.writeText){ navigator.clipboard.writeText(text).then(done,fallback); } else { fallback(); } }catch(e){ fallback(); }
+  };
+  SV.fav = function(ns){
+    var KEY='sv-fav-'+ns;
+    function read(){ try{ return JSON.parse(localStorage.getItem(KEY)||'[]'); }catch(e){ return []; } }
+    function write(a){ try{ localStorage.setItem(KEY,JSON.stringify(a)); }catch(e){} }
+    return {
+      list: read,
+      has: function(id){ return read().some(function(x){return x.id===id;}); },
+      toggle: function(it){ var a=read(); var i=-1,k; for(k=0;k<a.length;k++){ if(a[k].id===it.id){i=k;break;} } if(i>=0){a.splice(i,1);} else {a.push(it);} write(a); return i<0; },
+      remove: function(id){ write(read().filter(function(x){return x.id!==id;})); },
+      clear: function(){ write([]); }
+    };
+  };
+  // Tercih Listem UI controller — bar/panel + ☆ stars
+  SV.initFav = function(opts){
+    var store=SV.fav(opts.ns);
+    var bar=document.getElementById(opts.barId), panel=document.getElementById(opts.panelId), btn=document.getElementById(opts.btnId);
+    function esc(s){ return (''+(s==null?'':s)).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+    function renderPanel(arr){
+      if(!panel)return;
+      var h='<h3>⭐ Tercih Listem ('+arr.length+')</h3>';
+      if(!arr.length){ h+='<p style="font-size:13px;color:var(--fg-faded);margin:6px 0 0">Henüz tercih eklemediniz. Tablodaki ☆ simgesiyle ekleyin; listeniz bu tarayıcıda saklanır.</p>'; }
+      else{
+        h+='<div class="fp-actions"><button type="button" class="btn btn-ghost" id="'+opts.panelId+'C">Listeyi Kopyala</button><button type="button" class="fchip-clear" id="'+opts.panelId+'X">Listeyi Temizle</button></div><ul class="fav-list">';
+        arr.forEach(function(it){ h+='<li><span><b>'+esc(it.name)+'</b>'+(it.sub?' <small>'+esc(it.sub)+'</small>':'')+(it.meta?' — '+esc(it.meta):'')+'</span><button type="button" class="fl-x" aria-label="Çıkar" data-rm="'+esc(it.id)+'">×</button></li>'; });
+        h+='</ul>';
+      }
+      panel.innerHTML=h;
+    }
+    function refresh(){
+      var arr=store.list();
+      if(bar)bar.classList.toggle('show',arr.length>0);
+      if(btn)btn.textContent='⭐ Tercih Listem ('+arr.length+')';
+      if(panel&&panel.classList.contains('open'))renderPanel(arr);
+      document.querySelectorAll('.fav-star[data-fid]').forEach(function(s){ var on=store.has(s.getAttribute('data-fid')); s.classList.toggle('on',on); s.textContent=on?'★':'☆'; });
+    }
+    if(btn)btn.addEventListener('click',function(){ var op=panel.classList.toggle('open'); if(op)renderPanel(store.list()); });
+    if(panel)panel.addEventListener('click',function(e){
+      var t=e.target;
+      if(t.getAttribute&&t.getAttribute('data-rm')!=null){ store.remove(t.getAttribute('data-rm')); refresh(); }
+      else if(t.id===opts.panelId+'X'){ store.clear(); refresh(); }
+      else if(t.id===opts.panelId+'C'){ var txt=store.list().map(function(x,i){return (i+1)+'. '+x.name+(x.sub?' — '+x.sub:'')+(x.meta?' ('+x.meta+')':'');}).join('\n'); SV.copy('Tercih Listem — SınavVeri.com\n\n'+txt, t); }
+    });
+    return { store:store, toggle:function(it){ store.toggle(it); refresh(); }, has:function(id){return store.has(id);}, refresh:refresh };
+  };
+})();
+</script>
+<link rel="stylesheet" href="/assets/style.css?v=20260603a">
 <link rel="manifest" href="/manifest.json">
 
 </head>
@@ -65,6 +206,11 @@
   <div class="header-inner">
     <a href="/index.html" class="logo">Sınav<span class="logo-veri">Veri</span></a>
     <div class="header-right">
+      <form class="hsearch" id="hsearch" role="search" action="/ara.html" method="get" autocomplete="off">
+        <span class="hs-ic">🔍</span>
+        <input type="search" name="q" id="hsQ" placeholder="Üniversite, bölüm, lise, kadro…" aria-label="Sitede ara">
+        <div class="hs-drop" id="hsDrop" role="listbox"></div>
+      </form>
       <nav><a href="/index.html">Ana Sayfa</a>
 <a href="/taban-puanlari.html">Taban Puanları</a>
 <a href="/tercih-robotu.html">Tercih Robotu</a>
@@ -141,6 +287,37 @@ resmî kaynak <a href="https://www.osym.gov.tr" target="_blank" rel="noopener">�
       });
     });
   });
+})();
+</script>
+<script nonce="__NONCE__">
+(function(){
+  var form=document.getElementById('hsearch'); if(!form) return;
+  var inp=document.getElementById('hsQ'), drop=document.getElementById('hsDrop');
+  var DATA=null, loading=false, sel=-1;
+  function load(cb){ if(DATA){cb&&cb();return;} if(loading)return; loading=true;
+    fetch('/veri/arama.json').then(function(r){return r.json();}).then(function(j){DATA=j;loading=false;cb&&cb();}).catch(function(){loading=false;}); }
+  function norm(s){return (s||'').toLocaleLowerCase('tr');}
+  function search(q){ if(!DATA)return []; q=norm(q).trim(); if(q.length<2)return [];
+    var out=[]; for(var i=0;i<DATA.length && out.length<8;i++){ var d=DATA[i]; if(norm(d.n).indexOf(q)>=0||norm(d.s||'').indexOf(q)>=0){ out.push(d); } } return out; }
+  function esc(s){ return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+  function close(){ drop.classList.remove('open'); drop.innerHTML=''; sel=-1; }
+  function show(){ var q=inp.value; if(!q||q.trim().length<2){ close(); return; } var res=search(q);
+    if(!res.length){ drop.innerHTML='<a class="hs-item" href="/ara.html?q='+encodeURIComponent(q)+'">"'+esc(q)+'" için tüm sonuçlar…</a>'; drop.classList.add('open'); return; }
+    var h=''; res.forEach(function(d){ h+='<a class="hs-item" href="'+d.u+'"><span class="hs-kind">'+esc(d.t)+'</span>'+esc(d.n)+(d.s?'<small>'+esc(d.s)+'</small>':'')+'</a>'; });
+    h+='<a class="hs-item" href="/ara.html?q='+encodeURIComponent(q)+'" style="text-align:center;color:var(--accent);font-weight:700">Tüm sonuçlar →</a>';
+    drop.innerHTML=h; drop.classList.add('open'); sel=-1;
+  }
+  inp.addEventListener('focus',function(){ load(show); });
+  inp.addEventListener('input',function(){ load(show); });
+  inp.addEventListener('keydown',function(e){
+    var links=drop.querySelectorAll('.hs-item');
+    if(e.key==='ArrowDown'){ e.preventDefault(); sel=Math.min(sel+1,links.length-1); }
+    else if(e.key==='ArrowUp'){ e.preventDefault(); sel=Math.max(sel-1,0); }
+    else if(e.key==='Enter'){ if(sel>=0&&links[sel]){ e.preventDefault(); location.href=links[sel].getAttribute('href'); } return; }
+    else { return; }
+    links.forEach(function(l,i){ l.classList.toggle('sel',i===sel); });
+  });
+  document.addEventListener('click',function(e){ if(!form.contains(e.target)) close(); });
 })();
 </script>
 <script nonce="__NONCE__">if('serviceWorker' in navigator){navigator.serviceWorker.register('/sw.js').catch(function(){});}</script>

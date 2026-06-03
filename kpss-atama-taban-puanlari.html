@@ -50,13 +50,123 @@
       "publisher": {
         "@id": "https://sinavveri.com/#organization"
       }
+    },
+    {
+      "@type": "BreadcrumbList",
+      "itemListElement": [
+        {
+          "@type": "ListItem",
+          "position": 1,
+          "name": "Ana Sayfa",
+          "item": "https://sinavveri.com/"
+        },
+        {
+          "@type": "ListItem",
+          "position": 2,
+          "name": "Taban Puanları",
+          "item": "https://sinavveri.com/taban-puanlari.html"
+        },
+        {
+          "@type": "ListItem",
+          "position": 3,
+          "name": "KPSS Atama Taban Puanları 2025"
+        }
+      ]
     }
   ]
 }</script>
 <script nonce="__NONCE__">
   (function(){ try { if (localStorage.getItem('sinavveri-theme') === 'dark') document.documentElement.setAttribute('data-theme','dark'); } catch(e){} })();
 </script>
-<link rel="stylesheet" href="/assets/style.css?v=20260530b">
+<script nonce="__NONCE__">
+(function(){
+  var SV = window.SV = window.SV || {};
+  SV.qsGet = function(){ var o={}; try{ new URLSearchParams(location.search).forEach(function(v,k){o[k]=v;}); }catch(e){} return o; };
+  SV.qsSet = function(obj){
+    try{
+      var p=new URLSearchParams();
+      Object.keys(obj).forEach(function(k){ var v=obj[k]; if(v!=null && v!=='') p.set(k,v); });
+      var s=p.toString();
+      history.replaceState(null,'',location.pathname+(s?'?'+s:'')+location.hash);
+    }catch(e){}
+  };
+  SV.chips = function(id, items, onRemove){
+    var c=document.getElementById(id); if(!c) return;
+    c.innerHTML='';
+    if(!items.length){ c.style.display='none'; return; }
+    c.style.display='flex';
+    items.forEach(function(it){
+      var ch=document.createElement('span'); ch.className='fchip';
+      ch.appendChild(document.createTextNode(it.label+' '));
+      var b=document.createElement('button'); b.type='button'; b.setAttribute('aria-label','Kaldır'); b.textContent='×';
+      b.addEventListener('click',function(){ onRemove(it.key); });
+      ch.appendChild(b); c.appendChild(ch);
+    });
+    var clr=document.createElement('button'); clr.type='button'; clr.className='fchip-clear'; clr.textContent='Tümünü temizle';
+    clr.addEventListener('click',function(){ onRemove('__all__'); });
+    c.appendChild(clr);
+  };
+  SV.skel = function(tbodyId, cols, n){
+    var tb=document.getElementById(tbodyId); if(!tb) return;
+    var h=''; for(var r=0;r<(n||8);r++){ h+='<tr>'; for(var c=0;c<cols;c++){ h+='<td><div class="skel-cell"></div></td>'; } h+='</tr>'; }
+    tb.innerHTML=h;
+  };
+  SV.empty = function(tbodyId, cols, msg){
+    var tb=document.getElementById(tbodyId); if(!tb) return;
+    tb.innerHTML='<tr><td colspan="'+cols+'"><div class="empty-state"><b>Eşleşme yok</b>'+(msg||'Filtreyi gevşetmeyi veya aramayı sadeleştirmeyi deneyin.')+'</div></td></tr>';
+  };
+  SV.copy = function(text, btn){
+    function done(){ if(btn){ var t=btn.getAttribute('data-lbl')||btn.textContent; btn.setAttribute('data-lbl',t); btn.textContent='Kopyalandı ✓'; setTimeout(function(){btn.textContent=t;},1600); } }
+    function fallback(){ try{ var ta=document.createElement('textarea'); ta.value=text; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); document.body.removeChild(ta); done(); }catch(e){} }
+    try{ if(navigator.clipboard&&navigator.clipboard.writeText){ navigator.clipboard.writeText(text).then(done,fallback); } else { fallback(); } }catch(e){ fallback(); }
+  };
+  SV.fav = function(ns){
+    var KEY='sv-fav-'+ns;
+    function read(){ try{ return JSON.parse(localStorage.getItem(KEY)||'[]'); }catch(e){ return []; } }
+    function write(a){ try{ localStorage.setItem(KEY,JSON.stringify(a)); }catch(e){} }
+    return {
+      list: read,
+      has: function(id){ return read().some(function(x){return x.id===id;}); },
+      toggle: function(it){ var a=read(); var i=-1,k; for(k=0;k<a.length;k++){ if(a[k].id===it.id){i=k;break;} } if(i>=0){a.splice(i,1);} else {a.push(it);} write(a); return i<0; },
+      remove: function(id){ write(read().filter(function(x){return x.id!==id;})); },
+      clear: function(){ write([]); }
+    };
+  };
+  // Tercih Listem UI controller — bar/panel + ☆ stars
+  SV.initFav = function(opts){
+    var store=SV.fav(opts.ns);
+    var bar=document.getElementById(opts.barId), panel=document.getElementById(opts.panelId), btn=document.getElementById(opts.btnId);
+    function esc(s){ return (''+(s==null?'':s)).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+    function renderPanel(arr){
+      if(!panel)return;
+      var h='<h3>⭐ Tercih Listem ('+arr.length+')</h3>';
+      if(!arr.length){ h+='<p style="font-size:13px;color:var(--fg-faded);margin:6px 0 0">Henüz tercih eklemediniz. Tablodaki ☆ simgesiyle ekleyin; listeniz bu tarayıcıda saklanır.</p>'; }
+      else{
+        h+='<div class="fp-actions"><button type="button" class="btn btn-ghost" id="'+opts.panelId+'C">Listeyi Kopyala</button><button type="button" class="fchip-clear" id="'+opts.panelId+'X">Listeyi Temizle</button></div><ul class="fav-list">';
+        arr.forEach(function(it){ h+='<li><span><b>'+esc(it.name)+'</b>'+(it.sub?' <small>'+esc(it.sub)+'</small>':'')+(it.meta?' — '+esc(it.meta):'')+'</span><button type="button" class="fl-x" aria-label="Çıkar" data-rm="'+esc(it.id)+'">×</button></li>'; });
+        h+='</ul>';
+      }
+      panel.innerHTML=h;
+    }
+    function refresh(){
+      var arr=store.list();
+      if(bar)bar.classList.toggle('show',arr.length>0);
+      if(btn)btn.textContent='⭐ Tercih Listem ('+arr.length+')';
+      if(panel&&panel.classList.contains('open'))renderPanel(arr);
+      document.querySelectorAll('.fav-star[data-fid]').forEach(function(s){ var on=store.has(s.getAttribute('data-fid')); s.classList.toggle('on',on); s.textContent=on?'★':'☆'; });
+    }
+    if(btn)btn.addEventListener('click',function(){ var op=panel.classList.toggle('open'); if(op)renderPanel(store.list()); });
+    if(panel)panel.addEventListener('click',function(e){
+      var t=e.target;
+      if(t.getAttribute&&t.getAttribute('data-rm')!=null){ store.remove(t.getAttribute('data-rm')); refresh(); }
+      else if(t.id===opts.panelId+'X'){ store.clear(); refresh(); }
+      else if(t.id===opts.panelId+'C'){ var txt=store.list().map(function(x,i){return (i+1)+'. '+x.name+(x.sub?' — '+x.sub:'')+(x.meta?' ('+x.meta+')':'');}).join('\n'); SV.copy('Tercih Listem — SınavVeri.com\n\n'+txt, t); }
+    });
+    return { store:store, toggle:function(it){ store.toggle(it); refresh(); }, has:function(id){return store.has(id);}, refresh:refresh };
+  };
+})();
+</script>
+<link rel="stylesheet" href="/assets/style.css?v=20260603a">
 <link rel="manifest" href="/manifest.json">
 
 </head>
@@ -65,6 +175,11 @@
   <div class="header-inner">
     <a href="/index.html" class="logo">Sınav<span class="logo-veri">Veri</span></a>
     <div class="header-right">
+      <form class="hsearch" id="hsearch" role="search" action="/ara.html" method="get" autocomplete="off">
+        <span class="hs-ic">🔍</span>
+        <input type="search" name="q" id="hsQ" placeholder="Üniversite, bölüm, lise, kadro…" aria-label="Sitede ara">
+        <div class="hs-drop" id="hsDrop" role="listbox"></div>
+      </form>
       <nav><a href="/index.html">Ana Sayfa</a>
 <a href="/taban-puanlari.html">Taban Puanları</a>
 <a href="/tercih-robotu.html">Tercih Robotu</a>
@@ -82,6 +197,7 @@
 <div class="info-box">KPSS ile atanılan her kadro/pozisyon için ÖSYM'nin açıkladığı taban ve tavan puanlar. Kadro veya kurum arayın; il, öğrenim düzeyi ve yerleştirme dönemine göre filtreleyin. <b>Kapsam:</b> 2025 yılının tüm KPSS yerleştirmeleri (2025/1–2025/5: Genel, Çevre Bak., Sağlık Bak.). <b>2024</b> sütunu aynı kurum+il+kadronun bir önceki yıl (aynı tür yerleştirme) tabanıdır; Trend değişimi gösterir. KPSS atamaları tek-seferlik ilanlar olduğundan eşleşme kısmidir (Çevre Bak. için 2024 verisi yoktur).</div>
 <div class="calc-card" style="margin-bottom:18px">
   <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px"><input id="fQ" type="text" placeholder="Kadro / kurum ara…" style="padding:9px 10px;border:1px solid var(--border);border-radius:8px;background:var(--bg-card-alt);color:var(--fg);font-family:inherit;font-size:13px"><select id="fil0" class="btn btn-ghost" style="text-align:left"><option value="">İl (tümü)</option></select><select id="fil1" class="btn btn-ghost" style="text-align:left"><option value="">Düzey (tümü)</option></select><select id="fil2" class="btn btn-ghost" style="text-align:left"><option value="">Dönem (tümü)</option></select></div>
+  <div class="filter-chips" id="chips" style="display:none"></div>
   <div id="status" style="margin-top:12px;font-size:13px;color:var(--accent);font-weight:700">Yükleniyor…</div>
 </div>
 <div class="data-table-wrap">
@@ -96,13 +212,14 @@ Yerleşen olmayan satırlarda değer boştur (—). Resmî bilgi için <a href="
 <div class="info-box" style="margin-top:14px"><b>KPSS kadrolarna göre göz atın (94):</b> <div style="margin-top:8px;line-height:2;font-size:13px"><a href="/kpss-taban/ambar-memuru.html">AMBAR MEMURU</a> <span style="color:var(--fg-faded)">(2)</span> · <a href="/kpss-taban/anbar-memuru.html">ANBAR MEMURU</a> <span style="color:var(--fg-faded)">(6)</span> · <a href="/kpss-taban/apron-memuru.html">APRON MEMURU</a> <span style="color:var(--fg-faded)">(12)</span> · <a href="/kpss-taban/asci.html">AŞÇI</a> <span style="color:var(--fg-faded)">(19)</span> · <a href="/kpss-taban/avukat.html">AVUKAT</a> <span style="color:var(--fg-faded)">(164)</span> · <a href="/kpss-taban/bilgisayar-isletmeni.html">BİLGİSAYAR İŞLETMENİ</a> <span style="color:var(--fg-faded)">(30)</span> · <a href="/kpss-taban/biolog.html">BİOLOG</a> <span style="color:var(--fg-faded)">(2)</span> · <a href="/kpss-taban/biyolog.html">BİYOLOG</a> <span style="color:var(--fg-faded)">(10)</span> · <a href="/kpss-taban/buro-personeli.html">BÜRO PERSONELİ</a> <span style="color:var(--fg-faded)">(718)</span> · <a href="/kpss-taban/cocuk-gelisimcisi.html">ÇOCUK GELİŞİMCİSİ</a> <span style="color:var(--fg-faded)">(159)</span> · <a href="/kpss-taban/denizcilik-sorvey-muhendisi.html">DENİZCİLİK SÖRVEY MÜHENDİSİ</a> <span style="color:var(--fg-faded)">(11)</span> · <a href="/kpss-taban/destek-personeli.html">DESTEK PERSONELİ</a> <span style="color:var(--fg-faded)">(287)</span> · <a href="/kpss-taban/destek-personeli-temizlik-personeli.html">DESTEK PERSONELİ (Temizlik Personeli)</a> <span style="color:var(--fg-faded)">(14)</span> · <a href="/kpss-taban/diger-teknik-hizmet-personeli.html">DİĞER TEKNİK HİZMET PERSONELİ</a> <span style="color:var(--fg-faded)">(19)</span> · <a href="/kpss-taban/diger-teknik-hizmet-personeli-istatistikci.html">DİĞER TEKNİK HİZMET PERSONELİ (İSTATİSTİKÇİ)</a> <span style="color:var(--fg-faded)">(6)</span> · <a href="/kpss-taban/dil-ve-konusma-terapisti.html">DİL VE KONUŞMA TERAPİSTİ</a> <span style="color:var(--fg-faded)">(88)</span> · <a href="/kpss-taban/diyetisyen.html">DİYETİSYEN</a> <span style="color:var(--fg-faded)">(177)</span> · <a href="/kpss-taban/ebe.html">EBE</a> <span style="color:var(--fg-faded)">(1277)</span> · <a href="/kpss-taban/fizyoterapist.html">FİZYOTERAPİST</a> <span style="color:var(--fg-faded)">(205)</span> · <a href="/kpss-taban/gerontolog.html">GERONTOLOG</a> <span style="color:var(--fg-faded)">(14)</span> · <a href="/kpss-taban/guvenlik-gorevlisi.html">GÜVENLİK GÖREVLİSİ</a> <span style="color:var(--fg-faded)">(2)</span> · <a href="/kpss-taban/hareket-memuru.html">HAREKET MEMURU</a> <span style="color:var(--fg-faded)">(89)</span> · <a href="/kpss-taban/hazine-avukati.html">HAZİNE AVUKATI</a> <span style="color:var(--fg-faded)">(68)</span> · <a href="/kpss-taban/hemsire.html">HEMŞİRE</a> <span style="color:var(--fg-faded)">(1626)</span> · <a href="/kpss-taban/hizmetli.html">HİZMETLİ</a> <span style="color:var(--fg-faded)">(39)</span> · <a href="/kpss-taban/icra-memuru.html">İCRA MEMURU</a> <span style="color:var(--fg-faded)">(48)</span> · <a href="/kpss-taban/istatistikci.html">İSTATİSTİKÇİ</a> <span style="color:var(--fg-faded)">(5)</span> · <a href="/kpss-taban/is-makinasi-surucusu.html">İŞ MAKİNASI SÜRÜCÜSÜ</a> <span style="color:var(--fg-faded)">(8)</span> · <a href="/kpss-taban/is-ve-ugrasi-terapisti-ergoterapist.html">İŞ VE UĞRAŞI TERAPİSTİ (ERGOTERAPİST)</a> <span style="color:var(--fg-faded)">(42)</span> · <a href="/kpss-taban/itfaiyeci.html">İTFAİYECİ</a> <span style="color:var(--fg-faded)">(3)</span> · <a href="/kpss-taban/kimyager.html">KİMYAGER</a> <span style="color:var(--fg-faded)">(4)</span> · <a href="/kpss-taban/klinik-psikolog.html">KLİNİK PSİKOLOG</a> <span style="color:var(--fg-faded)">(52)</span> · <a href="/kpss-taban/kondoktor.html">KONDOKTÖR</a> <span style="color:var(--fg-faded)">(10)</span> · <a href="/kpss-taban/koruma-ve-guvenlik-gorevlisi.html">KORUMA VE GÜVENLİK GÖREVLİSİ</a> <span style="color:var(--fg-faded)">(128)</span> · <a href="/kpss-taban/koruma-ve-guvenlik-gorevlisi-silahli.html">KORUMA VE GÜVENLİK GÖREVLİSİ - Silahlı</a> <span style="color:var(--fg-faded)">(12)</span> · <a href="/kpss-taban/kutuphaneci.html">KÜTÜPHANECİ</a> <span style="color:var(--fg-faded)">(6)</span> · <a href="/kpss-taban/memur.html">MEMUR</a> <span style="color:var(--fg-faded)">(251)</span> · <a href="/kpss-taban/memur-hat-bakim-onarim-memuru.html">MEMUR (HAT BAKIM ONARIM MEMURU)</a> <span style="color:var(--fg-faded)">(108)</span> · <a href="/kpss-taban/merkezi-satinalma-uzman-yrd.html">MERKEZİ SATINALMA UZMAN YRD.</a> <span style="color:var(--fg-faded)">(3)</span> · <a href="/kpss-taban/mimar.html">MİMAR</a> <span style="color:var(--fg-faded)">(74)</span> · <a href="/kpss-taban/muhasebeci.html">MUHASEBECİ</a> <span style="color:var(--fg-faded)">(28)</span> · <a href="/kpss-taban/muhendis.html">MÜHENDİS</a> <span style="color:var(--fg-faded)">(907)</span> · <a href="/kpss-taban/mutercim.html">MÜTERCİM</a> <span style="color:var(--fg-faded)">(6)</span> · <a href="/kpss-taban/odyolog.html">ODYOLOG</a> <span style="color:var(--fg-faded)">(34)</span> · <a href="/kpss-taban/perfuzyonist.html">PERFÜZYONİST</a> <span style="color:var(--fg-faded)">(49)</span> · <a href="/kpss-taban/programci.html">PROGRAMCI</a> <span style="color:var(--fg-faded)">(8)</span> · <a href="/kpss-taban/psikolog.html">PSİKOLOG</a> <span style="color:var(--fg-faded)">(93)</span> · <a href="/kpss-taban/puantor.html">PUANTÖR</a> <span style="color:var(--fg-faded)">(4)</span> · <a href="/kpss-taban/saglik-fizikcisi.html">SAĞLIK FİZİKÇİSİ</a> <span style="color:var(--fg-faded)">(24)</span> · <a href="/kpss-taban/saglik-memuru.html">SAĞLIK MEMURU</a> <span style="color:var(--fg-faded)">(4)</span> · <a href="/kpss-taban/saglik-teknikeri.html">SAĞLIK TEKNİKERİ</a> <span style="color:var(--fg-faded)">(53)</span> · <a href="/kpss-taban/saglik-teknikeri-adli-tip.html">SAĞLIK TEKNİKERİ (ADLİ TIP)</a> <span style="color:var(--fg-faded)">(2)</span> · <a href="/kpss-taban/saglik-teknikeri-agiz-dis-sagligi.html">SAĞLIK TEKNİKERİ (AĞIZ DİŞ SAĞLIĞI)</a> <span style="color:var(--fg-faded)">(142)</span> · <a href="/kpss-taban/saglik-teknikeri-ameliyat.html">SAĞLIK TEKNİKERİ (AMELİYAT)</a> <span style="color:var(--fg-faded)">(22)</span> · <a href="/kpss-taban/saglik-teknikeri-anestezi.html">SAĞLIK TEKNİKERİ (ANESTEZİ)</a> <span style="color:var(--fg-faded)">(71)</span> · <a href="/kpss-taban/saglik-teknikeri-cevre-sagligi.html">SAĞLIK TEKNİKERİ (ÇEVRE SAĞLIĞI)</a> <span style="color:var(--fg-faded)">(83)</span> · <a href="/kpss-taban/saglik-teknikeri-dis-protez.html">SAĞLIK TEKNİKERİ (DİŞ PROTEZ)</a> <span style="color:var(--fg-faded)">(9)</span> · <a href="/kpss-taban/saglik-teknikeri-diyaliz.html">SAĞLIK TEKNİKERİ (DİYALİZ)</a> <span style="color:var(--fg-faded)">(183)</span> · <a href="/kpss-taban/saglik-teknikeri-eczane.html">SAĞLIK TEKNİKERİ (ECZANE)</a> <span style="color:var(--fg-faded)">(119)</span> · <a href="/kpss-taban/saglik-teknikeri-elektronorofizyoloji.html">SAĞLIK TEKNİKERİ (ELEKTRONÖROFİZYOLOJİ)</a> <span style="color:var(--fg-faded)">(98)</span> · <a href="/kpss-taban/saglik-teknikeri-evde-bakim.html">SAĞLIK TEKNİKERİ (EVDE BAKIM)</a> <span style="color:var(--fg-faded)">(27)</span> · <a href="/kpss-taban/saglik-teknikeri-fizik-tedavi.html">SAĞLIK TEKNİKERİ (FİZİK TEDAVİ)</a> <span style="color:var(--fg-faded)">(54)</span> · <a href="/kpss-taban/saglik-teknikeri-ilk-ve-acil-yardim.html">SAĞLIK TEKNİKERİ (İLK VE ACİL YARDIM)</a> <span style="color:var(--fg-faded)">(836)</span> · <a href="/kpss-taban/saglik-teknikeri-is-ve-ugrasi-terapisi.html">SAĞLIK TEKNİKERİ (İŞ VE UĞRAŞI TERAPİSİ)</a> <span style="color:var(--fg-faded)">(10)</span> · <a href="/kpss-taban/saglik-teknikeri-laboratuvar.html">SAĞLIK TEKNİKERİ (LABORATUVAR)</a> <span style="color:var(--fg-faded)">(165)</span> · <a href="/kpss-taban/saglik-teknikeri-odyometri.html">SAĞLIK TEKNİKERİ (ODYOMETRİ)</a> <span style="color:var(--fg-faded)">(39)</span> · <a href="/kpss-taban/saglik-teknikeri-optisyen.html">SAĞLIK TEKNİKERİ (OPTİSYEN)</a> <span style="color:var(--fg-faded)">(17)</span> · <a href="/kpss-taban/saglik-teknikeri-ortopedi.html">SAĞLIK TEKNİKERİ (ORTOPEDİ)</a> <span style="color:var(--fg-faded)">(28)</span> · <a href="/kpss-taban/saglik-teknikeri-patolojik-anatomi.html">SAĞLIK TEKNİKERİ (PATOLOJİK ANATOMİ)</a> <span style="color:var(--fg-faded)">(55)</span> · <a href="/kpss-taban/saglik-teknikeri-podolog.html">SAĞLIK TEKNİKERİ (PODOLOG)</a> <span style="color:var(--fg-faded)">(6)</span> · <a href="/kpss-taban/saglik-teknikeri-radyoterapi.html">SAĞLIK TEKNİKERİ (RADYOTERAPİ)</a> <span style="color:var(--fg-faded)">(7)</span> · <a href="/kpss-taban/saglik-teknikeri-rontgen.html">SAĞLIK TEKNİKERİ (RÖNTGEN)</a> <span style="color:var(--fg-faded)">(359)</span> · <a href="/kpss-taban/saglik-teknikeri-tibbi-sekreter.html">SAĞLIK TEKNİKERİ (TIBBİ SEKRETER)</a> <span style="color:var(--fg-faded)">(186)</span> · <a href="/kpss-taban/saglik-teknikeri-yasli-bakim.html">SAĞLIK TEKNİKERİ (YAŞLI BAKIM)</a> <span style="color:var(--fg-faded)">(25)</span> · <a href="/kpss-taban/saglik-teknisyeni-anestezi.html">SAĞLIK TEKNİSYENİ (ANESTEZİ)</a> <span style="color:var(--fg-faded)">(4)</span> · <a href="/kpss-taban/saglik-teknisyeni-cevre-sagligi.html">SAĞLIK TEKNİSYENİ (ÇEVRE SAĞLIĞI)</a> <span style="color:var(--fg-faded)">(9)</span> · <a href="/kpss-taban/saglik-teknisyeni-ilk-ve-acil-yardim.html">SAĞLIK TEKNİSYENİ (İLK VE ACİL YARDIM)</a> <span style="color:var(--fg-faded)">(86)</span> · <a href="/kpss-taban/saglik-teknisyeni-laboratuvar.html">SAĞLIK TEKNİSYENİ (LABORATUVAR)</a> <span style="color:var(--fg-faded)">(3)</span> · <a href="/kpss-taban/saglik-teknisyeni-rontgen.html">SAĞLIK TEKNİSYENİ (RÖNTGEN)</a> <span style="color:var(--fg-faded)">(15)</span> · <a href="/kpss-taban/saglik-teknisyeni-tibbi-sekreter.html">SAĞLIK TEKNİSYENİ (TIBBİ SEKRETER)</a> <span style="color:var(--fg-faded)">(52)</span> · <a href="/kpss-taban/satinalma-memuru.html">SATINALMA MEMURU</a> <span style="color:var(--fg-faded)">(4)</span> · <a href="/kpss-taban/sekreter.html">SEKRETER</a> <span style="color:var(--fg-faded)">(2)</span> · <a href="/kpss-taban/sosyal-calismaci.html">SOSYAL ÇALIŞMACI</a> <span style="color:var(--fg-faded)">(127)</span> · <a href="/kpss-taban/surveyan.html">SÜRVEYAN</a> <span style="color:var(--fg-faded)">(42)</span> · <a href="/kpss-taban/sehir-plancisi.html">ŞEHİR PLANCISI</a> <span style="color:var(--fg-faded)">(31)</span> · <a href="/kpss-taban/sofor.html">ŞOFÖR</a> <span style="color:var(--fg-faded)">(90)</span> · <a href="/kpss-taban/tekniker.html">TEKNİKER</a> <span style="color:var(--fg-faded)">(414)</span> · <a href="/kpss-taban/teknisyen.html">TEKNİSYEN</a> <span style="color:var(--fg-faded)">(368)</span> · <a href="/kpss-taban/vagon-teknisyeni.html">VAGON TEKNİSYENİ</a> <span style="color:var(--fg-faded)">(41)</span> · <a href="/kpss-taban/veri-hazirlama-ve-kontrol-isletmeni.html">VERİ HAZIRLAMA VE KONTROL İŞLETMENİ</a> <span style="color:var(--fg-faded)">(68)</span> · <a href="/kpss-taban/veteriner.html">VETERİNER</a> <span style="color:var(--fg-faded)">(14)</span> · <a href="/kpss-taban/veteriner-hekim.html">VETERİNER HEKİM</a> <span style="color:var(--fg-faded)">(3)</span> · <a href="/kpss-taban/veteriner-saglik-teknisyeni.html">VETERİNER SAĞLIK TEKNİSYENİ</a> <span style="color:var(--fg-faded)">(13)</span> · <a href="/kpss-taban/veznedar.html">VEZNEDAR</a> <span style="color:var(--fg-faded)">(2)</span></div></div>
 <script nonce="__NONCE__">
 (function(){
-  var CFG={"file": "/veri/kpss.json", "cols": [[1, "b"], [0, "t"], [2, "t"], [3, "t"], [4, "t"], [6, "p"], [8, "pv"], [9, "t"], [7, "pv"]], "filters": [[2, 0], [3, 1], [4, 2]], "search": [0, 1]};
+  var CFG={"file": "/veri/kpss.json", "cols": [[1, "b"], [0, "t"], [2, "t"], [3, "t"], [4, "t"], [6, "p"], [8, "pv"], [9, "t"], [7, "pv"]], "filters": [[2, 0, "İl"], [3, 1, "Düzey"], [4, 2, "Dönem"]], "search": [0, 1]}, NCOL=CFG.cols.length, SV=window.SV||{};
   var data=[],shown=0,PAGE=50;
   function el(id){return document.getElementById(id);}
   var nf=function(n){return n==null?'—':Number(n).toLocaleString('tr-TR');};
   var pf=function(n){return n==null?'—':Number(n).toLocaleString('tr-TR',{minimumFractionDigits:2,maximumFractionDigits:2});};
+  if(SV.skel)SV.skel('tbody',NCOL,7);
   el('status').textContent='Veriler yükleniyor…';
-  fetch(CFG.file).then(function(r){return r.json();}).then(function(j){data=j;initFilters();render();})
+  fetch(CFG.file).then(function(r){return r.json();}).then(function(j){data=j;initFilters();applyQS();render();})
     .catch(function(){el('status').textContent='Veri yüklenemedi.';});
   function initFilters(){
     CFG.filters.forEach(function(f){
@@ -110,6 +227,28 @@ Yerleşen olmayan satırlarda değer boştur (—). Resmî bilgi için <a href="
       var vals=Object.keys(set).sort(function(a,b){return a.localeCompare(b,'tr');});
       var sel=el('fil'+f[1]);if(!sel)return;
       vals.forEach(function(v){var o=document.createElement('option');o.value=v;o.textContent=v;sel.appendChild(o);});
+    });
+  }
+  function applyQS(){
+    var qs=SV.qsGet?SV.qsGet():{};
+    if(qs.q!=null)el('fQ').value=qs.q;
+    CFG.filters.forEach(function(f){var s=el('fil'+f[1]);if(s&&qs['f'+f[1]]!=null)s.value=qs['f'+f[1]];});
+  }
+  function syncQS(){
+    var o={}; var q=el('fQ').value.trim(); if(q)o.q=q;
+    CFG.filters.forEach(function(f){var s=el('fil'+f[1]);if(s&&s.value)o['f'+f[1]]=s.value;});
+    if(SV.qsSet)SV.qsSet(o); drawChips();
+  }
+  function drawChips(){
+    if(!SV.chips)return;
+    var items=[]; var q=el('fQ').value.trim();
+    if(q)items.push({key:'q',label:'“'+q+'”'});
+    CFG.filters.forEach(function(f){var s=el('fil'+f[1]);if(s&&s.value)items.push({key:'f'+f[1],label:f[2]+': '+s.value});});
+    SV.chips('chips',items,function(key){
+      if(key==='__all__'){el('fQ').value='';CFG.filters.forEach(function(f){var s=el('fil'+f[1]);if(s)s.value='';});}
+      else if(key==='q'){el('fQ').value='';}
+      else {CFG.filters.forEach(function(f){if('f'+f[1]===key){var s=el('fil'+f[1]);if(s)s.value='';}});}
+      render(true);
     });
   }
   function filtered(){
@@ -133,9 +272,10 @@ Yerleşen olmayan satırlarda değer boştur (—). Resmî bilgi için <a href="
     return rows;
   }
   function render(reset){
-    if(reset!==false)shown=0;
+    if(reset!==false){shown=0;syncQS();}
     var rows=applySort(filtered());
     el('status').textContent=rows.length.toLocaleString('tr-TR')+' sonuç bulundu';
+    if(!rows.length){if(SV.empty)SV.empty('tbody',NCOL);el('moreWrap').style.display='none';return;}
     shown=Math.min(shown+PAGE,rows.length);if(shown===0&&rows.length)shown=Math.min(PAGE,rows.length);
     var tb=el('tbody');tb.innerHTML='';
     rows.slice(0,shown||PAGE).forEach(function(r){
@@ -224,6 +364,37 @@ Yerleşen olmayan satırlarda değer boştur (—). Resmî bilgi için <a href="
       });
     });
   });
+})();
+</script>
+<script nonce="__NONCE__">
+(function(){
+  var form=document.getElementById('hsearch'); if(!form) return;
+  var inp=document.getElementById('hsQ'), drop=document.getElementById('hsDrop');
+  var DATA=null, loading=false, sel=-1;
+  function load(cb){ if(DATA){cb&&cb();return;} if(loading)return; loading=true;
+    fetch('/veri/arama.json').then(function(r){return r.json();}).then(function(j){DATA=j;loading=false;cb&&cb();}).catch(function(){loading=false;}); }
+  function norm(s){return (s||'').toLocaleLowerCase('tr');}
+  function search(q){ if(!DATA)return []; q=norm(q).trim(); if(q.length<2)return [];
+    var out=[]; for(var i=0;i<DATA.length && out.length<8;i++){ var d=DATA[i]; if(norm(d.n).indexOf(q)>=0||norm(d.s||'').indexOf(q)>=0){ out.push(d); } } return out; }
+  function esc(s){ return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+  function close(){ drop.classList.remove('open'); drop.innerHTML=''; sel=-1; }
+  function show(){ var q=inp.value; if(!q||q.trim().length<2){ close(); return; } var res=search(q);
+    if(!res.length){ drop.innerHTML='<a class="hs-item" href="/ara.html?q='+encodeURIComponent(q)+'">"'+esc(q)+'" için tüm sonuçlar…</a>'; drop.classList.add('open'); return; }
+    var h=''; res.forEach(function(d){ h+='<a class="hs-item" href="'+d.u+'"><span class="hs-kind">'+esc(d.t)+'</span>'+esc(d.n)+(d.s?'<small>'+esc(d.s)+'</small>':'')+'</a>'; });
+    h+='<a class="hs-item" href="/ara.html?q='+encodeURIComponent(q)+'" style="text-align:center;color:var(--accent);font-weight:700">Tüm sonuçlar →</a>';
+    drop.innerHTML=h; drop.classList.add('open'); sel=-1;
+  }
+  inp.addEventListener('focus',function(){ load(show); });
+  inp.addEventListener('input',function(){ load(show); });
+  inp.addEventListener('keydown',function(e){
+    var links=drop.querySelectorAll('.hs-item');
+    if(e.key==='ArrowDown'){ e.preventDefault(); sel=Math.min(sel+1,links.length-1); }
+    else if(e.key==='ArrowUp'){ e.preventDefault(); sel=Math.max(sel-1,0); }
+    else if(e.key==='Enter'){ if(sel>=0&&links[sel]){ e.preventDefault(); location.href=links[sel].getAttribute('href'); } return; }
+    else { return; }
+    links.forEach(function(l,i){ l.classList.toggle('sel',i===sel); });
+  });
+  document.addEventListener('click',function(e){ if(!form.contains(e.target)) close(); });
 })();
 </script>
 <script nonce="__NONCE__">if('serviceWorker' in navigator){navigator.serviceWorker.register('/sw.js').catch(function(){});}</script>

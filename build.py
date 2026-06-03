@@ -9,7 +9,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).parent
 SITE = "https://sinavveri.com"
-ASSET_VER = "20260530b"
+ASSET_VER = "20260603a"
 
 NAV = [
     ("/index.html", "Ana Sayfa"),
@@ -33,6 +33,139 @@ def jsonld(title, desc, slug, extra=None):
     if extra:
         graph.extend(extra)
     return json.dumps({"@context": "https://schema.org", "@graph": graph}, ensure_ascii=False, indent=2)
+
+
+SV_HELPER_JS = r"""<script nonce="__NONCE__">
+(function(){
+  var SV = window.SV = window.SV || {};
+  SV.qsGet = function(){ var o={}; try{ new URLSearchParams(location.search).forEach(function(v,k){o[k]=v;}); }catch(e){} return o; };
+  SV.qsSet = function(obj){
+    try{
+      var p=new URLSearchParams();
+      Object.keys(obj).forEach(function(k){ var v=obj[k]; if(v!=null && v!=='') p.set(k,v); });
+      var s=p.toString();
+      history.replaceState(null,'',location.pathname+(s?'?'+s:'')+location.hash);
+    }catch(e){}
+  };
+  SV.chips = function(id, items, onRemove){
+    var c=document.getElementById(id); if(!c) return;
+    c.innerHTML='';
+    if(!items.length){ c.style.display='none'; return; }
+    c.style.display='flex';
+    items.forEach(function(it){
+      var ch=document.createElement('span'); ch.className='fchip';
+      ch.appendChild(document.createTextNode(it.label+' '));
+      var b=document.createElement('button'); b.type='button'; b.setAttribute('aria-label','Kaldır'); b.textContent='×';
+      b.addEventListener('click',function(){ onRemove(it.key); });
+      ch.appendChild(b); c.appendChild(ch);
+    });
+    var clr=document.createElement('button'); clr.type='button'; clr.className='fchip-clear'; clr.textContent='Tümünü temizle';
+    clr.addEventListener('click',function(){ onRemove('__all__'); });
+    c.appendChild(clr);
+  };
+  SV.skel = function(tbodyId, cols, n){
+    var tb=document.getElementById(tbodyId); if(!tb) return;
+    var h=''; for(var r=0;r<(n||8);r++){ h+='<tr>'; for(var c=0;c<cols;c++){ h+='<td><div class="skel-cell"></div></td>'; } h+='</tr>'; }
+    tb.innerHTML=h;
+  };
+  SV.empty = function(tbodyId, cols, msg){
+    var tb=document.getElementById(tbodyId); if(!tb) return;
+    tb.innerHTML='<tr><td colspan="'+cols+'"><div class="empty-state"><b>Eşleşme yok</b>'+(msg||'Filtreyi gevşetmeyi veya aramayı sadeleştirmeyi deneyin.')+'</div></td></tr>';
+  };
+  SV.copy = function(text, btn){
+    function done(){ if(btn){ var t=btn.getAttribute('data-lbl')||btn.textContent; btn.setAttribute('data-lbl',t); btn.textContent='Kopyalandı ✓'; setTimeout(function(){btn.textContent=t;},1600); } }
+    function fallback(){ try{ var ta=document.createElement('textarea'); ta.value=text; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); document.body.removeChild(ta); done(); }catch(e){} }
+    try{ if(navigator.clipboard&&navigator.clipboard.writeText){ navigator.clipboard.writeText(text).then(done,fallback); } else { fallback(); } }catch(e){ fallback(); }
+  };
+  SV.fav = function(ns){
+    var KEY='sv-fav-'+ns;
+    function read(){ try{ return JSON.parse(localStorage.getItem(KEY)||'[]'); }catch(e){ return []; } }
+    function write(a){ try{ localStorage.setItem(KEY,JSON.stringify(a)); }catch(e){} }
+    return {
+      list: read,
+      has: function(id){ return read().some(function(x){return x.id===id;}); },
+      toggle: function(it){ var a=read(); var i=-1,k; for(k=0;k<a.length;k++){ if(a[k].id===it.id){i=k;break;} } if(i>=0){a.splice(i,1);} else {a.push(it);} write(a); return i<0; },
+      remove: function(id){ write(read().filter(function(x){return x.id!==id;})); },
+      clear: function(){ write([]); }
+    };
+  };
+  // Tercih Listem UI controller — bar/panel + ☆ stars
+  SV.initFav = function(opts){
+    var store=SV.fav(opts.ns);
+    var bar=document.getElementById(opts.barId), panel=document.getElementById(opts.panelId), btn=document.getElementById(opts.btnId);
+    function esc(s){ return (''+(s==null?'':s)).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+    function renderPanel(arr){
+      if(!panel)return;
+      var h='<h3>⭐ Tercih Listem ('+arr.length+')</h3>';
+      if(!arr.length){ h+='<p style="font-size:13px;color:var(--fg-faded);margin:6px 0 0">Henüz tercih eklemediniz. Tablodaki ☆ simgesiyle ekleyin; listeniz bu tarayıcıda saklanır.</p>'; }
+      else{
+        h+='<div class="fp-actions"><button type="button" class="btn btn-ghost" id="'+opts.panelId+'C">Listeyi Kopyala</button><button type="button" class="fchip-clear" id="'+opts.panelId+'X">Listeyi Temizle</button></div><ul class="fav-list">';
+        arr.forEach(function(it){ h+='<li><span><b>'+esc(it.name)+'</b>'+(it.sub?' <small>'+esc(it.sub)+'</small>':'')+(it.meta?' — '+esc(it.meta):'')+'</span><button type="button" class="fl-x" aria-label="Çıkar" data-rm="'+esc(it.id)+'">×</button></li>'; });
+        h+='</ul>';
+      }
+      panel.innerHTML=h;
+    }
+    function refresh(){
+      var arr=store.list();
+      if(bar)bar.classList.toggle('show',arr.length>0);
+      if(btn)btn.textContent='⭐ Tercih Listem ('+arr.length+')';
+      if(panel&&panel.classList.contains('open'))renderPanel(arr);
+      document.querySelectorAll('.fav-star[data-fid]').forEach(function(s){ var on=store.has(s.getAttribute('data-fid')); s.classList.toggle('on',on); s.textContent=on?'★':'☆'; });
+    }
+    if(btn)btn.addEventListener('click',function(){ var op=panel.classList.toggle('open'); if(op)renderPanel(store.list()); });
+    if(panel)panel.addEventListener('click',function(e){
+      var t=e.target;
+      if(t.getAttribute&&t.getAttribute('data-rm')!=null){ store.remove(t.getAttribute('data-rm')); refresh(); }
+      else if(t.id===opts.panelId+'X'){ store.clear(); refresh(); }
+      else if(t.id===opts.panelId+'C'){ var txt=store.list().map(function(x,i){return (i+1)+'. '+x.name+(x.sub?' — '+x.sub:'')+(x.meta?' ('+x.meta+')':'');}).join('\n'); SV.copy('Tercih Listem — SınavVeri.com\n\n'+txt, t); }
+    });
+    return { store:store, toggle:function(it){ store.toggle(it); refresh(); }, has:function(id){return store.has(id);}, refresh:refresh };
+  };
+})();
+</script>"""
+
+HEADER_SEARCH_JS = r"""<script nonce="__NONCE__">
+(function(){
+  var form=document.getElementById('hsearch'); if(!form) return;
+  var inp=document.getElementById('hsQ'), drop=document.getElementById('hsDrop');
+  var DATA=null, loading=false, sel=-1;
+  function load(cb){ if(DATA){cb&&cb();return;} if(loading)return; loading=true;
+    fetch('/veri/arama.json').then(function(r){return r.json();}).then(function(j){DATA=j;loading=false;cb&&cb();}).catch(function(){loading=false;}); }
+  function norm(s){return (s||'').toLocaleLowerCase('tr');}
+  function search(q){ if(!DATA)return []; q=norm(q).trim(); if(q.length<2)return [];
+    var out=[]; for(var i=0;i<DATA.length && out.length<8;i++){ var d=DATA[i]; if(norm(d.n).indexOf(q)>=0||norm(d.s||'').indexOf(q)>=0){ out.push(d); } } return out; }
+  function esc(s){ return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+  function close(){ drop.classList.remove('open'); drop.innerHTML=''; sel=-1; }
+  function show(){ var q=inp.value; if(!q||q.trim().length<2){ close(); return; } var res=search(q);
+    if(!res.length){ drop.innerHTML='<a class="hs-item" href="/ara.html?q='+encodeURIComponent(q)+'">"'+esc(q)+'" için tüm sonuçlar…</a>'; drop.classList.add('open'); return; }
+    var h=''; res.forEach(function(d){ h+='<a class="hs-item" href="'+d.u+'"><span class="hs-kind">'+esc(d.t)+'</span>'+esc(d.n)+(d.s?'<small>'+esc(d.s)+'</small>':'')+'</a>'; });
+    h+='<a class="hs-item" href="/ara.html?q='+encodeURIComponent(q)+'" style="text-align:center;color:var(--accent);font-weight:700">Tüm sonuçlar →</a>';
+    drop.innerHTML=h; drop.classList.add('open'); sel=-1;
+  }
+  inp.addEventListener('focus',function(){ load(show); });
+  inp.addEventListener('input',function(){ load(show); });
+  inp.addEventListener('keydown',function(e){
+    var links=drop.querySelectorAll('.hs-item');
+    if(e.key==='ArrowDown'){ e.preventDefault(); sel=Math.min(sel+1,links.length-1); }
+    else if(e.key==='ArrowUp'){ e.preventDefault(); sel=Math.max(sel-1,0); }
+    else if(e.key==='Enter'){ if(sel>=0&&links[sel]){ e.preventDefault(); location.href=links[sel].getAttribute('href'); } return; }
+    else { return; }
+    links.forEach(function(l,i){ l.classList.toggle('sel',i===sel); });
+  });
+  document.addEventListener('click',function(e){ if(!form.contains(e.target)) close(); });
+})();
+</script>"""
+
+
+def breadcrumb_ld(items):
+    """items: [(name, slug_or_None)]. Son öğe genelde slug'sız (mevcut sayfa)."""
+    el = []
+    for i, (name, slug) in enumerate(items, 1):
+        item = {"@type": "ListItem", "position": i, "name": name}
+        if slug:
+            item["item"] = SITE + "/" + (slug if slug != "index.html" else "")
+        el.append(item)
+    return {"@type": "BreadcrumbList", "itemListElement": el}
 
 
 def base(slug, title, desc, body, *, extra_head="", extra_ld=None):
@@ -71,6 +204,7 @@ def base(slug, title, desc, body, *, extra_head="", extra_ld=None):
 <script nonce="__NONCE__">
   (function(){{ try {{ if (localStorage.getItem('sinavveri-theme') === 'dark') document.documentElement.setAttribute('data-theme','dark'); }} catch(e){{}} }})();
 </script>
+{SV_HELPER_JS}
 <link rel="stylesheet" href="/assets/style.css?v={ASSET_VER}">
 <link rel="manifest" href="/manifest.json">
 {extra_head}
@@ -80,6 +214,11 @@ def base(slug, title, desc, body, *, extra_head="", extra_ld=None):
   <div class="header-inner">
     <a href="/index.html" class="logo">Sınav<span class="logo-veri">Veri</span></a>
     <div class="header-right">
+      <form class="hsearch" id="hsearch" role="search" action="/ara.html" method="get" autocomplete="off">
+        <span class="hs-ic">🔍</span>
+        <input type="search" name="q" id="hsQ" placeholder="Üniversite, bölüm, lise, kadro…" aria-label="Sitede ara">
+        <div class="hs-drop" id="hsDrop" role="listbox"></div>
+      </form>
       <nav>{nav_html}</nav>
       <button type="button" class="theme-toggle" id="themeToggle" aria-label="Tema değiştir" title="Açık/Koyu tema"><span class="toggle-icon">🌙</span><span class="toggle-text">Koyu Tema</span></button>
     </div>
@@ -141,6 +280,7 @@ def base(slug, title, desc, body, *, extra_head="", extra_ld=None):
   }});
 }})();
 </script>
+{HEADER_SEARCH_JS}
 <script nonce="__NONCE__">if('serviceWorker' in navigator){{navigator.serviceWorker.register('/sw.js').catch(function(){{}});}}</script>
 </body>
 </html>"""
@@ -723,18 +863,34 @@ def _exam_tool_cards(exam):
     return f'<div class="tool-row" style="margin:0 0 22px">{cards}</div>' if cards else ""
 
 
+import re as _re
+
+
+def _strip_html(s):
+    return _re.sub(r"\s+", " ", _re.sub(r"<[^>]+>", "", s)).strip()
+
+
 def guide(slug, exam, title_full, icon, calc_slug, intro, sections, has_calc=True):
     sec_html = ""
+    faqs = []
     for h, paras in sections:
         sec_html += f"<h2>{h}</h2>"
+        ans_parts = []
         for p in paras:
             if isinstance(p, tuple):
                 if p[0] == "ul":
                     sec_html += "<ul>" + "".join(f"<li>{x}</li>" for x in p[1]) + "</ul>"
+                    ans_parts.append("; ".join(_strip_html(x) for x in p[1]))
                 elif p[0] == "ol":
                     sec_html += "<ol>" + "".join(f"<li>{x}</li>" for x in p[1]) + "</ol>"
+                    ans_parts.append("; ".join(_strip_html(x) for x in p[1]))
             else:
                 sec_html += f"<p>{p}</p>"
+                ans_parts.append(_strip_html(p))
+        q = h if h.endswith("?") else h
+        ans = " ".join(x for x in ans_parts if x)
+        if ans:
+            faqs.append((q, ans))
     body = f"""
 <div class="crumb"><a href="index.html">Ana Sayfa</a> / {exam}</div>
 <div class="hero" style="padding:30px 28px">
@@ -748,8 +904,13 @@ def guide(slug, exam, title_full, icon, calc_slug, intro, sections, has_calc=Tru
 <div class="notice" style="max-width:880px"><b>Bilgi:</b> Bu sayfa bilgilendirme amaçlıdır. Başvuru koşulları ve güncel kurallar için
 resmî kaynak <a href="https://www.osym.gov.tr" target="_blank" rel="noopener">ÖSYM</a>/<a href="https://www.meb.gov.tr" target="_blank" rel="noopener">MEB</a> esas alınmalıdır.</div>
 """
+    extra_ld = [breadcrumb_ld([("Ana Sayfa", "index.html"), (f"{exam} Rehberi", None)])]
+    if faqs:
+        extra_ld.append({"@type": "FAQPage", "mainEntity": [
+            {"@type": "Question", "name": q,
+             "acceptedAnswer": {"@type": "Answer", "text": a}} for q, a in faqs]})
     return base(slug, f"{exam} Nedir? {title_full} Rehberi 2026 | SınavVeri",
-                intro[:155], body)
+                intro[:155], body, extra_ld=extra_ld)
 
 
 def page_yks():
@@ -1160,13 +1321,18 @@ SEARCH_JS = r"""<script nonce="__NONCE__">
 (function(){
   var IDX={k:0,u:1,b:2,g:3,il:4,t:5,o:6,dil:7,bs:8,kont:9,tp:10,sira:11,yer:12};
   var TUR={D:'Devlet',V:'Vakıf',K:'KKTC',DK:'Devlet (KKTC Kampüs)',DU:'Devlet (Ücretli)',Y:'Diğer','?':'—'};
+  var PTL={say:'Sayısal',ea:'Eşit Ağırlık',soz:'Sözel',dil:'Dil',tyt:'TYT (Önlisans)'};
+  var SV=window.SV||{};
   function doluluk(r){var k=r[IDX.kont],y=r[IDX.yer];if(!k||y==null)return '—';var p=Math.round(y/k*100);var c=p>=100?'tag-lgs':(p>=70?'tag-kpss':'tag-other');return '<span class="tag '+c+'">%'+p+'</span>';}
   var data=[], shown=0, PAGE=50, cache={};
   var nf=function(n){return n==null?'—':n.toLocaleString('tr-TR');};
   var pf=function(n){return n==null?'—':n.toLocaleString('tr-TR',{minimumFractionDigits:2,maximumFractionDigits:2});};
   function el(id){return document.getElementById(id);}
+  function rkey(r){return (r[IDX.b]||'')+'|'+(r[IDX.u]||'')+'|'+(r[IDX.il]||'');}
+  var cmp={}, byKey={};
   function load(pt){
     if(cache[pt]){data=cache[pt];afterLoad();return;}
+    if(SV.skel)SV.skel('tbody',8,7);
     el('status').textContent='Veriler yükleniyor…';
     fetch('/veri/'+pt+'.json').then(function(r){return r.json();}).then(function(j){
       cache[pt]=j; data=j; afterLoad();
@@ -1175,13 +1341,40 @@ SEARCH_JS = r"""<script nonce="__NONCE__">
   function fillIl(){
     var set={}; data.forEach(function(r){if(r[IDX.il])set[r[IDX.il]]=1;});
     var ils=Object.keys(set).sort(function(a,b){return a.localeCompare(b,'tr');});
-    var sel=el('fIl'); sel.innerHTML='<option value="">Tüm iller</option>';
-    ils.forEach(function(i){var o=document.createElement('option');o.value=i;o.textContent=i;sel.appendChild(o);});
+    var cur=el('fIl').value; var sel=el('fIl'); sel.innerHTML='<option value="">Tüm iller</option>';
+    ils.forEach(function(i){var o=document.createElement('option');o.value=i;o.textContent=i;if(i===cur)o.selected=true;sel.appendChild(o);});
+  }
+  function applyQS(){
+    var qs=SV.qsGet?SV.qsGet():{};
+    if(qs.q!=null)el('fQ').value=qs.q;
+    if(qs.tur!=null)el('fTur').value=qs.tur;
+    if(qs.burs==='1'&&el('fBurs'))el('fBurs').checked=true;
+    if(qs.il!=null){var s=el('fIl');var o=document.createElement('option');o.value=qs.il;o.textContent=qs.il;o.selected=true;s.appendChild(o);}
+  }
+  function syncQS(){
+    var o={pt:el('ptSel').value};var q=el('fQ').value.trim();if(q)o.q=q;
+    if(el('fIl').value)o.il=el('fIl').value; if(el('fTur').value)o.tur=el('fTur').value;
+    if(el('fBurs')&&el('fBurs').checked)o.burs='1';
+    if(SV.qsSet)SV.qsSet(o); drawChips();
+  }
+  function drawChips(){
+    if(!SV.chips)return;var items=[{key:'pt',label:'Puan: '+(PTL[el('ptSel').value]||el('ptSel').value)}];
+    var q=el('fQ').value.trim();if(q)items.push({key:'q',label:'“'+q+'”'});
+    if(el('fIl').value)items.push({key:'il',label:'İl: '+el('fIl').value});
+    if(el('fTur').value)items.push({key:'tur',label:'Tür: '+(TUR[el('fTur').value]||el('fTur').value)});
+    if(el('fBurs')&&el('fBurs').checked)items.push({key:'burs',label:'Sadece burslu'});
+    SV.chips('chips',items,function(key){
+      if(key==='pt')return;
+      if(key==='__all__'){el('fQ').value='';el('fIl').value='';el('fTur').value='';if(el('fBurs'))el('fBurs').checked=false;}
+      else if(key==='q')el('fQ').value='';else if(key==='il')el('fIl').value='';
+      else if(key==='tur')el('fTur').value='';else if(key==='burs'&&el('fBurs'))el('fBurs').checked=false;
+      render(true);
+    });
   }
   function afterLoad(){fillIl();render();}
   function filtered(){
     var q=(el('fQ').value||'').toLocaleLowerCase('tr').trim();
-    var il=el('fIl').value, tur=el('fTur').value, dual=el('fDevlet')?null:null;
+    var il=el('fIl').value, tur=el('fTur').value;
     var bursOnly=el('fBurs')&&el('fBurs').checked;
     var out=data.filter(function(r){
       if(il&&r[IDX.il]!==il)return false;
@@ -1207,12 +1400,14 @@ SEARCH_JS = r"""<script nonce="__NONCE__">
     return rows;
   }
   function render(reset){
-    if(reset!==false)shown=0;
+    if(reset!==false){shown=0;syncQS();}
     var rows=applySort(filtered());
     el('status').textContent=rows.length.toLocaleString('tr-TR')+' program bulundu';
+    if(!rows.length){if(SV.empty)SV.empty('tbody',8);el('moreWrap').style.display='none';return;}
     shown=Math.min(shown+PAGE,rows.length); if(shown===0&&rows.length)shown=Math.min(PAGE,rows.length);
-    var tb=el('tbody'); tb.innerHTML='';
+    var tb=el('tbody'); tb.innerHTML=''; byKey={};
     rows.slice(0,shown||PAGE).forEach(function(r){
+      var k=rkey(r); byKey[k]=r;
       var tr=document.createElement('tr');
       tr.innerHTML='<td><strong>'+(r[IDX.b]||'')+'</strong><br><small>'+(r[IDX.u]||'')+'</small></td>'+
         '<td>'+(r[IDX.il]||'—')+'</td>'+
@@ -1220,21 +1415,59 @@ SEARCH_JS = r"""<script nonce="__NONCE__">
         '<td>'+nf(r[IDX.kont])+'</td>'+
         '<td><strong>'+pf(r[IDX.tp])+'</strong></td>'+
         '<td>'+nf(r[IDX.sira])+'</td>'+
-        '<td>'+doluluk(r)+'</td>';
+        '<td>'+doluluk(r)+'</td>'+
+        '<td style="text-align:center"><input type="checkbox" class="cmp-cb" aria-label="Karşılaştır" data-k="'+k.replace(/"/g,'&quot;')+'"'+(cmp[k]?' checked':'')+'></td>';
       tb.appendChild(tr);
     });
     el('moreWrap').style.display = (shown<rows.length)?'block':'none';
     el('moreInfo').textContent=shown+' / '+rows.length.toLocaleString('tr-TR');
   }
+  // ── Karşılaştırma ──
+  function cmpCount(){var n=0;for(var k in cmp)if(cmp.hasOwnProperty(k))n++;return n;}
+  function updateBar(){
+    var n=cmpCount();var bar=el('cmpBar');if(!bar)return;
+    bar.classList.toggle('show',n>0);
+    el('cmpBtn').textContent='Karşılaştır ('+n+')';
+  }
+  function buildPanel(){
+    var panel=el('cmpPanel');var keys=Object.keys(cmp);if(!keys.length){panel.classList.remove('open');return;}
+    var rowsDef=[['İl',IDX.il],['Tür',IDX.t],['Kontenjan',IDX.kont],['Taban Puan',IDX.tp],['Başarı Sırası',IDX.sira]];
+    var h='<div class="cmp-grid">';
+    keys.forEach(function(k){var r=cmp[k];
+      h+='<div class="cmp-col"><h4>'+(r[IDX.b]||'')+'</h4><div class="cc-sub">'+(r[IDX.u]||'')+'</div><dl>';
+      rowsDef.forEach(function(d){var v=r[d[1]];var txt;
+        if(d[1]===IDX.t)txt=TUR[v]||'—';else if(d[1]===IDX.tp)txt=pf(v);else txt=nf(v);
+        h+='<dt>'+d[0]+'</dt><dd>'+txt+'</dd>';});
+      h+='<dt>Doluluk</dt><dd>'+doluluk(r)+'</dd></dl></div>';
+    });
+    h+='</div>';panel.innerHTML=h;panel.classList.add('open');
+  }
+  el('tbody').addEventListener('change',function(e){
+    var cb=e.target;if(!cb.classList||!cb.classList.contains('cmp-cb'))return;
+    var k=cb.getAttribute('data-k');
+    if(cb.checked){ if(cmpCount()>=3){cb.checked=false;return;} cmp[k]=byKey[k]; }
+    else { delete cmp[k]; }
+    updateBar(); if(el('cmpPanel').classList.contains('open'))buildPanel();
+  });
+  el('cmpBtn').addEventListener('click',function(){
+    var p=el('cmpPanel');if(p.classList.contains('open'))p.classList.remove('open');else buildPanel();
+  });
+  el('cmpClear').addEventListener('click',function(){
+    cmp={};el('cmpPanel').classList.remove('open');updateBar();
+    document.querySelectorAll('.cmp-cb').forEach(function(c){c.checked=false;});
+  });
   ['fQ','fIl','fTur'].forEach(function(id){var e=el(id);if(e)e.addEventListener('input',function(){render(true);});});
   if(el('fBurs'))el('fBurs').addEventListener('change',function(){render(true);});
   el('ptSel').addEventListener('change',function(){load(this.value);});
   el('moreBtn').addEventListener('click',function(){render(false);});
   (function(){var ths=document.querySelectorAll('.data-table thead th');ths.forEach(function(th,i){
+    if(th.hasAttribute('data-nosort'))return;
     th.style.cursor='pointer';th.title='Sıralamak için tıklayın';
     th.addEventListener('click',function(){sortD=(sortI===i)?-sortD:1;sortI=i;
       ths.forEach(function(o){var a=o.querySelector('.s-arrow');if(a)a.remove();});
       var ar=document.createElement('span');ar.className='s-arrow';ar.textContent=sortD>0?' ▲':' ▼';th.appendChild(ar);render(true);});});})();
+  applyQS();
+  var qs0=SV.qsGet?SV.qsGet():{}; if(qs0.pt&&PTL[qs0.pt])el('ptSel').value=qs0.pt;
   load(el('ptSel').value);
 })();
 </script>"""
@@ -1262,14 +1495,20 @@ def page_taban_index():
     </select>
     <label style="display:flex;align-items:center;gap:6px;font-size:13px;color:var(--fg-muted)"><input type="checkbox" id="fBurs"> Sadece burslu</label>
   </div>
+  <div class="filter-chips" id="chips" style="display:none"></div>
   <div id="status" style="margin-top:12px;font-size:13px;color:var(--accent);font-weight:700">Yükleniyor…</div>
 </div>
 
 <div class="data-table-wrap">
 <table class="data-table" data-live="1">
-<thead><tr><th>Program / Üniversite</th><th>İl</th><th>Tür</th><th>Kont.</th><th>Taban Puan</th><th>Başarı Sırası</th><th>Doluluk</th></tr></thead>
+<thead><tr><th>Program / Üniversite</th><th>İl</th><th>Tür</th><th>Kont.</th><th>Taban Puan</th><th>Başarı Sırası</th><th>Doluluk</th><th data-nosort title="Karşılaştırmak için seç">Kıyas</th></tr></thead>
 <tbody id="tbody"></tbody>
 </table>
+</div>
+<div class="fav-panel" id="cmpPanel"></div>
+<div class="cmp-bar" id="cmpBar">
+  <button type="button" class="fav-toggle" id="cmpBtn">Karşılaştır (0)</button>
+  <button type="button" class="fchip-clear" id="cmpClear" style="margin-left:8px">Seçimi temizle</button>
 </div>
 <div id="moreWrap" style="text-align:center;margin-top:16px;display:none">
   <button type="button" class="btn btn-primary" id="moreBtn">Daha fazla göster</button>
@@ -1282,7 +1521,7 @@ o programa <b>en son yerleşen</b> adayın verisidir. Yerleşen olmayan programl
 """ + SEARCH_JS
     return base("universite-taban-puanlari.html", "Üniversite Taban Puanları 2025 — YÖK Atlas Verisi | SınavVeri",
                 "2025 üniversite taban puanları ve başarı sıralamaları. 21.602 lisans ve önlisans programını puan türü, il ve üniversite türüne göre filtrele. YÖK Atlas verisi.",
-                body)
+                body, extra_ld=[breadcrumb_ld([("Ana Sayfa", "index.html"), ("Taban Puanları", "taban-puanlari.html"), ("Üniversite", None)])])
 
 
 # ───────────────────────── TERCİH ROBOTU ─────────────────────────
@@ -1290,15 +1529,37 @@ ROBOT_JS = r"""<script nonce="__NONCE__">
 (function(){
   var IDX={k:0,u:1,b:2,g:3,il:4,t:5,o:6,dil:7,bs:8,kont:9,tp:10,sira:11};
   var TUR={D:'Devlet',V:'Vakıf',K:'KKTC',DK:'Devlet (KKTC Kampüs)',DU:'Devlet (Ücretli)',Y:'Diğer','?':'—'};
-  var data=[],cache={};
+  var PTL={say:'Sayısal',ea:'Eşit Ağırlık',soz:'Sözel',dil:'Dil',tyt:'TYT (Önlisans)'};
+  var SV=window.SV||{};
+  var data=[],cache={},byId={};
+  var fav=SV.initFav?SV.initFav({ns:'yks',barId:'favBar',panelId:'favPanel',btnId:'favBtn'}):null;
   var nf=function(n){return n==null?'—':n.toLocaleString('tr-TR');};
   var pf=function(n){return n==null?'—':n.toLocaleString('tr-TR',{minimumFractionDigits:2,maximumFractionDigits:2});};
   function el(id){return document.getElementById(id);}
+  function rkey(r){return (r[IDX.b]||'')+'|'+(r[IDX.u]||'');}
   function load(pt,cb){
     if(cache[pt]){data=cache[pt];cb();return;}
+    if(SV.skel)SV.skel('rbody',7,6);
     el('rstatus').textContent='Veriler yükleniyor…';
     fetch('/veri/'+pt+'.json').then(function(r){return r.json();}).then(function(j){cache[pt]=j;data=j;cb();})
       .catch(function(){el('rstatus').textContent='Veri yüklenemedi.';});
+  }
+  function syncQS(){
+    var o={pt:el('rPt').value};var s=el('rSira').value.replace(/\D/g,'');if(s)o.sira=s;
+    if(el('rIl').value)o.il=el('rIl').value;if(el('rTur').value)o.tur=el('rTur').value;
+    if(SV.qsSet)SV.qsSet(o);drawChips();
+  }
+  function drawChips(){
+    if(!SV.chips)return;var items=[{key:'pt',label:'Puan: '+(PTL[el('rPt').value]||el('rPt').value)}];
+    var s=el('rSira').value.replace(/\D/g,'');if(s)items.push({key:'sira',label:'Sıra: '+Number(s).toLocaleString('tr-TR')});
+    if(el('rIl').value)items.push({key:'il',label:'İl: '+el('rIl').value});
+    if(el('rTur').value)items.push({key:'tur',label:'Tür: '+(TUR[el('rTur').value]||el('rTur').value)});
+    SV.chips('chips',items,function(key){
+      if(key==='pt')return;
+      if(key==='__all__'){el('rSira').value='';el('rIl').value='';el('rTur').value='';}
+      else if(key==='sira')el('rSira').value='';else if(key==='il')el('rIl').value='';else if(key==='tur')el('rTur').value='';
+      run();
+    });
   }
   var lastReach=[],lastSira=0,sortI=null,sortD=1;
   var SCOLS=[[IDX.b,0],[IDX.il,0],[IDX.t,0],[IDX.tp,1],[IDX.sira,1]];
@@ -1310,14 +1571,18 @@ ROBOT_JS = r"""<script nonce="__NONCE__">
       return String(x==null?'':x).localeCompare(String(y==null?'':y),'tr')*sortD;});
   }
   function draw(){
-    var tb=el('rbody'); tb.innerHTML='';
+    var tb=el('rbody'); tb.innerHTML=''; byId={};
+    if(!lastReach.length){if(SV.empty)SV.empty('rbody',7,'Bu sıralama ve filtrelerle yerleşebileceğin program bulunamadı. Filtreyi gevşetmeyi deneyin.');el('rhint').style.display='none';return;}
     lastReach.slice(0,200).forEach(function(r){
       var margin=r[IDX.sira]-lastSira;
       var safe = margin>lastSira*0.25 ? '<span class="tag tag-lgs">Rahat</span>' : (margin>lastSira*0.05 ? '<span class="tag tag-kpss">Olası</span>' : '<span class="tag tag-other">Sınırda</span>');
+      var k=rkey(r); byId[k]={id:k,name:r[IDX.b]||'',sub:r[IDX.u]||'',meta:'taban sıra '+nf(r[IDX.sira])};
+      var on=fav&&fav.has(k);
       var tr=document.createElement('tr');
       tr.innerHTML='<td><strong>'+(r[IDX.b]||'')+'</strong><br><small>'+(r[IDX.u]||'')+'</small></td>'+
         '<td>'+(r[IDX.il]||'—')+'</td>'+'<td>'+(TUR[r[IDX.t]]||'—')+'</td>'+
-        '<td><strong>'+pf(r[IDX.tp])+'</strong></td>'+'<td>'+nf(r[IDX.sira])+'</td>'+'<td>'+safe+'</td>';
+        '<td><strong>'+pf(r[IDX.tp])+'</strong></td>'+'<td>'+nf(r[IDX.sira])+'</td>'+'<td>'+safe+'</td>'+
+        '<td style="text-align:center"><button type="button" class="fav-star'+(on?' on':'')+'" data-fid="'+k.replace(/"/g,'&quot;')+'" aria-label="Tercih listeme ekle">'+(on?'★':'☆')+'</button></td>';
       tb.appendChild(tr);
     });
     el('rhint').style.display = lastReach.length>200 ? 'block':'none';
@@ -1326,6 +1591,7 @@ ROBOT_JS = r"""<script nonce="__NONCE__">
   function run(){
     var pt=el('rPt').value;
     load(pt,function(){
+      syncQS();
       var sira=parseInt((el('rSira').value||'').replace(/\D/g,''),10);
       if(!sira||sira<1){el('rstatus').textContent='Lütfen geçerli bir başarı sıranızı girin.';el('rbody').innerHTML='';return;}
       var il=el('rIl').value, tur=el('rTur').value;
@@ -1341,13 +1607,26 @@ ROBOT_JS = r"""<script nonce="__NONCE__">
       draw();
     });
   }
+  el('rbody').addEventListener('click',function(e){
+    var b=e.target;if(!b.classList||!b.classList.contains('fav-star'))return;
+    var k=b.getAttribute('data-fid');if(fav&&byId[k])fav.toggle(byId[k]);
+  });
   el('rBtn').addEventListener('click',run);
   el('rSira').addEventListener('keydown',function(e){if(e.key==='Enter')run();});
+  el('rPt').addEventListener('change',syncQS);
   (function(){var ths=document.querySelectorAll('.data-table thead th');ths.forEach(function(th,i){
+    if(th.hasAttribute('data-nosort'))return;
     th.style.cursor='pointer';th.title='Sıralamak için tıklayın';
     th.addEventListener('click',function(){if(!lastReach.length)return;sortD=(sortI===i)?-sortD:1;sortI=i;
       ths.forEach(function(o){var a=o.querySelector('.s-arrow');if(a)a.remove();});
       var ar=document.createElement('span');ar.className='s-arrow';ar.textContent=sortD>0?' ▲':' ▼';th.appendChild(ar);sortReach();draw();});});})();
+  (function(){
+    var qs=SV.qsGet?SV.qsGet():{};
+    if(qs.pt&&PTL[qs.pt])el('rPt').value=qs.pt;
+    if(qs.tur)el('rTur').value=qs.tur;
+    if(qs.il){var s=el('rIl');var o=document.createElement('option');o.value=qs.il;o.textContent=qs.il;o.selected=true;s.appendChild(o);}
+    if(qs.sira){el('rSira').value=qs.sira;run();}else{drawChips();}
+  })();
 })();
 </script>"""
 
@@ -1373,16 +1652,19 @@ def page_tercih_robotu():
       <select id="rTur" class="btn btn-ghost" style="text-align:left;width:100%;margin-top:4px"><option value="">Hepsi</option><option value="D">Devlet</option><option value="V">Vakıf</option><option value="K">KKTC</option><option value="DK">Devlet (KKTC Kampüs)</option><option value="DU">Devlet (Ücretli)</option></select></div>
     <button type="button" class="btn btn-primary" id="rBtn">Programları Göster</button>
   </div>
+  <div class="filter-chips" id="chips" style="display:none"></div>
   <div id="rstatus" style="margin-top:14px;font-size:14px;color:var(--accent);font-weight:700"></div>
 </div>
 
 <div class="data-table-wrap">
 <table class="data-table" data-live="1">
-<thead><tr><th>Program / Üniversite</th><th>İl</th><th>Tür</th><th>Taban Puan</th><th>Başarı Sırası</th><th>Şans</th></tr></thead>
+<thead><tr><th>Program / Üniversite</th><th>İl</th><th>Tür</th><th>Taban Puan</th><th>Başarı Sırası</th><th>Şans</th><th data-nosort title="Tercih listene ekle">⭐</th></tr></thead>
 <tbody id="rbody"></tbody>
 </table>
 </div>
 <div id="rhint" style="display:none;font-size:12px;color:var(--fg-faded);margin-top:10px;text-align:center"></div>
+<div class="fav-panel" id="favPanel"></div>
+<div class="fav-bar" id="favBar"><button type="button" class="fav-toggle" id="favBtn">⭐ Tercih Listem (0)</button></div>
 
 <div class="notice"><b>Nasıl çalışır?</b> Başarı sıran, bir programın 2025 taban başarı sırasından <b>daha iyi (küçük)</b> veya eşitse
 o programa yerleşebilirsin. "Şans" sütunu güvenlik payını gösterir: <b>Rahat</b> (geniş pay), <b>Olası</b>, <b>Sınırda</b>.
@@ -1405,18 +1687,20 @@ Bu bir tahmindir; 2026 taban puanları kontenjan ve tercih yoğunluğuna göre d
     body += fill
     return base("tercih-robotu.html", "2026 YKS Tercih Robotu — Sıralamana Göre Bölüm Bul | SınavVeri",
                 "2026 YKS tercih robotu: başarı sıranı gir, 2025 YÖK Atlas yerleştirme verisine göre yerleşebileceğin üniversite programlarını anında gör. Ücretsiz.",
-                body)
+                body, extra_ld=[breadcrumb_ld([("Ana Sayfa", "index.html"), ("Tercih Robotu", None)])])
 
 
 # ───────────────────────── BÖLÜM (program grubu) SAYFALARI ─────────────────────────
 PUAN_ROBOT_JS = r"""<script nonce="__NONCE__">
 (function(){
-  var CFG=__CFG__;
-  var data=[];
+  var CFG=__CFG__, SV=window.SV||{}, NCOL=CFG.show.length+4;
+  var data=[],byId={};
+  var fav=SV.initFav?SV.initFav({ns:CFG.ns_key||'robot',barId:'favBar',panelId:'favPanel',btnId:'favBtn'}):null;
   function el(id){return document.getElementById(id);}
   var pf=function(n){return n==null?'—':Number(n).toLocaleString('tr-TR',{minimumFractionDigits:2,maximumFractionDigits:2});};
+  if(SV.skel)SV.skel('rbody',NCOL,6);
   el('rstatus').textContent='Veriler yükleniyor…';
-  fetch(CFG.file).then(function(r){return r.json();}).then(function(j){data=j;initFilters();el('rstatus').textContent='';})
+  fetch(CFG.file).then(function(r){return r.json();}).then(function(j){data=j;initFilters();el('rstatus').textContent='';applyQS();})
     .catch(function(){el('rstatus').textContent='Veri yüklenemedi.';});
   function initFilters(){
     CFG.filters.forEach(function(f,n){
@@ -1424,6 +1708,28 @@ PUAN_ROBOT_JS = r"""<script nonce="__NONCE__">
       var vals=Object.keys(set).sort(function(a,b){return a.localeCompare(b,'tr');});
       var sel=el('rf'+n);if(!sel)return;
       vals.forEach(function(v){var o=document.createElement('option');o.value=v;o.textContent=v;sel.appendChild(o);});
+    });
+  }
+  function applyQS(){
+    var qs=SV.qsGet?SV.qsGet():{};
+    if(qs.puan!=null)el('rPuan').value=qs.puan;
+    CFG.filters.forEach(function(f,n){var s=el('rf'+n);if(s&&qs['f'+n]!=null)s.value=qs['f'+n];});
+    if(qs.puan){run();}else{drawChips();}
+  }
+  function syncQS(){
+    var o={};var p=el('rPuan').value.trim();if(p)o.puan=p;
+    CFG.filters.forEach(function(f,n){var s=el('rf'+n);if(s&&s.value)o['f'+n]=s.value;});
+    if(SV.qsSet)SV.qsSet(o);drawChips();
+  }
+  function drawChips(){
+    if(!SV.chips)return;var items=[];var p=el('rPuan').value.trim();
+    if(p)items.push({key:'puan',label:'Puan: '+p});
+    CFG.filters.forEach(function(f,n){var s=el('rf'+n);if(s&&s.value)items.push({key:'f'+n,label:f[1]+': '+s.value});});
+    SV.chips('chips',items,function(key){
+      if(key==='__all__'){el('rPuan').value='';CFG.filters.forEach(function(f,n){var s=el('rf'+n);if(s)s.value='';});}
+      else if(key==='puan')el('rPuan').value='';
+      else CFG.filters.forEach(function(f,n){if('f'+n===key){var s=el('rf'+n);if(s)s.value='';}});
+      run();
     });
   }
   var lastReach=[],userP=0,sortI=null,sortD=1;
@@ -1435,21 +1741,27 @@ PUAN_ROBOT_JS = r"""<script nonce="__NONCE__">
       if(num){x=(x==null?null:Number(x));y=(y==null?null:Number(y));if(x==null&&y==null)return 0;if(x==null)return 1;if(y==null)return -1;return (x-y)*sortD;}
       return String(x==null?'':x).localeCompare(String(y==null?'':y),'tr')*sortD;});
   }
+  function rkey(r){return String(r[CFG.nb])+'|'+(CFG.ns!=null?String(r[CFG.ns]):'')+'|'+String(r[CFG.taban]);}
   function draw(){
-    var tb=el('rbody');tb.innerHTML='';
+    var tb=el('rbody');tb.innerHTML='';byId={};
+    if(!lastReach.length){if(SV.empty)SV.empty('rbody',NCOL,'Bu puan ve filtrelerle yerleşebileceğin sonuç bulunamadı. Puanı veya filtreleri gözden geçirin.');el('rhint').style.display='none';return;}
     lastReach.slice(0,200).forEach(function(r){
       var m=userP-r[CFG.taban];
       var safe=m>=CFG.t1?'<span class="tag tag-lgs">Rahat</span>':(m>=CFG.t2?'<span class="tag tag-kpss">Olası</span>':'<span class="tag tag-other">Sınırda</span>');
       var name='<td><strong>'+(r[CFG.nb]||'')+'</strong>'+(CFG.ns!=null?'<br><small>'+(r[CFG.ns]||'')+'</small>':'')+'</td>';
       var show='';CFG.show.forEach(function(c){show+='<td>'+(r[c[0]]==null||r[c[0]]===''?'—':r[c[0]])+'</td>';});
+      var k=rkey(r);byId[k]={id:k,name:String(r[CFG.nb]||''),sub:(CFG.ns!=null?String(r[CFG.ns]||''):''),meta:'taban '+pf(r[CFG.taban])};
+      var on=fav&&fav.has(k);
+      var star='<td style="text-align:center"><button type="button" class="fav-star'+(on?' on':'')+'" data-fid="'+k.replace(/"/g,'&quot;')+'" aria-label="Tercih listeme ekle">'+(on?'★':'☆')+'</button></td>';
       var tr=document.createElement('tr');
-      tr.innerHTML=name+show+'<td><strong>'+pf(r[CFG.taban])+'</strong></td><td>'+safe+'</td>';
+      tr.innerHTML=name+show+'<td><strong>'+pf(r[CFG.taban])+'</strong></td><td>'+safe+'</td>'+star;
       tb.appendChild(tr);
     });
     el('rhint').style.display=lastReach.length>200?'block':'none';
     el('rhint').textContent='İlk 200 sonuç gösteriliyor. Daha hassas için filtre/sıralama kullanın.';
   }
   function run(){
+    syncQS();
     var p=parseFloat((el('rPuan').value||'').replace(',','.').replace(/[^0-9.]/g,''));
     if(isNaN(p)||p<=0){el('rstatus').textContent='Lütfen geçerli bir puan girin.';el('rbody').innerHTML='';return;}
     userP=p;
@@ -1461,11 +1773,16 @@ PUAN_ROBOT_JS = r"""<script nonce="__NONCE__">
     el('rstatus').innerHTML='<b>'+lastReach.length.toLocaleString('tr-TR')+'</b> '+CFG.noun+' yerleşebilirsin (puanın: '+pf(p)+')';
     draw();
   }
+  el('rbody').addEventListener('click',function(e){
+    var b=e.target;if(!b.classList||!b.classList.contains('fav-star'))return;
+    var k=b.getAttribute('data-fid');if(fav&&byId[k])fav.toggle(byId[k]);
+  });
   el('rBtn').addEventListener('click',run);
   el('rPuan').addEventListener('keydown',function(e){if(e.key==='Enter')run();});
   (function(){
     var ths=document.querySelectorAll('.data-table thead th');
     ths.forEach(function(th,i){
+      if(th.hasAttribute('data-nosort'))return;
       th.style.cursor='pointer'; th.title='Sıralamak için tıklayın';
       th.addEventListener('click',function(){
         if(!lastReach.length)return;
@@ -1502,9 +1819,10 @@ def puan_robot_page(slug, title, desc, h1, sub, veri_file, nb, ns, show, taban, 
         fhtml += (f'<div><label style="font-size:12px;color:var(--fg-faded);font-weight:700">{label}</label>'
                   f'<select id="rf{n}" class="btn btn-ghost" style="text-align:left;width:100%;margin-top:4px">'
                   f'<option value="">Tümü</option></select></div>')
-    thead = "<th>" + ("Program" if ns is not None else "Ad") + "</th>" + "".join(f"<th>{l}</th>" for _, l in show) + "<th>Taban</th><th>Şans</th>"
+    thead = "<th>" + ("Program" if ns is not None else "Ad") + "</th>" + "".join(f"<th>{l}</th>" for _, l in show) + '<th>Taban</th><th>Şans</th><th data-nosort title="Tercih listene ekle">⭐</th>'
+    ns_key = slug.replace("-tercih-robotu.html", "").replace(".html", "")
     cfg = {"file": veri_file, "nb": nb, "ns": ns, "show": [[i, l] for i, l in show],
-           "taban": taban, "filters": [[i, l] for i, l in filters], "noun": noun, "t1": t1, "t2": t2}
+           "taban": taban, "filters": [[i, l] for i, l in filters], "noun": noun, "t1": t1, "t2": t2, "ns_key": ns_key}
     js = PUAN_ROBOT_JS.replace("__CFG__", json.dumps(cfg, ensure_ascii=False))
     body = f"""
 <div class="crumb"><a href="/index.html">Ana Sayfa</a> / <a href="/tercih-robotu.html">Tercih Robotu</a> / {h1}</div>
@@ -1518,18 +1836,22 @@ def puan_robot_page(slug, title, desc, h1, sub, veri_file, nb, ns, show, taban, 
     {fhtml}
     <button type="button" class="btn btn-primary" id="rBtn">Yerleşebileceklerimi Göster</button>
   </div>
+  <div class="filter-chips" id="chips" style="display:none"></div>
   <div id="rstatus" style="margin-top:14px;font-size:14px;color:var(--accent);font-weight:700"></div>
 </div>
 <div class="data-table-wrap">
 <table class="data-table" data-live="1"><thead><tr>{thead}</tr></thead><tbody id="rbody"></tbody></table>
 </div>
 <div id="rhint" style="display:none;font-size:12px;color:var(--fg-faded);margin-top:10px;text-align:center"></div>
+<div class="fav-panel" id="favPanel"></div>
+<div class="fav-bar" id="favBar"><button type="button" class="fav-toggle" id="favBtn">⭐ Tercih Listem (0)</button></div>
 <div class="notice"><b>Nasıl çalışır?</b> Puanın bir programın/kadronun taban puanından <b>yüksek veya eşitse</b> oraya yerleşebilirsin.
 "Şans" payı güvenliği gösterir: <b>Rahat</b> (geniş pay), <b>Olası</b>, <b>Sınırda</b>. Bu bir tahmindir; gelecek yıl taban puanları
 kontenjan ve tercih yoğunluğuna göre değişir. <b>Kaynak:</b> {kaynak} Resmî tercih için <a href="https://www.osym.gov.tr" target="_blank" rel="noopener">ÖSYM</a> esastır.</div>
 {js}
 """
-    return base(slug, title, desc, body)
+    return base(slug, title, desc, body,
+                extra_ld=[breadcrumb_ld([("Ana Sayfa", "index.html"), ("Tercih Robotu", "tercih-robotu.html"), (h1, None)])])
 
 
 def page_dgs_robot():
@@ -1800,16 +2122,30 @@ def write_lgs_veri(lgs):
 LISE_SEARCH_JS = r"""<script nonce="__NONCE__">
 (function(){
   var TUR={F:'Fen Lisesi',S:'Sosyal Bilimler L.',A:'Anadolu Lisesi',I:'Anadolu İmam Hatip L.',M:'Mesleki ve Teknik',G:'Güzel Sanatlar L.',P:'Spor Lisesi',D:'Diğer'};
-  var data=[],shown=0,PAGE=50;
+  var data=[],shown=0,PAGE=50,SV=window.SV||{};
   var nf=function(n){return n==null?'—':n.toLocaleString('tr-TR');};
   var pf=function(n){return n==null?'—':n.toLocaleString('tr-TR',{minimumFractionDigits:2,maximumFractionDigits:2});};
   function el(id){return document.getElementById(id);}
-  fetch('/veri/liseler.json').then(function(r){return r.json();}).then(function(j){data=j;fillIl();render();})
+  if(SV.skel)SV.skel('tbody',9,7);
+  fetch('/veri/liseler.json').then(function(r){return r.json();}).then(function(j){data=j;fillIl();applyQS();render();})
     .catch(function(){el('status').textContent='Veri yüklenemedi.';});
   function fillIl(){
     var set={};data.forEach(function(r){if(r[0])set[r[0]]=1;});
     var ils=Object.keys(set).sort(function(a,b){return a.localeCompare(b,'tr');});
     var sel=el('fIl');ils.forEach(function(i){var o=document.createElement('option');o.value=i;o.textContent=i;sel.appendChild(o);});
+  }
+  function applyQS(){var qs=SV.qsGet?SV.qsGet():{};if(qs.q!=null)el('fQ').value=qs.q;if(qs.il!=null)el('fIl').value=qs.il;if(qs.tur!=null)el('fTur').value=qs.tur;}
+  function syncQS(){var o={};var q=el('fQ').value.trim();if(q)o.q=q;if(el('fIl').value)o.il=el('fIl').value;if(el('fTur').value)o.tur=el('fTur').value;if(SV.qsSet)SV.qsSet(o);drawChips();}
+  function drawChips(){
+    if(!SV.chips)return;var items=[];var q=el('fQ').value.trim();
+    if(q)items.push({key:'q',label:'“'+q+'”'});
+    if(el('fIl').value)items.push({key:'il',label:'İl: '+el('fIl').value});
+    if(el('fTur').value)items.push({key:'tur',label:'Tür: '+(TUR[el('fTur').value]||el('fTur').value)});
+    SV.chips('chips',items,function(key){
+      if(key==='__all__'){el('fQ').value='';el('fIl').value='';el('fTur').value='';}
+      else if(key==='q')el('fQ').value='';else if(key==='il')el('fIl').value='';else if(key==='tur')el('fTur').value='';
+      render(true);
+    });
   }
   function filtered(){
     var q=(el('fQ').value||'').toLocaleLowerCase('tr').trim(),il=el('fIl').value,tur=el('fTur').value;
@@ -1830,9 +2166,10 @@ LISE_SEARCH_JS = r"""<script nonce="__NONCE__">
     return rows;
   }
   function render(reset){
-    if(reset!==false)shown=0;
+    if(reset!==false){shown=0;syncQS();}
     var rows=applySort(filtered());
     el('status').textContent=rows.length.toLocaleString('tr-TR')+' lise bulundu';
+    if(!rows.length){if(SV.empty)SV.empty('tbody',9);el('moreWrap').style.display='none';return;}
     shown=Math.min(shown+PAGE,rows.length);if(shown===0&&rows.length)shown=Math.min(PAGE,rows.length);
     var tb=el('tbody');tb.innerHTML='';
     rows.slice(0,shown||PAGE).forEach(function(r){
@@ -1874,6 +2211,7 @@ def page_lise_taban_index(lgs, il_slugs):
       <option value="A">Anadolu Lisesi</option><option value="I">Anadolu İmam Hatip</option><option value="M">Mesleki ve Teknik</option>
     </select>
   </div>
+  <div class="filter-chips" id="chips" style="display:none"></div>
   <div id="status" style="margin-top:12px;font-size:13px;color:var(--accent);font-weight:700">Yükleniyor…</div>
 </div>
 <div class="data-table-wrap">
@@ -1895,7 +2233,7 @@ Resmî kayıt için <a href="https://www.meb.gov.tr" target="_blank" rel="noopen
 """ + LISE_SEARCH_JS
     return base("lise-taban-puanlari.html", "LGS Lise Taban Puanları 2025 — İl İl Tüm Liseler | SınavVeri",
                 "2025 LGS lise taban puanları ve yüzdelik dilimleri. 81 ilde 3000+ Fen, Anadolu, İmam Hatip ve Meslek lisesi. İl ve türe göre filtrele.",
-                body)
+                body, extra_ld=[breadcrumb_ld([("Ana Sayfa", "index.html"), ("LGS Lise Taban Puanları", None)])])
 
 
 def gen_lise_il_pages(lgs):
@@ -1991,13 +2329,14 @@ Kaynaklar: YÖK Atlas (üniversite), MEB (LGS), <strong>ÖSYM resmî 'En Küçü
 # Kaynak: ÖSYM 'En Küçük ve En Büyük Puanlar' resmî PDF'leri (dokuman.osym.gov.tr).
 GENERIC_SEARCH_JS = r"""<script nonce="__NONCE__">
 (function(){
-  var CFG=__CFG__;
+  var CFG=__CFG__, NCOL=CFG.cols.length, SV=window.SV||{};
   var data=[],shown=0,PAGE=50;
   function el(id){return document.getElementById(id);}
   var nf=function(n){return n==null?'—':Number(n).toLocaleString('tr-TR');};
   var pf=function(n){return n==null?'—':Number(n).toLocaleString('tr-TR',{minimumFractionDigits:2,maximumFractionDigits:2});};
+  if(SV.skel)SV.skel('tbody',NCOL,7);
   el('status').textContent='Veriler yükleniyor…';
-  fetch(CFG.file).then(function(r){return r.json();}).then(function(j){data=j;initFilters();render();})
+  fetch(CFG.file).then(function(r){return r.json();}).then(function(j){data=j;initFilters();applyQS();render();})
     .catch(function(){el('status').textContent='Veri yüklenemedi.';});
   function initFilters(){
     CFG.filters.forEach(function(f){
@@ -2005,6 +2344,28 @@ GENERIC_SEARCH_JS = r"""<script nonce="__NONCE__">
       var vals=Object.keys(set).sort(function(a,b){return a.localeCompare(b,'tr');});
       var sel=el('fil'+f[1]);if(!sel)return;
       vals.forEach(function(v){var o=document.createElement('option');o.value=v;o.textContent=v;sel.appendChild(o);});
+    });
+  }
+  function applyQS(){
+    var qs=SV.qsGet?SV.qsGet():{};
+    if(qs.q!=null)el('fQ').value=qs.q;
+    CFG.filters.forEach(function(f){var s=el('fil'+f[1]);if(s&&qs['f'+f[1]]!=null)s.value=qs['f'+f[1]];});
+  }
+  function syncQS(){
+    var o={}; var q=el('fQ').value.trim(); if(q)o.q=q;
+    CFG.filters.forEach(function(f){var s=el('fil'+f[1]);if(s&&s.value)o['f'+f[1]]=s.value;});
+    if(SV.qsSet)SV.qsSet(o); drawChips();
+  }
+  function drawChips(){
+    if(!SV.chips)return;
+    var items=[]; var q=el('fQ').value.trim();
+    if(q)items.push({key:'q',label:'“'+q+'”'});
+    CFG.filters.forEach(function(f){var s=el('fil'+f[1]);if(s&&s.value)items.push({key:'f'+f[1],label:f[2]+': '+s.value});});
+    SV.chips('chips',items,function(key){
+      if(key==='__all__'){el('fQ').value='';CFG.filters.forEach(function(f){var s=el('fil'+f[1]);if(s)s.value='';});}
+      else if(key==='q'){el('fQ').value='';}
+      else {CFG.filters.forEach(function(f){if('f'+f[1]===key){var s=el('fil'+f[1]);if(s)s.value='';}});}
+      render(true);
     });
   }
   function filtered(){
@@ -2028,9 +2389,10 @@ GENERIC_SEARCH_JS = r"""<script nonce="__NONCE__">
     return rows;
   }
   function render(reset){
-    if(reset!==false)shown=0;
+    if(reset!==false){shown=0;syncQS();}
     var rows=applySort(filtered());
     el('status').textContent=rows.length.toLocaleString('tr-TR')+' sonuç bulundu';
+    if(!rows.length){if(SV.empty)SV.empty('tbody',NCOL);el('moreWrap').style.display='none';return;}
     shown=Math.min(shown+PAGE,rows.length);if(shown===0&&rows.length)shown=Math.min(PAGE,rows.length);
     var tb=el('tbody');tb.innerHTML='';
     rows.slice(0,shown||PAGE).forEach(function(r){
@@ -2079,7 +2441,7 @@ def minmax_page(slug, title, desc, h1, sub, file, cols, filters, search_idx, int
     for n, (idx, label) in enumerate(filters):
         fhtml += f'<select id="fil{n}" class="btn btn-ghost" style="text-align:left"><option value="">{label} (tümü)</option></select>'
     cfg = {"file": file, "cols": [[c[0], c[2]] for c in cols],
-           "filters": [[idx, n] for n, (idx, label) in enumerate(filters)], "search": search_idx}
+           "filters": [[idx, n, label] for n, (idx, label) in enumerate(filters)], "search": search_idx}
     js = GENERIC_SEARCH_JS.replace("__CFG__", json.dumps(cfg, ensure_ascii=False))
     body = f"""
 <div class="crumb"><a href="/index.html">Ana Sayfa</a> / <a href="/taban-puanlari.html">Taban Puanları</a> / {h1}</div>
@@ -2087,6 +2449,7 @@ def minmax_page(slug, title, desc, h1, sub, file, cols, filters, search_idx, int
 <div class="info-box">{intro}</div>
 <div class="calc-card" style="margin-bottom:18px">
   <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px">{fhtml}</div>
+  <div class="filter-chips" id="chips" style="display:none"></div>
   <div id="status" style="margin-top:12px;font-size:13px;color:var(--accent);font-weight:700">Yükleniyor…</div>
 </div>
 <div class="data-table-wrap">
@@ -2101,7 +2464,8 @@ Yerleşen olmayan satırlarda değer boştur (—). Resmî bilgi için <a href="
 {hub_html}
 {js}
 """
-    return base(slug, title, desc, body)
+    return base(slug, title, desc, body,
+                extra_ld=[breadcrumb_ld([("Ana Sayfa", "index.html"), ("Taban Puanları", "taban-puanlari.html"), (h1, None)])])
 
 
 OSYM_KAYNAK = "ÖSYM 2025 'En Küçük ve En Büyük Puanlar' resmî yayını (dokuman.osym.gov.tr)."
@@ -2659,6 +3023,89 @@ def page_ales_calc():
         "Sayısal", 50, "Sözel", 50, "100 soru · Sayısal (50) + Sözel (50)")
 
 
+# ───────────────────────── GENEL ARAMA ─────────────────────────
+ARA_JS = r"""<script nonce="__NONCE__">
+(function(){
+  var SV=window.SV||{};
+  var inp=document.getElementById('aQ'), out=document.getElementById('aResults'), st=document.getElementById('aStatus');
+  var DATA=null, ORDER=['Üniversite','Bölüm','Lise','Rehber','Araç'];
+  function norm(s){return (s||'').toLocaleLowerCase('tr');}
+  function esc(s){return (''+(s==null?'':s)).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+  function render(){
+    var q=inp.value.trim();
+    if(SV.qsSet)SV.qsSet(q?{q:q}:{});
+    if(!DATA){st.textContent='Yükleniyor…';return;}
+    if(q.length<2){st.textContent='Aramak için en az 2 karakter yazın.';out.innerHTML='';return;}
+    var nq=norm(q);
+    var hits=DATA.filter(function(d){return norm(d.n).indexOf(nq)>=0||norm(d.s||'').indexOf(nq)>=0;});
+    st.textContent=hits.length.toLocaleString('tr-TR')+' sonuç · “'+esc(q)+'”';
+    if(!hits.length){out.innerHTML='<div class="empty-state"><b>Sonuç bulunamadı</b>Farklı bir kelime deneyin: üniversite, bölüm, lise veya sınav adı.</div>';return;}
+    var groups={};hits.forEach(function(d){(groups[d.t]=groups[d.t]||[]).push(d);});
+    var keys=Object.keys(groups).sort(function(a,b){var ia=ORDER.indexOf(a),ib=ORDER.indexOf(b);return (ia<0?99:ia)-(ib<0?99:ib);});
+    var h='';keys.forEach(function(k){
+      var arr=groups[k].slice(0,30);
+      h+='<div class="ara-group"><h2>'+esc(k)+' ('+groups[k].length+')</h2>';
+      arr.forEach(function(d){h+='<a class="ara-item" href="'+d.u+'"><b>'+esc(d.n)+'</b>'+(d.s?' <small>'+esc(d.s)+'</small>':'')+'</a>';});
+      if(groups[k].length>30)h+='<div style="font-size:12px;color:var(--fg-faded);padding:4px 2px">… ve '+(groups[k].length-30)+' sonuç daha. Aramayı daraltın.</div>';
+      h+='</div>';
+    });
+    out.innerHTML=h;
+  }
+  fetch('/veri/arama.json').then(function(r){return r.json();}).then(function(j){DATA=j;render();}).catch(function(){st.textContent='Arama verisi yüklenemedi.';});
+  inp.addEventListener('input',render);
+  var qs=SV.qsGet?SV.qsGet():{};if(qs.q){inp.value=qs.q;}
+})();
+</script>"""
+
+
+def page_ara():
+    body = """
+<div class="crumb"><a href="/index.html">Ana Sayfa</a> / Arama</div>
+<div class="page-title"><h1>Arama</h1><span class="sub">Üniversite, bölüm, lise, sınav rehberi ve araçlar — hepsinde tek aramada</span></div>
+<div class="calc-card" style="margin-bottom:18px">
+  <input id="aQ" type="search" autofocus placeholder="Örn. boğaziçi, tıp, fen lisesi, kpss, ankara…" style="width:100%;padding:11px 14px;border:1px solid var(--border);border-radius:9px;background:var(--bg-card-alt);color:var(--fg);font-family:inherit;font-size:15px">
+  <div id="aStatus" style="margin-top:12px;font-size:13px;color:var(--accent);font-weight:700">Yükleniyor…</div>
+</div>
+<div id="aResults"></div>
+""" + ARA_JS
+    return base("ara.html", "Arama — Üniversite, Bölüm, Lise, Sınav | SınavVeri",
+                "SınavVeri genel arama: üniversite, bölüm/program grubu, lise, sınav rehberi ve hesaplama araçlarında tek aramada sonuç bul.",
+                body, extra_ld=[breadcrumb_ld([("Ana Sayfa", "index.html"), ("Arama", None)])])
+
+
+def write_arama(g_by_slug, u_by_slug, il_slugs):
+    """Header global arama + /ara.html için birleşik hafif indeks."""
+    items = []
+    for s, u in u_by_slug.items():
+        items.append({"t": "Üniversite", "n": u, "u": f"/universite/{s}.html"})
+    for s, g in g_by_slug.items():
+        items.append({"t": "Bölüm", "n": g, "s": "Tüm üniversitelerde", "u": f"/bolum/{s}.html"})
+    for s, il in (il_slugs or {}).items():
+        items.append({"t": "Lise", "n": f"{il} liseleri", "s": "İl lise taban puanları", "u": f"/lise/{s}.html"})
+    rehber = [("YKS", "yks.html"), ("LGS", "lgs.html"), ("KPSS", "kpss.html"), ("DGS", "dgs.html"),
+              ("TUS", "tus.html"), ("DUS", "dus.html"), ("ALES", "ales.html"), ("MSÜ", "msu.html"),
+              ("YDS", "yds.html"), ("YÖKDİL", "yokdil.html"), ("YDUS", "ydus.html"), ("STS", "sts.html")]
+    for ad, sl in rehber:
+        items.append({"t": "Rehber", "n": f"{ad} sınav rehberi", "s": "Format, soru dağılımı, tarih", "u": f"/{sl}"})
+    arac = [("Üniversite Taban Puanları", "universite-taban-puanlari.html"),
+            ("YKS Tercih Robotu", "tercih-robotu.html"), ("DGS Tercih Robotu", "dgs-tercih-robotu.html"),
+            ("TUS Tercih Robotu", "tus-tercih-robotu.html"), ("DUS Tercih Robotu", "dus-tercih-robotu.html"),
+            ("KPSS Tercih Robotu", "kpss-tercih-robotu.html"), ("LGS Tercih Robotu", "lgs-tercih-robotu.html"),
+            ("LGS Lise Taban Puanları", "lise-taban-puanlari.html"), ("TUS Taban Puanları", "tus-taban-puanlari.html"),
+            ("DUS Taban Puanları", "dus-taban-puanlari.html"), ("DGS Taban Puanları", "dgs-taban-puanlari.html"),
+            ("KPSS Atama Taban Puanları", "kpss-atama-taban-puanlari.html"), ("Doluluk Analizi", "doluluk.html"),
+            ("YKS Puan Hesaplama", "yks-puan-hesaplama.html"), ("LGS Puan Hesaplama", "lgs-puan-hesaplama.html"),
+            ("KPSS Puan Hesaplama", "kpss-puan-hesaplama.html"), ("DGS Puan Hesaplama", "dgs-puan-hesaplama.html"),
+            ("ALES Puan Hesaplama", "ales-puan-hesaplama.html"), ("Sınav Takvimi", "takvim.html")]
+    for ad, sl in arac:
+        if (ROOT / sl).exists() or sl in ("universite-taban-puanlari.html",):
+            items.append({"t": "Araç", "n": ad, "u": f"/{sl}"})
+    (ROOT / "veri").mkdir(exist_ok=True)
+    (ROOT / "veri" / "arama.json").write_text(
+        json.dumps(items, ensure_ascii=False, separators=(",", ":")), encoding="utf-8")
+    print(f"  → arama indeksi: {len(items)} kayıt")
+
+
 # ───────────────────────── ÇALIŞTIR ─────────────────────────
 def main():
     print("SınavVeri.com inşa ediliyor...")
@@ -2713,7 +3160,10 @@ def main():
     write("404.html", page_error("404", "Aradığınız sayfa bulunamadı."))
     write("5xx.html", page_error("Hata", "Geçici bir sorun oluştu. Lütfen daha sonra tekrar deneyin."))
 
+    W("ara.html", page_ara())
+
     # Veri tabanlı sayfalar
+    il_slugs = {}
     programs = load_programs()
     print(f"  {len(programs)} program yüklendi (YÖK Atlas 2025)")
     write_veri(programs)
@@ -2746,6 +3196,9 @@ def main():
         print(f"  → {len(il_slugs)} il lise sayfası")
     else:
         print("  ! LGS verisi yok (pipeline/fetch_lgs.py çalıştırılmalı)")
+
+    print("  Genel arama indeksi üretiliyor...")
+    write_arama(g_by_slug, u_by_slug, il_slugs)
 
     write_support(slugs)
     print(f"Tamamlandı. Toplam {len(slugs)} sayfa sitemap'te.")

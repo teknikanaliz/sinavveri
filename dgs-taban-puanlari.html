@@ -50,13 +50,123 @@
       "publisher": {
         "@id": "https://sinavveri.com/#organization"
       }
+    },
+    {
+      "@type": "BreadcrumbList",
+      "itemListElement": [
+        {
+          "@type": "ListItem",
+          "position": 1,
+          "name": "Ana Sayfa",
+          "item": "https://sinavveri.com/"
+        },
+        {
+          "@type": "ListItem",
+          "position": 2,
+          "name": "Taban Puanları",
+          "item": "https://sinavveri.com/taban-puanlari.html"
+        },
+        {
+          "@type": "ListItem",
+          "position": 3,
+          "name": "DGS Taban Puanları (3 Yıllık Trend)"
+        }
+      ]
     }
   ]
 }</script>
 <script nonce="__NONCE__">
   (function(){ try { if (localStorage.getItem('sinavveri-theme') === 'dark') document.documentElement.setAttribute('data-theme','dark'); } catch(e){} })();
 </script>
-<link rel="stylesheet" href="/assets/style.css?v=20260530b">
+<script nonce="__NONCE__">
+(function(){
+  var SV = window.SV = window.SV || {};
+  SV.qsGet = function(){ var o={}; try{ new URLSearchParams(location.search).forEach(function(v,k){o[k]=v;}); }catch(e){} return o; };
+  SV.qsSet = function(obj){
+    try{
+      var p=new URLSearchParams();
+      Object.keys(obj).forEach(function(k){ var v=obj[k]; if(v!=null && v!=='') p.set(k,v); });
+      var s=p.toString();
+      history.replaceState(null,'',location.pathname+(s?'?'+s:'')+location.hash);
+    }catch(e){}
+  };
+  SV.chips = function(id, items, onRemove){
+    var c=document.getElementById(id); if(!c) return;
+    c.innerHTML='';
+    if(!items.length){ c.style.display='none'; return; }
+    c.style.display='flex';
+    items.forEach(function(it){
+      var ch=document.createElement('span'); ch.className='fchip';
+      ch.appendChild(document.createTextNode(it.label+' '));
+      var b=document.createElement('button'); b.type='button'; b.setAttribute('aria-label','Kaldır'); b.textContent='×';
+      b.addEventListener('click',function(){ onRemove(it.key); });
+      ch.appendChild(b); c.appendChild(ch);
+    });
+    var clr=document.createElement('button'); clr.type='button'; clr.className='fchip-clear'; clr.textContent='Tümünü temizle';
+    clr.addEventListener('click',function(){ onRemove('__all__'); });
+    c.appendChild(clr);
+  };
+  SV.skel = function(tbodyId, cols, n){
+    var tb=document.getElementById(tbodyId); if(!tb) return;
+    var h=''; for(var r=0;r<(n||8);r++){ h+='<tr>'; for(var c=0;c<cols;c++){ h+='<td><div class="skel-cell"></div></td>'; } h+='</tr>'; }
+    tb.innerHTML=h;
+  };
+  SV.empty = function(tbodyId, cols, msg){
+    var tb=document.getElementById(tbodyId); if(!tb) return;
+    tb.innerHTML='<tr><td colspan="'+cols+'"><div class="empty-state"><b>Eşleşme yok</b>'+(msg||'Filtreyi gevşetmeyi veya aramayı sadeleştirmeyi deneyin.')+'</div></td></tr>';
+  };
+  SV.copy = function(text, btn){
+    function done(){ if(btn){ var t=btn.getAttribute('data-lbl')||btn.textContent; btn.setAttribute('data-lbl',t); btn.textContent='Kopyalandı ✓'; setTimeout(function(){btn.textContent=t;},1600); } }
+    function fallback(){ try{ var ta=document.createElement('textarea'); ta.value=text; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); document.body.removeChild(ta); done(); }catch(e){} }
+    try{ if(navigator.clipboard&&navigator.clipboard.writeText){ navigator.clipboard.writeText(text).then(done,fallback); } else { fallback(); } }catch(e){ fallback(); }
+  };
+  SV.fav = function(ns){
+    var KEY='sv-fav-'+ns;
+    function read(){ try{ return JSON.parse(localStorage.getItem(KEY)||'[]'); }catch(e){ return []; } }
+    function write(a){ try{ localStorage.setItem(KEY,JSON.stringify(a)); }catch(e){} }
+    return {
+      list: read,
+      has: function(id){ return read().some(function(x){return x.id===id;}); },
+      toggle: function(it){ var a=read(); var i=-1,k; for(k=0;k<a.length;k++){ if(a[k].id===it.id){i=k;break;} } if(i>=0){a.splice(i,1);} else {a.push(it);} write(a); return i<0; },
+      remove: function(id){ write(read().filter(function(x){return x.id!==id;})); },
+      clear: function(){ write([]); }
+    };
+  };
+  // Tercih Listem UI controller — bar/panel + ☆ stars
+  SV.initFav = function(opts){
+    var store=SV.fav(opts.ns);
+    var bar=document.getElementById(opts.barId), panel=document.getElementById(opts.panelId), btn=document.getElementById(opts.btnId);
+    function esc(s){ return (''+(s==null?'':s)).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+    function renderPanel(arr){
+      if(!panel)return;
+      var h='<h3>⭐ Tercih Listem ('+arr.length+')</h3>';
+      if(!arr.length){ h+='<p style="font-size:13px;color:var(--fg-faded);margin:6px 0 0">Henüz tercih eklemediniz. Tablodaki ☆ simgesiyle ekleyin; listeniz bu tarayıcıda saklanır.</p>'; }
+      else{
+        h+='<div class="fp-actions"><button type="button" class="btn btn-ghost" id="'+opts.panelId+'C">Listeyi Kopyala</button><button type="button" class="fchip-clear" id="'+opts.panelId+'X">Listeyi Temizle</button></div><ul class="fav-list">';
+        arr.forEach(function(it){ h+='<li><span><b>'+esc(it.name)+'</b>'+(it.sub?' <small>'+esc(it.sub)+'</small>':'')+(it.meta?' — '+esc(it.meta):'')+'</span><button type="button" class="fl-x" aria-label="Çıkar" data-rm="'+esc(it.id)+'">×</button></li>'; });
+        h+='</ul>';
+      }
+      panel.innerHTML=h;
+    }
+    function refresh(){
+      var arr=store.list();
+      if(bar)bar.classList.toggle('show',arr.length>0);
+      if(btn)btn.textContent='⭐ Tercih Listem ('+arr.length+')';
+      if(panel&&panel.classList.contains('open'))renderPanel(arr);
+      document.querySelectorAll('.fav-star[data-fid]').forEach(function(s){ var on=store.has(s.getAttribute('data-fid')); s.classList.toggle('on',on); s.textContent=on?'★':'☆'; });
+    }
+    if(btn)btn.addEventListener('click',function(){ var op=panel.classList.toggle('open'); if(op)renderPanel(store.list()); });
+    if(panel)panel.addEventListener('click',function(e){
+      var t=e.target;
+      if(t.getAttribute&&t.getAttribute('data-rm')!=null){ store.remove(t.getAttribute('data-rm')); refresh(); }
+      else if(t.id===opts.panelId+'X'){ store.clear(); refresh(); }
+      else if(t.id===opts.panelId+'C'){ var txt=store.list().map(function(x,i){return (i+1)+'. '+x.name+(x.sub?' — '+x.sub:'')+(x.meta?' ('+x.meta+')':'');}).join('\n'); SV.copy('Tercih Listem — SınavVeri.com\n\n'+txt, t); }
+    });
+    return { store:store, toggle:function(it){ store.toggle(it); refresh(); }, has:function(id){return store.has(id);}, refresh:refresh };
+  };
+})();
+</script>
+<link rel="stylesheet" href="/assets/style.css?v=20260603a">
 <link rel="manifest" href="/manifest.json">
 
 </head>
@@ -65,6 +175,11 @@
   <div class="header-inner">
     <a href="/index.html" class="logo">Sınav<span class="logo-veri">Veri</span></a>
     <div class="header-right">
+      <form class="hsearch" id="hsearch" role="search" action="/ara.html" method="get" autocomplete="off">
+        <span class="hs-ic">🔍</span>
+        <input type="search" name="q" id="hsQ" placeholder="Üniversite, bölüm, lise, kadro…" aria-label="Sitede ara">
+        <div class="hs-drop" id="hsDrop" role="listbox"></div>
+      </form>
       <nav><a href="/index.html">Ana Sayfa</a>
 <a href="/taban-puanlari.html">Taban Puanları</a>
 <a href="/tercih-robotu.html">Tercih Robotu</a>
@@ -82,6 +197,7 @@
 <div class="info-box">DGS ile ön lisanstan lisansa geçişte her üniversite programının ÖSYM'nin açıkladığı taban ve tavan puanları, <b>son 3 yılın (2023-2024-2025) karşılaştırmasıyla</b>. Trend sütunu 2025 tabanının bir önceki yıla göre değişimini gösterir (↑ yükseliş, ↓ düşüş). Program kodu yıllar arası eşleştirilir; yeni açılan programlarda geçmiş boştur. Program veya üniversite adı arayın. DGS net hesaplama için <a href='/dgs-puan-hesaplama.html'>DGS puan hesaplama</a>.</div>
 <div class="calc-card" style="margin-bottom:18px">
   <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px"><input id="fQ" type="text" placeholder="Program / üniversite ara…" style="padding:9px 10px;border:1px solid var(--border);border-radius:8px;background:var(--bg-card-alt);color:var(--fg);font-family:inherit;font-size:13px"></div>
+  <div class="filter-chips" id="chips" style="display:none"></div>
   <div id="status" style="margin-top:12px;font-size:13px;color:var(--accent);font-weight:700">Yükleniyor…</div>
 </div>
 <div class="data-table-wrap">
@@ -96,13 +212,14 @@ Yerleşen olmayan satırlarda değer boştur (—). Resmî bilgi için <a href="
 <div class="info-box" style="margin-top:14px"><b>DGS bölümlerna göre göz atın (493):</b> <div style="margin-top:8px;line-height:2;font-size:13px"><a href="/dgs-taban/acil-yardim-ve-afet-yonetimi-say.html">Acil Yardım ve Afet Yönetimi SAY</a> <span style="color:var(--fg-faded)">(18)</span> · <a href="/dgs-taban/agac-isleri-endustri-muhendisligi-say.html">Ağaç İşleri Endüstri Mühendisliği SAY</a> <span style="color:var(--fg-faded)">(3)</span> · <a href="/dgs-taban/aktuerya-bilimleri-say.html">Aktüerya Bilimleri SAY</a> <span style="color:var(--fg-faded)">(5)</span> · <a href="/dgs-taban/amerikan-kulturu-ve-edebiyati-ingilizce-soz.html">Amerikan Kültürü ve Edebiyatı (İngilizce) SÖZ</a> <span style="color:var(--fg-faded)">(5)</span> · <a href="/dgs-taban/amerikan-kulturu-ve-edebiyati-ingilizce-burslu-soz.html">Amerikan Kültürü ve Edebiyatı (İngilizce) (Burslu) SÖZ</a> <span style="color:var(--fg-faded)">(3)</span> · <a href="/dgs-taban/amerikan-kulturu-ve-edebiyati-ingilizce-ucretli-soz.html">Amerikan Kültürü ve Edebiyatı (İngilizce) (Ücretli) SÖZ</a> <span style="color:var(--fg-faded)">(3)</span> · <a href="/dgs-taban/amerikan-kulturu-ve-edebiyati-ingilizce-50-indirimli-soz.html">Amerikan Kültürü ve Edebiyatı (İngilizce) (%50 İndirimli) SÖZ</a> <span style="color:var(--fg-faded)">(3)</span> · <a href="/dgs-taban/antropoloji-ea.html">Antropoloji EA</a> <span style="color:var(--fg-faded)">(8)</span> · <a href="/dgs-taban/arapca-ogretmenligi-soz.html">Arapça Öğretmenliği SÖZ</a> <span style="color:var(--fg-faded)">(4)</span> · <a href="/dgs-taban/arapca-ogretmenligi-50-indirimli-soz.html">Arapça Öğretmenliği (%50 İndirimli) SÖZ</a> <span style="color:var(--fg-faded)">(3)</span> · <a href="/dgs-taban/arap-dili-ve-edebiyati-soz.html">Arap Dili ve Edebiyatı SÖZ</a> <span style="color:var(--fg-faded)">(9)</span> · <a href="/dgs-taban/arkeoloji-ea.html">Arkeoloji EA</a> <span style="color:var(--fg-faded)">(38)</span> · <a href="/dgs-taban/bahce-bitkileri-say.html">Bahçe Bitkileri SAY</a> <span style="color:var(--fg-faded)">(34)</span> · <a href="/dgs-taban/bankacilik-ve-sigortacilik-ea.html">Bankacılık ve Sigortacılık EA</a> <span style="color:var(--fg-faded)">(5)</span> · <a href="/dgs-taban/beslenme-ve-diyetetik-say.html">Beslenme ve Diyetetik SAY</a> <span style="color:var(--fg-faded)">(57)</span> · <a href="/dgs-taban/beslenme-ve-diyetetik-burslu-say.html">Beslenme ve Diyetetik (Burslu) SAY</a> <span style="color:var(--fg-faded)">(43)</span> · <a href="/dgs-taban/beslenme-ve-diyetetik-ingilizce-burslu-say.html">Beslenme ve Diyetetik (İngilizce) (Burslu) SAY</a> <span style="color:var(--fg-faded)">(11)</span> · <a href="/dgs-taban/beslenme-ve-diyetetik-ingilizce-ucretli-say.html">Beslenme ve Diyetetik (İngilizce) (Ücretli) SAY</a> <span style="color:var(--fg-faded)">(4)</span> · <a href="/dgs-taban/beslenme-ve-diyetetik-ingilizce-50-indirimli-say.html">Beslenme ve Diyetetik (İngilizce) (%50 İndirimli) SAY</a> <span style="color:var(--fg-faded)">(8)</span> · <a href="/dgs-taban/beslenme-ve-diyetetik-ucretli-say.html">Beslenme ve Diyetetik (Ücretli) SAY</a> <span style="color:var(--fg-faded)">(15)</span> · <a href="/dgs-taban/beslenme-ve-diyetetik-25-indirimli-say.html">Beslenme ve Diyetetik (%25 İndirimli) SAY</a> <span style="color:var(--fg-faded)">(5)</span> · <a href="/dgs-taban/beslenme-ve-diyetetik-50-indirimli-say.html">Beslenme ve Diyetetik (%50 İndirimli) SAY</a> <span style="color:var(--fg-faded)">(29)</span> · <a href="/dgs-taban/bilgisayar-bilimleri-say.html">Bilgisayar Bilimleri SAY</a> <span style="color:var(--fg-faded)">(5)</span> · <a href="/dgs-taban/bilgisayar-muhendisligi-say.html">Bilgisayar Mühendisliği SAY</a> <span style="color:var(--fg-faded)">(75)</span> · <a href="/dgs-taban/bilgisayar-muhendisligi-burslu-say.html">Bilgisayar Mühendisliği (Burslu) SAY</a> <span style="color:var(--fg-faded)">(21)</span> · <a href="/dgs-taban/bilgisayar-muhendisligi-ingilizce-say.html">Bilgisayar Mühendisliği (İngilizce) SAY</a> <span style="color:var(--fg-faded)">(25)</span> · <a href="/dgs-taban/bilgisayar-muhendisligi-ingilizce-burslu-say.html">Bilgisayar Mühendisliği (İngilizce) (Burslu) SAY</a> <span style="color:var(--fg-faded)">(37)</span> · <a href="/dgs-taban/bilgisayar-muhendisligi-ingilizce-ucretli-say.html">Bilgisayar Mühendisliği (İngilizce) (Ücretli) SAY</a> <span style="color:var(--fg-faded)">(19)</span> · <a href="/dgs-taban/bilgisayar-muhendisligi-ingilizce-25-indirimli-say.html">Bilgisayar Mühendisliği (İngilizce) (%25 İndirimli) SAY</a> <span style="color:var(--fg-faded)">(3)</span> · <a href="/dgs-taban/bilgisayar-muhendisligi-ingilizce-50-indirimli-say.html">Bilgisayar Mühendisliği (İngilizce) (%50 İndirimli) SAY</a> <span style="color:var(--fg-faded)">(30)</span> · <a href="/dgs-taban/bilgisayar-muhendisligi-ucretli-say.html">Bilgisayar Mühendisliği (Ücretli) SAY</a> <span style="color:var(--fg-faded)">(9)</span> · <a href="/dgs-taban/bilgisayar-muhendisligi-25-indirimli-say.html">Bilgisayar Mühendisliği (%25 İndirimli) SAY</a> <span style="color:var(--fg-faded)">(4)</span> · <a href="/dgs-taban/bilgisayar-muhendisligi-50-indirimli-say.html">Bilgisayar Mühendisliği (%50 İndirimli) SAY</a> <span style="color:var(--fg-faded)">(12)</span> · <a href="/dgs-taban/bilgisayar-ve-ogretim-teknolojileri-ogretmenligi-say.html">Bilgisayar ve Öğretim Teknolojileri Öğretmenliği SAY</a> <span style="color:var(--fg-faded)">(11)</span> · <a href="/dgs-taban/bilgi-ve-belge-yonetimi-ea.html">Bilgi ve Belge Yönetimi EA</a> <span style="color:var(--fg-faded)">(12)</span> · <a href="/dgs-taban/bilisim-sistemleri-muhendisligi-say.html">Bilişim Sistemleri Mühendisliği SAY</a> <span style="color:var(--fg-faded)">(4)</span> · <a href="/dgs-taban/bilisim-sistemleri-muhendisligi-ingilizce-burslu-say.html">Bilişim Sistemleri Mühendisliği (İngilizce) (Burslu) SAY</a> <span style="color:var(--fg-faded)">(3)</span> · <a href="/dgs-taban/bilisim-sistemleri-ve-teknolojileri-say.html">Bilişim Sistemleri ve Teknolojileri SAY</a> <span style="color:var(--fg-faded)">(7)</span> · <a href="/dgs-taban/bilisim-sistemleri-ve-teknolojileri-ingilizce-burslu-say.html">Bilişim Sistemleri ve Teknolojileri (İngilizce) (Burslu) SAY</a> <span style="color:var(--fg-faded)">(5)</span> · <a href="/dgs-taban/bilisim-sistemleri-ve-teknolojileri-ingilizce-50-indirimli-say.html">Bilişim Sistemleri ve Teknolojileri (İngilizce) (%50 İndirimli) SAY</a> <span style="color:var(--fg-faded)">(4)</span> · <a href="/dgs-taban/bitki-koruma-say.html">Bitki Koruma SAY</a> <span style="color:var(--fg-faded)">(34)</span> · <a href="/dgs-taban/biyokimya-say.html">Biyokimya SAY</a> <span style="color:var(--fg-faded)">(4)</span> · <a href="/dgs-taban/biyoloji-say.html">Biyoloji SAY</a> <span style="color:var(--fg-faded)">(56)</span> · <a href="/dgs-taban/biyoloji-ingilizce-say.html">Biyoloji (İngilizce) SAY</a> <span style="color:var(--fg-faded)">(3)</span> · <a href="/dgs-taban/biyomedikal-muhendisligi-say.html">Biyomedikal Mühendisliği SAY</a> <span style="color:var(--fg-faded)">(13)</span> · <a href="/dgs-taban/biyomedikal-muhendisligi-burslu-say.html">Biyomedikal Mühendisliği (Burslu) SAY</a> <span style="color:var(--fg-faded)">(3)</span> · <a href="/dgs-taban/biyomedikal-muhendisligi-ingilizce-say.html">Biyomedikal Mühendisliği (İngilizce) SAY</a> <span style="color:var(--fg-faded)">(4)</span> · <a href="/dgs-taban/biyomedikal-muhendisligi-ingilizce-burslu-say.html">Biyomedikal Mühendisliği (İngilizce) (Burslu) SAY</a> <span style="color:var(--fg-faded)">(9)</span> · <a href="/dgs-taban/biyomedikal-muhendisligi-ingilizce-50-indirimli-say.html">Biyomedikal Mühendisliği (İngilizce) (%50 İndirimli) SAY</a> <span style="color:var(--fg-faded)">(7)</span> · <a href="/dgs-taban/biyomuhendislik-say.html">Biyomühendislik SAY</a> <span style="color:var(--fg-faded)">(4)</span> · <a href="/dgs-taban/biyomuhendislik-ingilizce-say.html">Biyomühendislik (İngilizce) SAY</a> <span style="color:var(--fg-faded)">(7)</span> · <a href="/dgs-taban/biyosistem-muhendisligi-say.html">Biyosistem Mühendisliği SAY</a> <span style="color:var(--fg-faded)">(16)</span> · <a href="/dgs-taban/biyoteknoloji-say.html">Biyoteknoloji SAY</a> <span style="color:var(--fg-faded)">(4)</span> · <a href="/dgs-taban/calgi-yapimi-ve-onarimi-soz.html">Çalgı Yapımı ve Onarımı SÖZ</a> <span style="color:var(--fg-faded)">(3)</span> · <a href="/dgs-taban/calisma-ekonomisi-ve-endustri-iliskileri-ea.html">Çalışma Ekonomisi ve Endüstri İlişkileri EA</a> <span style="color:var(--fg-faded)">(29)</span> · <a href="/dgs-taban/cevre-muhendisligi-say.html">Çevre Mühendisliği SAY</a> <span style="color:var(--fg-faded)">(20)</span> · <a href="/dgs-taban/cevre-muhendisligi-ingilizce-say.html">Çevre Mühendisliği (İngilizce) SAY</a> <span style="color:var(--fg-faded)">(8)</span> · <a href="/dgs-taban/cizgi-film-ve-animasyon-soz.html">Çizgi Film ve Animasyon SÖZ</a> <span style="color:var(--fg-faded)">(6)</span> · <a href="/dgs-taban/cizgi-film-ve-animasyon-burslu-soz.html">Çizgi Film ve Animasyon (Burslu) SÖZ</a> <span style="color:var(--fg-faded)">(11)</span> · <a href="/dgs-taban/cizgi-film-ve-animasyon-ucretli-soz.html">Çizgi Film ve Animasyon (Ücretli) SÖZ</a> <span style="color:var(--fg-faded)">(3)</span> · <a href="/dgs-taban/cizgi-film-ve-animasyon-50-indirimli-soz.html">Çizgi Film ve Animasyon (%50 İndirimli) SÖZ</a> <span style="color:var(--fg-faded)">(9)</span> · <a href="/dgs-taban/cocuk-gelisimi-ea.html">Çocuk Gelişimi EA</a> <span style="color:var(--fg-faded)">(24)</span> · <a href="/dgs-taban/cocuk-gelisimi-burslu-ea.html">Çocuk Gelişimi (Burslu) EA</a> <span style="color:var(--fg-faded)">(19)</span> · <a href="/dgs-taban/cocuk-gelisimi-ucretli-ea.html">Çocuk Gelişimi (Ücretli) EA</a> <span style="color:var(--fg-faded)">(8)</span> · <a href="/dgs-taban/cocuk-gelisimi-50-indirimli-ea.html">Çocuk Gelişimi (%50 İndirimli) EA</a> <span style="color:var(--fg-faded)">(12)</span> · <a href="/dgs-taban/denizcilik-isletmeleri-yonetimi-ea.html">Denizcilik İşletmeleri Yönetimi EA</a> <span style="color:var(--fg-faded)">(7)</span> · <a href="/dgs-taban/deniz-ulastirma-isletme-muhendisligi-say.html">Deniz Ulaştırma İşletme Mühendisliği SAY</a> <span style="color:var(--fg-faded)">(6)</span> · <a href="/dgs-taban/deniz-ulastirma-isletme-muhendisligi-ingilizce-burslu-say.html">Deniz Ulaştırma İşletme Mühendisliği (İngilizce) (Burslu) SAY</a> <span style="color:var(--fg-faded)">(3)</span> · <a href="/dgs-taban/deniz-ulastirma-isletme-muhendisligi-ingilizce-ucretli-say.html">Deniz Ulaştırma İşletme Mühendisliği (İngilizce) (Ücretli) SAY</a> <span style="color:var(--fg-faded)">(3)</span> · <a href="/dgs-taban/deniz-ulastirma-isletme-muhendisligi-ingilizce-50-indirimli-say.html">Deniz Ulaştırma İşletme Mühendisliği (İngilizce) (%50 İndirimli) SAY</a> <span style="color:var(--fg-faded)">(3)</span> · <a href="/dgs-taban/dil-ve-konusma-terapisi-say.html">Dil ve Konuşma Terapisi SAY</a> <span style="color:var(--fg-faded)">(10)</span> · <a href="/dgs-taban/dil-ve-konusma-terapisi-burslu-say.html">Dil ve Konuşma Terapisi (Burslu) SAY</a> <span style="color:var(--fg-faded)">(15)</span> · <a href="/dgs-taban/dil-ve-konusma-terapisi-25-indirimli-say.html">Dil ve Konuşma Terapisi (%25 İndirimli) SAY</a> <span style="color:var(--fg-faded)">(3)</span> · <a href="/dgs-taban/dil-ve-konusma-terapisi-50-indirimli-say.html">Dil ve Konuşma Terapisi (%50 İndirimli) SAY</a> <span style="color:var(--fg-faded)">(12)</span> · <a href="/dgs-taban/ebelik-say.html">Ebelik SAY</a> <span style="color:var(--fg-faded)">(45)</span> · <a href="/dgs-taban/ebelik-burslu-say.html">Ebelik (Burslu) SAY</a> <span style="color:var(--fg-faded)">(16)</span> · <a href="/dgs-taban/ebelik-ucretli-say.html">Ebelik (Ücretli) SAY</a> <span style="color:var(--fg-faded)">(3)</span> · <a href="/dgs-taban/ebelik-25-indirimli-say.html">Ebelik (%25 İndirimli) SAY</a> <span style="color:var(--fg-faded)">(3)</span> · <a href="/dgs-taban/ebelik-50-indirimli-say.html">Ebelik (%50 İndirimli) SAY</a> <span style="color:var(--fg-faded)">(12)</span> · <a href="/dgs-taban/ekonometri-ea.html">Ekonometri EA</a> <span style="color:var(--fg-faded)">(23)</span> · <a href="/dgs-taban/ekonomi-ea.html">Ekonomi EA</a> <span style="color:var(--fg-faded)">(3)</span> · <a href="/dgs-taban/ekonomi-ve-finans-ea.html">Ekonomi ve Finans EA</a> <span style="color:var(--fg-faded)">(5)</span> · <a href="/dgs-taban/ekonomi-ve-finans-ingilizce-burslu-ea.html">Ekonomi ve Finans (İngilizce) (Burslu) EA</a> <span style="color:var(--fg-faded)">(7)</span> · <a href="/dgs-taban/ekonomi-ve-finans-ingilizce-ucretli-ea.html">Ekonomi ve Finans (İngilizce) (Ücretli) EA</a> <span style="color:var(--fg-faded)">(4)</span> · <a href="/dgs-taban/ekonomi-ve-finans-ingilizce-50-indirimli-ea.html">Ekonomi ve Finans (İngilizce) (%50 İndirimli) EA</a> <span style="color:var(--fg-faded)">(7)</span> · <a href="/dgs-taban/ekonomi-ingilizce-ea.html">Ekonomi (İngilizce) EA</a> <span style="color:var(--fg-faded)">(4)</span> · <a href="/dgs-taban/ekonomi-ingilizce-burslu-ea.html">Ekonomi (İngilizce) (Burslu) EA</a> <span style="color:var(--fg-faded)">(10)</span> · <a href="/dgs-taban/ekonomi-ingilizce-ucretli-ea.html">Ekonomi (İngilizce) (Ücretli) EA</a> <span style="color:var(--fg-faded)">(3)</span> · <a href="/dgs-taban/ekonomi-ingilizce-50-indirimli-ea.html">Ekonomi (İngilizce) (%50 İndirimli) EA</a> <span style="color:var(--fg-faded)">(10)</span> · <a href="/dgs-taban/elektrik-elektronik-muhendisligi-say.html">Elektrik-Elektronik Mühendisliği SAY</a> <span style="color:var(--fg-faded)">(77)</span> · <a href="/dgs-taban/elektrik-elektronik-muhendisligi-burslu-say.html">Elektrik-Elektronik Mühendisliği (Burslu) SAY</a> <span style="color:var(--fg-faded)">(10)</span> · <a href="/dgs-taban/elektrik-elektronik-muhendisligi-ingilizce-say.html">Elektrik-Elektronik Mühendisliği (İngilizce) SAY</a> <span style="color:var(--fg-faded)">(22)</span> · <a href="/dgs-taban/elektrik-elektronik-muhendisligi-ingilizce-burslu-say.html">Elektrik-Elektronik Mühendisliği (İngilizce) (Burslu) SAY</a> <span style="color:var(--fg-faded)">(32)</span> · <a href="/dgs-taban/elektrik-elektronik-muhendisligi-ingilizce-ucretli-say.html">Elektrik-Elektronik Mühendisliği (İngilizce) (Ücretli) SAY</a> <span style="color:var(--fg-faded)">(16)</span> · <a href="/dgs-taban/elektrik-elektronik-muhendisligi-ingilizce-25-indirimli-say.html">Elektrik-Elektronik Mühendisliği (İngilizce) (%25 İndirimli) SAY</a> <span style="color:var(--fg-faded)">(5)</span> · <a href="/dgs-taban/elektrik-elektronik-muhendisligi-ingilizce-50-indirimli-say.html">Elektrik-Elektronik Mühendisliği (İngilizce) (%50 İndirimli) SAY</a> <span style="color:var(--fg-faded)">(24)</span> · <a href="/dgs-taban/elektrik-elektronik-muhendisligi-25-indirimli-say.html">Elektrik-Elektronik Mühendisliği (%25 İndirimli) SAY</a> <span style="color:var(--fg-faded)">(3)</span> · <a href="/dgs-taban/elektrik-elektronik-muhendisligi-50-indirimli-say.html">Elektrik-Elektronik Mühendisliği (%50 İndirimli) SAY</a> <span style="color:var(--fg-faded)">(6)</span> · <a href="/dgs-taban/elektrik-muhendisligi-say.html">Elektrik Mühendisliği SAY</a> <span style="color:var(--fg-faded)">(5)</span> · <a href="/dgs-taban/elektronik-ve-haberlesme-muhendisligi-say.html">Elektronik ve Haberleşme Mühendisliği SAY</a> <span style="color:var(--fg-faded)">(4)</span> · <a href="/dgs-taban/endustriyel-tasarim-say.html">Endüstriyel Tasarım SAY</a> <span style="color:var(--fg-faded)">(12)</span> · <a href="/dgs-taban/endustriyel-tasarim-burslu-say.html">Endüstriyel Tasarım (Burslu) SAY</a> <span style="color:var(--fg-faded)">(10)</span> · <a href="/dgs-taban/endustriyel-tasarim-ingilizce-say.html">Endüstriyel Tasarım (İngilizce) SAY</a> <span style="color:var(--fg-faded)">(3)</span> · <a href="/dgs-taban/endustriyel-tasarim-ingilizce-burslu-say.html">Endüstriyel Tasarım (İngilizce) (Burslu) SAY</a> <span style="color:var(--fg-faded)">(6)</span> · <a href="/dgs-taban/endustriyel-tasarim-ingilizce-50-indirimli-say.html">Endüstriyel Tasarım (İngilizce) (%50 İndirimli) SAY</a> <span style="color:var(--fg-faded)">(6)</span> · <a href="/dgs-taban/endustriyel-tasarim-50-indirimli-say.html">Endüstriyel Tasarım (%50 İndirimli) SAY</a> <span style="color:var(--fg-faded)">(8)</span> · <a href="/dgs-taban/endustri-muhendisligi-say.html">Endüstri Mühendisliği SAY</a> <span style="color:var(--fg-faded)">(38)</span> · <a href="/dgs-taban/endustri-muhendisligi-burslu-say.html">Endüstri Mühendisliği (Burslu) SAY</a> <span style="color:var(--fg-faded)">(13)</span> · <a href="/dgs-taban/endustri-muhendisligi-ingilizce-say.html">Endüstri Mühendisliği (İngilizce) SAY</a> <span style="color:var(--fg-faded)">(14)</span> · <a href="/dgs-taban/endustri-muhendisligi-ingilizce-burslu-say.html">Endüstri Mühendisliği (İngilizce) (Burslu) SAY</a> <span style="color:var(--fg-faded)">(31)</span> · <a href="/dgs-taban/endustri-muhendisligi-ingilizce-ucretli-say.html">Endüstri Mühendisliği (İngilizce) (Ücretli) SAY</a> <span style="color:var(--fg-faded)">(12)</span> · <a href="/dgs-taban/endustri-muhendisligi-ingilizce-25-indirimli-say.html">Endüstri Mühendisliği (İngilizce) (%25 İndirimli) SAY</a> <span style="color:var(--fg-faded)">(4)</span> · <a href="/dgs-taban/endustri-muhendisligi-ingilizce-50-indirimli-say.html">Endüstri Mühendisliği (İngilizce) (%50 İndirimli) SAY</a> <span style="color:var(--fg-faded)">(23)</span> · <a href="/dgs-taban/endustri-muhendisligi-ucretli-say.html">Endüstri Mühendisliği (Ücretli) SAY</a> <span style="color:var(--fg-faded)">(4)</span> · <a href="/dgs-taban/endustri-muhendisligi-50-indirimli-say.html">Endüstri Mühendisliği (%50 İndirimli) SAY</a> <span style="color:var(--fg-faded)">(10)</span> · <a href="/dgs-taban/enerji-sistemleri-muhendisligi-say.html">Enerji Sistemleri Mühendisliği SAY</a> <span style="color:var(--fg-faded)">(8)</span> · <a href="/dgs-taban/enerji-sistemleri-muhendisligi-ingilizce-say.html">Enerji Sistemleri Mühendisliği (İngilizce) SAY</a> <span style="color:var(--fg-faded)">(4)</span> · <a href="/dgs-taban/enerji-sistemleri-muhendisligi-ingilizce-burslu-say.html">Enerji Sistemleri Mühendisliği (İngilizce) (Burslu) SAY</a> <span style="color:var(--fg-faded)">(4)</span> · <a href="/dgs-taban/enerji-sistemleri-muhendisligi-ingilizce-50-indirimli-say.html">Enerji Sistemleri Mühendisliği (İngilizce) (%50 İndirimli) SAY</a> <span style="color:var(--fg-faded)">(3)</span> · <a href="/dgs-taban/ergoterapi-say.html">Ergoterapi SAY</a> <span style="color:var(--fg-faded)">(4)</span> · <a href="/dgs-taban/ergoterapi-burslu-say.html">Ergoterapi (Burslu) SAY</a> <span style="color:var(--fg-faded)">(10)</span> · <a href="/dgs-taban/ergoterapi-50-indirimli-say.html">Ergoterapi (%50 İndirimli) SAY</a> <span style="color:var(--fg-faded)">(8)</span> · <a href="/dgs-taban/fars-dili-ve-edebiyati-soz.html">Fars Dili ve Edebiyatı SÖZ</a> <span style="color:var(--fg-faded)">(5)</span> · <a href="/dgs-taban/finans-ve-bankacilik-ea.html">Finans ve Bankacılık EA</a> <span style="color:var(--fg-faded)">(29)</span> · <a href="/dgs-taban/finans-ve-bankacilik-burslu-ea.html">Finans ve Bankacılık (Burslu) EA</a> <span style="color:var(--fg-faded)">(3)</span> · <a href="/dgs-taban/finans-ve-bankacilik-ingilizce-burslu-ea.html">Finans ve Bankacılık (İngilizce) (Burslu) EA</a> <span style="color:var(--fg-faded)">(7)</span> · <a href="/dgs-taban/finans-ve-bankacilik-ingilizce-ucretli-ea.html">Finans ve Bankacılık (İngilizce) (Ücretli) EA</a> <span style="color:var(--fg-faded)">(3)</span> · <a href="/dgs-taban/finans-ve-bankacilik-ingilizce-50-indirimli-ea.html">Finans ve Bankacılık (İngilizce) (%50 İndirimli) EA</a> <span style="color:var(--fg-faded)">(3)</span> · <a href="/dgs-taban/finans-ve-bankacilik-50-indirimli-ea.html">Finans ve Bankacılık (%50 İndirimli) EA</a> <span style="color:var(--fg-faded)">(3)</span> · <a href="/dgs-taban/fizik-muhendisligi-say.html">Fizik Mühendisliği SAY</a> <span style="color:var(--fg-faded)">(3)</span> · <a href="/dgs-taban/fizik-say.html">Fizik SAY</a> <span style="color:var(--fg-faded)">(44)</span> · <a href="/dgs-taban/fizik-ingilizce-say.html">Fizik (İngilizce) SAY</a> <span style="color:var(--fg-faded)">(5)</span> · <a href="/dgs-taban/fizyoterapi-ve-rehabilitasyon-say.html">Fizyoterapi ve Rehabilitasyon SAY</a> <span style="color:var(--fg-faded)">(55)</span> · <a href="/dgs-taban/fizyoterapi-ve-rehabilitasyon-burslu-say.html">Fizyoterapi ve Rehabilitasyon (Burslu) SAY</a> <span style="color:var(--fg-faded)">(47)</span> · <a href="/dgs-taban/fizyoterapi-ve-rehabilitasyon-ingilizce-burslu-say.html">Fizyoterapi ve Rehabilitasyon (İngilizce) (Burslu) SAY</a> <span style="color:var(--fg-faded)">(12)</span> · <a href="/dgs-taban/fizyoterapi-ve-rehabilitasyon-ingilizce-ucretli-say.html">Fizyoterapi ve Rehabilitasyon (İngilizce) (Ücretli) SAY</a> <span style="color:var(--fg-faded)">(4)</span> · <a href="/dgs-taban/fizyoterapi-ve-rehabilitasyon-ingilizce-50-indirimli-say.html">Fizyoterapi ve Rehabilitasyon (İngilizce) (%50 İndirimli) SAY</a> <span style="color:var(--fg-faded)">(10)</span> · <a href="/dgs-taban/fizyoterapi-ve-rehabilitasyon-ucretli-say.html">Fizyoterapi ve Rehabilitasyon (Ücretli) SAY</a> <span style="color:var(--fg-faded)">(16)</span> · <a href="/dgs-taban/fizyoterapi-ve-rehabilitasyon-25-indirimli-say.html">Fizyoterapi ve Rehabilitasyon (%25 İndirimli) SAY</a> <span style="color:var(--fg-faded)">(5)</span> · <a href="/dgs-taban/fizyoterapi-ve-rehabilitasyon-50-indirimli-say.html">Fizyoterapi ve Rehabilitasyon (%50 İndirimli) SAY</a> <span style="color:var(--fg-faded)">(33)</span> · <a href="/dgs-taban/fotograf-soz.html">Fotoğraf SÖZ</a> <span style="color:var(--fg-faded)">(6)</span> · <a href="/dgs-taban/gastronomi-ve-mutfak-sanatlari-soz.html">Gastronomi ve Mutfak Sanatları SÖZ</a> <span style="color:var(--fg-faded)">(54)</span> · <a href="/dgs-taban/gastronomi-ve-mutfak-sanatlari-burslu-soz.html">Gastronomi ve Mutfak Sanatları (Burslu) SÖZ</a> <span style="color:var(--fg-faded)">(30)</span> · <a href="/dgs-taban/gastronomi-ve-mutfak-sanatlari-ingilizce-burslu-soz.html">Gastronomi ve Mutfak Sanatları (İngilizce) (Burslu) SÖZ</a> <span style="color:var(--fg-faded)">(14)</span> · <a href="/dgs-taban/gastronomi-ve-mutfak-sanatlari-ingilizce-ucretli-soz.html">Gastronomi ve Mutfak Sanatları (İngilizce) (Ücretli) SÖZ</a> <span style="color:var(--fg-faded)">(4)</span> · <a href="/dgs-taban/gastronomi-ve-mutfak-sanatlari-ingilizce-50-indirimli-soz.html">Gastronomi ve Mutfak Sanatları (İngilizce) (%50 İndirimli) SÖZ</a> <span style="color:var(--fg-faded)">(11)</span> · <a href="/dgs-taban/gastronomi-ve-mutfak-sanatlari-ucretli-soz.html">Gastronomi ve Mutfak Sanatları (Ücretli) SÖZ</a> <span style="color:var(--fg-faded)">(7)</span> · <a href="/dgs-taban/gastronomi-ve-mutfak-sanatlari-25-indirimli-soz.html">Gastronomi ve Mutfak Sanatları (%25 İndirimli) SÖZ</a> <span style="color:var(--fg-faded)">(4)</span> · <a href="/dgs-taban/gastronomi-ve-mutfak-sanatlari-50-indirimli-soz.html">Gastronomi ve Mutfak Sanatları (%50 İndirimli) SÖZ</a> <span style="color:var(--fg-faded)">(23)</span> · <a href="/dgs-taban/gazetecilik-soz.html">Gazetecilik SÖZ</a> <span style="color:var(--fg-faded)">(33)</span> · <a href="/dgs-taban/gazetecilik-burslu-soz.html">Gazetecilik (Burslu) SÖZ</a> <span style="color:var(--fg-faded)">(5)</span> · <a href="/dgs-taban/gazetecilik-50-indirimli-soz.html">Gazetecilik (%50 İndirimli) SÖZ</a> <span style="color:var(--fg-faded)">(4)</span> · <a href="/dgs-taban/geleneksel-turk-sanatlari-soz.html">Geleneksel Türk Sanatları SÖZ</a> <span style="color:var(--fg-faded)">(21)</span> · <a href="/dgs-taban/gemi-insaati-ve-gemi-makineleri-muhendisligi-say.html">Gemi İnşaatı ve Gemi Makineleri Mühendisliği SAY</a> <span style="color:var(--fg-faded)">(7)</span> · <a href="/dgs-taban/gemi-makineleri-isletme-muhendisligi-say.html">Gemi Makineleri İşletme Mühendisliği SAY</a> <span style="color:var(--fg-faded)">(4)</span> · <a href="/dgs-taban/genetik-ve-biyomuhendislik-ingilizce-burslu-say.html">Genetik ve Biyomühendislik (İngilizce) (Burslu) SAY</a> <span style="color:var(--fg-faded)">(4)</span> · <a href="/dgs-taban/genetik-ve-biyomuhendislik-ingilizce-50-indirimli-say.html">Genetik ve Biyomühendislik (İngilizce) (%50 İndirimli) SAY</a> <span style="color:var(--fg-faded)">(3)</span> · <a href="/dgs-taban/gerontoloji-say.html">Gerontoloji SAY</a> <span style="color:var(--fg-faded)">(6)</span> · <a href="/dgs-taban/gida-muhendisligi-say.html">Gıda Mühendisliği SAY</a> <span style="color:var(--fg-faded)">(32)</span> · <a href="/dgs-taban/gida-muhendisligi-ingilizce-say.html">Gıda Mühendisliği (İngilizce) SAY</a> <span style="color:var(--fg-faded)">(7)</span> · <a href="/dgs-taban/gida-teknolojisi-say.html">Gıda Teknolojisi SAY</a> <span style="color:var(--fg-faded)">(3)</span> · <a href="/dgs-taban/gorsel-iletisim-tasarimi-soz.html">Görsel İletişim Tasarımı SÖZ</a> <span style="color:var(--fg-faded)">(15)</span> · <a href="/dgs-taban/gorsel-iletisim-tasarimi-burslu-soz.html">Görsel İletişim Tasarımı (Burslu) SÖZ</a> <span style="color:var(--fg-faded)">(20)</span> · <a href="/dgs-taban/gorsel-iletisim-tasarimi-ingilizce-burslu-soz.html">Görsel İletişim Tasarımı (İngilizce) (Burslu) SÖZ</a> <span style="color:var(--fg-faded)">(9)</span> · <a href="/dgs-taban/gorsel-iletisim-tasarimi-ingilizce-ucretli-soz.html">Görsel İletişim Tasarımı (İngilizce) (Ücretli) SÖZ</a> <span style="color:var(--fg-faded)">(3)</span> · <a href="/dgs-taban/gorsel-iletisim-tasarimi-ingilizce-50-indirimli-soz.html">Görsel İletişim Tasarımı (İngilizce) (%50 İndirimli) SÖZ</a> <span style="color:var(--fg-faded)">(7)</span> · <a href="/dgs-taban/gorsel-iletisim-tasarimi-ucretli-soz.html">Görsel İletişim Tasarımı (Ücretli) SÖZ</a> <span style="color:var(--fg-faded)">(5)</span> · <a href="/dgs-taban/gorsel-iletisim-tasarimi-25-indirimli-soz.html">Görsel İletişim Tasarımı (%25 İndirimli) SÖZ</a> <span style="color:var(--fg-faded)">(3)</span> · <a href="/dgs-taban/gorsel-iletisim-tasarimi-50-indirimli-soz.html">Görsel İletişim Tasarımı (%50 İndirimli) SÖZ</a> <span style="color:var(--fg-faded)">(14)</span> · <a href="/dgs-taban/gorsel-sanatlar-soz.html">Görsel Sanatlar SÖZ</a> <span style="color:var(--fg-faded)">(3)</span> · <a href="/dgs-taban/grafik-ea.html">Grafik EA</a> <span style="color:var(--fg-faded)">(7)</span> · <a href="/dgs-taban/grafik-sanatlar-ea.html">Grafik Sanatlar EA</a> <span style="color:var(--fg-faded)">(6)</span> · <a href="/dgs-taban/grafik-tasarimi-ea.html">Grafik Tasarımı EA</a> <span style="color:var(--fg-faded)">(15)</span> · <a href="/dgs-taban/grafik-tasarimi-burslu-ea.html">Grafik Tasarımı (Burslu) EA</a> <span style="color:var(--fg-faded)">(16)</span> · <a href="/dgs-taban/grafik-tasarimi-ucretli-ea.html">Grafik Tasarımı (Ücretli) EA</a> <span style="color:var(--fg-faded)">(4)</span> · <a href="/dgs-taban/grafik-tasarimi-50-indirimli-ea.html">Grafik Tasarımı (%50 İndirimli) EA</a> <span style="color:var(--fg-faded)">(13)</span> · <a href="/dgs-taban/gumruk-isletme-ea.html">Gümrük İşletme EA</a> <span style="color:var(--fg-faded)">(6)</span> · <a href="/dgs-taban/hali-kilim-ve-geleneksel-kumas-desenleri-soz.html">Halı, Kilim ve Geleneksel Kumaş Desenleri SÖZ</a> <span style="color:var(--fg-faded)">(3)</span> · <a href="/dgs-taban/halkla-iliskiler-ve-reklamcilik-soz.html">Halkla İlişkiler ve Reklamcılık SÖZ</a> <span style="color:var(--fg-faded)">(15)</span> · <a href="/dgs-taban/halkla-iliskiler-ve-reklamcilik-burslu-soz.html">Halkla İlişkiler ve Reklamcılık (Burslu) SÖZ</a> <span style="color:var(--fg-faded)">(17)</span> · <a href="/dgs-taban/halkla-iliskiler-ve-reklamcilik-ingilizce-burslu-soz.html">Halkla İlişkiler ve Reklamcılık (İngilizce) (Burslu) SÖZ</a> <span style="color:var(--fg-faded)">(5)</span> · <a href="/dgs-taban/halkla-iliskiler-ve-reklamcilik-ingilizce-50-indirimli-soz.html">Halkla İlişkiler ve Reklamcılık (İngilizce) (%50 İndirimli) SÖZ</a> <span style="color:var(--fg-faded)">(3)</span> · <a href="/dgs-taban/halkla-iliskiler-ve-reklamcilik-ucretli-soz.html">Halkla İlişkiler ve Reklamcılık (Ücretli) SÖZ</a> <span style="color:var(--fg-faded)">(3)</span> · <a href="/dgs-taban/halkla-iliskiler-ve-reklamcilik-50-indirimli-soz.html">Halkla İlişkiler ve Reklamcılık (%50 İndirimli) SÖZ</a> <span style="color:var(--fg-faded)">(13)</span> · <a href="/dgs-taban/halkla-iliskiler-ve-tanitim-soz.html">Halkla İlişkiler ve Tanıtım SÖZ</a> <span style="color:var(--fg-faded)">(25)</span> · <a href="/dgs-taban/halkla-iliskiler-ve-tanitim-burslu-soz.html">Halkla İlişkiler ve Tanıtım (Burslu) SÖZ</a> <span style="color:var(--fg-faded)">(7)</span> · <a href="/dgs-taban/halkla-iliskiler-ve-tanitim-ingilizce-burslu-soz.html">Halkla İlişkiler ve Tanıtım (İngilizce) (Burslu) SÖZ</a> <span style="color:var(--fg-faded)">(3)</span> · <a href="/dgs-taban/halkla-iliskiler-ve-tanitim-ingilizce-50-indirimli-soz.html">Halkla İlişkiler ve Tanıtım (İngilizce) (%50 İndirimli) SÖZ</a> <span style="color:var(--fg-faded)">(3)</span> · <a href="/dgs-taban/halkla-iliskiler-ve-tanitim-50-indirimli-soz.html">Halkla İlişkiler ve Tanıtım (%50 İndirimli) SÖZ</a> <span style="color:var(--fg-faded)">(6)</span> · <a href="/dgs-taban/harita-muhendisligi-say.html">Harita Mühendisliği SAY</a> <span style="color:var(--fg-faded)">(17)</span> · <a href="/dgs-taban/harita-muhendisligi-ingilizce-say.html">Harita Mühendisliği (İngilizce) SAY</a> <span style="color:var(--fg-faded)">(3)</span> · <a href="/dgs-taban/havacilik-elektrik-ve-elektronigi-say.html">Havacılık Elektrik ve Elektroniği SAY</a> <span style="color:var(--fg-faded)">(4)</span> · <a href="/dgs-taban/havacilik-elektrik-ve-elektronigi-burslu-say.html">Havacılık Elektrik ve Elektroniği (Burslu) SAY</a> <span style="color:var(--fg-faded)">(3)</span> · <a href="/dgs-taban/havacilik-ve-uzay-muhendisligi-say.html">Havacılık ve Uzay Mühendisliği SAY</a> <span style="color:var(--fg-faded)">(5)</span> · <a href="/dgs-taban/havacilik-ve-uzay-muhendisligi-ingilizce-say.html">Havacılık ve Uzay Mühendisliği (İngilizce) SAY</a> <span style="color:var(--fg-faded)">(4)</span> · <a href="/dgs-taban/havacilik-ve-uzay-muhendisligi-ingilizce-burslu-say.html">Havacılık ve Uzay Mühendisliği (İngilizce) (Burslu) SAY</a> <span style="color:var(--fg-faded)">(4)</span> · <a href="/dgs-taban/havacilik-ve-uzay-muhendisligi-ingilizce-50-indirimli-say.html">Havacılık ve Uzay Mühendisliği (İngilizce) (%50 İndirimli) SAY</a> <span style="color:var(--fg-faded)">(3)</span> · <a href="/dgs-taban/havacilik-yonetimi-ea.html">Havacılık Yönetimi EA</a> <span style="color:var(--fg-faded)">(18)</span> · <a href="/dgs-taban/havacilik-yonetimi-burslu-ea.html">Havacılık Yönetimi (Burslu) EA</a> <span style="color:var(--fg-faded)">(10)</span> · <a href="/dgs-taban/havacilik-yonetimi-ingilizce-burslu-ea.html">Havacılık Yönetimi (İngilizce) (Burslu) EA</a> <span style="color:var(--fg-faded)">(8)</span> <span style="color:var(--fg-faded)">… ve 293 kategori daha (yukarıdaki aramayı kullanın).</span></div></div>
 <script nonce="__NONCE__">
 (function(){
-  var CFG={"file": "/veri/dgs.json", "cols": [[1, "b"], [0, "t"], [2, "n"], [3, "p"], [5, "pv"], [6, "pv"], [7, "t"], [4, "pv"]], "filters": [], "search": [0, 1]};
+  var CFG={"file": "/veri/dgs.json", "cols": [[1, "b"], [0, "t"], [2, "n"], [3, "p"], [5, "pv"], [6, "pv"], [7, "t"], [4, "pv"]], "filters": [], "search": [0, 1]}, NCOL=CFG.cols.length, SV=window.SV||{};
   var data=[],shown=0,PAGE=50;
   function el(id){return document.getElementById(id);}
   var nf=function(n){return n==null?'—':Number(n).toLocaleString('tr-TR');};
   var pf=function(n){return n==null?'—':Number(n).toLocaleString('tr-TR',{minimumFractionDigits:2,maximumFractionDigits:2});};
+  if(SV.skel)SV.skel('tbody',NCOL,7);
   el('status').textContent='Veriler yükleniyor…';
-  fetch(CFG.file).then(function(r){return r.json();}).then(function(j){data=j;initFilters();render();})
+  fetch(CFG.file).then(function(r){return r.json();}).then(function(j){data=j;initFilters();applyQS();render();})
     .catch(function(){el('status').textContent='Veri yüklenemedi.';});
   function initFilters(){
     CFG.filters.forEach(function(f){
@@ -110,6 +227,28 @@ Yerleşen olmayan satırlarda değer boştur (—). Resmî bilgi için <a href="
       var vals=Object.keys(set).sort(function(a,b){return a.localeCompare(b,'tr');});
       var sel=el('fil'+f[1]);if(!sel)return;
       vals.forEach(function(v){var o=document.createElement('option');o.value=v;o.textContent=v;sel.appendChild(o);});
+    });
+  }
+  function applyQS(){
+    var qs=SV.qsGet?SV.qsGet():{};
+    if(qs.q!=null)el('fQ').value=qs.q;
+    CFG.filters.forEach(function(f){var s=el('fil'+f[1]);if(s&&qs['f'+f[1]]!=null)s.value=qs['f'+f[1]];});
+  }
+  function syncQS(){
+    var o={}; var q=el('fQ').value.trim(); if(q)o.q=q;
+    CFG.filters.forEach(function(f){var s=el('fil'+f[1]);if(s&&s.value)o['f'+f[1]]=s.value;});
+    if(SV.qsSet)SV.qsSet(o); drawChips();
+  }
+  function drawChips(){
+    if(!SV.chips)return;
+    var items=[]; var q=el('fQ').value.trim();
+    if(q)items.push({key:'q',label:'“'+q+'”'});
+    CFG.filters.forEach(function(f){var s=el('fil'+f[1]);if(s&&s.value)items.push({key:'f'+f[1],label:f[2]+': '+s.value});});
+    SV.chips('chips',items,function(key){
+      if(key==='__all__'){el('fQ').value='';CFG.filters.forEach(function(f){var s=el('fil'+f[1]);if(s)s.value='';});}
+      else if(key==='q'){el('fQ').value='';}
+      else {CFG.filters.forEach(function(f){if('f'+f[1]===key){var s=el('fil'+f[1]);if(s)s.value='';}});}
+      render(true);
     });
   }
   function filtered(){
@@ -133,9 +272,10 @@ Yerleşen olmayan satırlarda değer boştur (—). Resmî bilgi için <a href="
     return rows;
   }
   function render(reset){
-    if(reset!==false)shown=0;
+    if(reset!==false){shown=0;syncQS();}
     var rows=applySort(filtered());
     el('status').textContent=rows.length.toLocaleString('tr-TR')+' sonuç bulundu';
+    if(!rows.length){if(SV.empty)SV.empty('tbody',NCOL);el('moreWrap').style.display='none';return;}
     shown=Math.min(shown+PAGE,rows.length);if(shown===0&&rows.length)shown=Math.min(PAGE,rows.length);
     var tb=el('tbody');tb.innerHTML='';
     rows.slice(0,shown||PAGE).forEach(function(r){
@@ -224,6 +364,37 @@ Yerleşen olmayan satırlarda değer boştur (—). Resmî bilgi için <a href="
       });
     });
   });
+})();
+</script>
+<script nonce="__NONCE__">
+(function(){
+  var form=document.getElementById('hsearch'); if(!form) return;
+  var inp=document.getElementById('hsQ'), drop=document.getElementById('hsDrop');
+  var DATA=null, loading=false, sel=-1;
+  function load(cb){ if(DATA){cb&&cb();return;} if(loading)return; loading=true;
+    fetch('/veri/arama.json').then(function(r){return r.json();}).then(function(j){DATA=j;loading=false;cb&&cb();}).catch(function(){loading=false;}); }
+  function norm(s){return (s||'').toLocaleLowerCase('tr');}
+  function search(q){ if(!DATA)return []; q=norm(q).trim(); if(q.length<2)return [];
+    var out=[]; for(var i=0;i<DATA.length && out.length<8;i++){ var d=DATA[i]; if(norm(d.n).indexOf(q)>=0||norm(d.s||'').indexOf(q)>=0){ out.push(d); } } return out; }
+  function esc(s){ return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+  function close(){ drop.classList.remove('open'); drop.innerHTML=''; sel=-1; }
+  function show(){ var q=inp.value; if(!q||q.trim().length<2){ close(); return; } var res=search(q);
+    if(!res.length){ drop.innerHTML='<a class="hs-item" href="/ara.html?q='+encodeURIComponent(q)+'">"'+esc(q)+'" için tüm sonuçlar…</a>'; drop.classList.add('open'); return; }
+    var h=''; res.forEach(function(d){ h+='<a class="hs-item" href="'+d.u+'"><span class="hs-kind">'+esc(d.t)+'</span>'+esc(d.n)+(d.s?'<small>'+esc(d.s)+'</small>':'')+'</a>'; });
+    h+='<a class="hs-item" href="/ara.html?q='+encodeURIComponent(q)+'" style="text-align:center;color:var(--accent);font-weight:700">Tüm sonuçlar →</a>';
+    drop.innerHTML=h; drop.classList.add('open'); sel=-1;
+  }
+  inp.addEventListener('focus',function(){ load(show); });
+  inp.addEventListener('input',function(){ load(show); });
+  inp.addEventListener('keydown',function(e){
+    var links=drop.querySelectorAll('.hs-item');
+    if(e.key==='ArrowDown'){ e.preventDefault(); sel=Math.min(sel+1,links.length-1); }
+    else if(e.key==='ArrowUp'){ e.preventDefault(); sel=Math.max(sel-1,0); }
+    else if(e.key==='Enter'){ if(sel>=0&&links[sel]){ e.preventDefault(); location.href=links[sel].getAttribute('href'); } return; }
+    else { return; }
+    links.forEach(function(l,i){ l.classList.toggle('sel',i===sel); });
+  });
+  document.addEventListener('click',function(e){ if(!form.contains(e.target)) close(); });
 })();
 </script>
 <script nonce="__NONCE__">if('serviceWorker' in navigator){navigator.serviceWorker.register('/sw.js').catch(function(){});}</script>
