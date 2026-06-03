@@ -2061,6 +2061,72 @@ def page_lgs_robot(lgs):
         "MEB 2025 LGS yerleştirme verisi.", "LGS Puanın", "örn. 420,5")
 
 
+def _bdil_py(s):
+    s = s or ""
+    i = s.find(" (")
+    return s[:i] if i > 0 else s
+
+
+# Detay (bölüm/üniversite) statik tablolarına dil filtresi + karşılaştırma katmanı
+DETAIL_BAR = """
+<div class="calc-card" style="margin-bottom:14px;padding:13px 16px">
+  <div style="display:flex;gap:12px;flex-wrap:wrap;align-items:center">
+    <span id="dDilWrap"><label style="font-size:12px;color:var(--fg-faded);font-weight:700;margin-right:6px">Öğrenim dili</label>
+      <select id="dDil" class="btn btn-ghost" style="text-align:left"><option value="">Tümü</option></select></span>
+    <span id="dStatus" style="font-size:12px;color:var(--fg-faded)"></span>
+  </div>
+  <div class="filter-chips" id="dChips" style="display:none;margin-top:8px"></div>
+</div>"""
+
+DETAIL_CMP = """
+<div class="fav-panel" id="dCmpPanel"></div>
+<div class="cmp-bar" id="dCmpBar"><button type="button" class="fav-toggle" id="dCmpBtn">Karşılaştır (0)</button><button type="button" class="fchip-clear" id="dCmpClear" style="margin-left:8px">Seçimi temizle</button></div>"""
+
+DETAIL_TOOLS_JS = r"""<script nonce="__NONCE__">
+(function(){
+  var SV=window.SV||{};
+  var tbl=document.querySelector('table.detail-table'); if(!tbl)return;
+  var tb=tbl.querySelector('tbody'); if(!tb)return;
+  var rows=Array.prototype.slice.call(tb.querySelectorAll(':scope>tr'));
+  var ths=Array.prototype.slice.call(tbl.querySelectorAll('thead th')).map(function(h){return h.textContent.trim();});
+  var ncol=ths.length;
+  var dilSel=document.getElementById('dDil');
+  function applyFilter(){
+    var d=dilSel?dilSel.value:'',shown=0;
+    rows.forEach(function(r){var ok=!d||r.getAttribute('data-dil')===d;r.style.display=ok?'':'none';if(ok)shown++;});
+    var st=document.getElementById('dStatus');if(st)st.textContent=shown.toLocaleString('tr-TR')+' / '+rows.length.toLocaleString('tr-TR')+' program';
+    if(SV.chips){var it=[];if(d)it.push({key:'dil',label:'Dil: '+d});SV.chips('dChips',it,function(){if(dilSel)dilSel.value='';applyFilter();});}
+  }
+  if(dilSel){
+    var cnt={};rows.forEach(function(r){var d=r.getAttribute('data-dil')||'';if(d)cnt[d]=(cnt[d]||0)+1;});
+    var ks=Object.keys(cnt).sort(function(a,b){return cnt[b]-cnt[a]||a.localeCompare(b,'tr');});
+    if(ks.length<2){var w=document.getElementById('dDilWrap');if(w)w.style.display='none';}
+    else{ks.forEach(function(k){var o=document.createElement('option');o.value=k;o.textContent=k+' ('+cnt[k]+')';dilSel.appendChild(o);});dilSel.addEventListener('change',applyFilter);}
+    applyFilter();
+  }
+  var cmp={},order=[];
+  function refreshBar(){var bar=document.getElementById('dCmpBar');if(bar)bar.classList.toggle('show',order.length>0);var b=document.getElementById('dCmpBtn');if(b)b.textContent='Karşılaştır ('+order.length+')';}
+  function buildPanel(){
+    var p=document.getElementById('dCmpPanel');if(!p)return;
+    if(!order.length){p.classList.remove('open');p.innerHTML='';return;}
+    var h='<div class="cmp-grid">';
+    order.forEach(function(idx){var c=cmp[idx].children;
+      h+='<div class="cmp-col"><h4>'+(c[0]?c[0].textContent.trim():'')+'</h4><dl>';
+      for(var i=1;i<ncol-1;i++){h+='<dt>'+ths[i]+'</dt><dd>'+(c[i]?c[i].textContent.trim():'—')+'</dd>';}
+      h+='</dl></div>';});
+    p.innerHTML=h+'</div>';p.classList.add('open');
+  }
+  tb.addEventListener('change',function(e){var cb=e.target;if(!cb.classList||!cb.classList.contains('dcmp'))return;
+    var idx=rows.indexOf(cb.closest('tr'));
+    if(cb.checked){if(order.length>=3){cb.checked=false;return;}cmp[idx]=cb.closest('tr');order.push(idx);}
+    else{delete cmp[idx];order=order.filter(function(x){return x!==idx;});}
+    refreshBar();if(document.getElementById('dCmpPanel').classList.contains('open'))buildPanel();});
+  var b1=document.getElementById('dCmpBtn');if(b1)b1.addEventListener('click',function(){var p=document.getElementById('dCmpPanel');if(p.classList.contains('open'))p.classList.remove('open');else buildPanel();});
+  var b2=document.getElementById('dCmpClear');if(b2)b2.addEventListener('click',function(){cmp={};order=[];document.getElementById('dCmpPanel').classList.remove('open');refreshBar();tb.querySelectorAll('.dcmp').forEach(function(c){c.checked=false;});});
+})();
+</script>"""
+
+
 def gen_bolum_pages(programs):
     from collections import defaultdict
     groups = defaultdict(list)
@@ -2082,7 +2148,8 @@ def gen_bolum_pages(programs):
         with_p = [r for r in recs if r.get("tp")]
         rows = ""
         for r in recs:
-            rows += ("<tr><td><strong>" + (r.get("u") or "") + "</strong></td>"
+            _dl = _bdil_py(r.get("dil"))
+            rows += (f'<tr data-dil="{_dl}"><td><strong>' + (r.get("u") or "") + "</strong></td>"
                      "<td>" + (r.get("b") or "") + "</td>"
                      "<td>" + (r.get("il") or "—") + "</td>"
                      "<td>" + TUR_FULL.get(r.get("t"), "—") + "</td>"
@@ -2091,7 +2158,8 @@ def gen_bolum_pages(programs):
                      "<td><strong>" + fmt_puan(r.get("tp")) + "</strong></td>"
                      "<td>" + fmt_puan(hist_taban(r, 2024)) + "</td>"
                      "<td>" + fmt_puan(hist_taban(r, 2023)) + "</td>"
-                     "<td>" + fmt_sira(r.get("sira")) + "</td></tr>")
+                     "<td>" + fmt_sira(r.get("sira")) + "</td>"
+                     '<td style="text-align:center"><input type="checkbox" class="dcmp" aria-label="Karşılaştır"></td></tr>')
         tabans = [r["tp"] for r in with_p]
         en_yuksek = max(tabans) if tabans else None
         en_dusuk = min(tabans) if tabans else None
@@ -2105,12 +2173,15 @@ def gen_bolum_pages(programs):
 <div class="page-title"><h1>{g} Taban Puanları 2025</h1><span class="sub">YÖK Atlas 2025 · {len(recs)} program · Puan türü: {', '.join(pts)}</span></div>
 <div class="info-box">{summary} Aşağıdaki tablo başarı sırasına göre sıralıdır (en düşük sıra = en yüksek puan).</div>
 {chart}
+{DETAIL_BAR}
 <div class="data-table-wrap">
-<table class="data-table">
-<thead><tr><th>Üniversite</th><th>Program</th><th>İl</th><th>Tür</th><th>Kont.</th><th>Doluluk</th><th>Taban 2025</th><th>Taban 2024</th><th>Taban 2023</th><th>Sıra 2025</th></tr></thead>
+<table class="data-table detail-table">
+<thead><tr><th>Üniversite</th><th>Program</th><th>İl</th><th>Tür</th><th>Kont.</th><th>Doluluk</th><th>Taban 2025</th><th>Taban 2024</th><th>Taban 2023</th><th>Sıra 2025</th><th data-nosort title="Karşılaştır">Kıyas</th></tr></thead>
 <tbody>{rows}</tbody>
 </table>
 </div>
+{DETAIL_CMP}
+{DETAIL_TOOLS_JS}
 <div class="notice"><b>Kaynak:</b> YÖK Atlas 2025 Tercih Kılavuzu (geçmiş: 2024/2023). Boş (—) değerler o yıl yerleşen/veri olmadığını gösterir.
 Doluluk = yerleşen ÷ kontenjan. Daha fazlası: <a href="/taban-puanlari.html">tüm taban puanları</a> · <a href="/tercih-robotu.html">tercih robotu</a> · <a href="/doluluk.html">doluluk analizi</a>.</div>
 """
@@ -2143,23 +2214,28 @@ def gen_universite_pages(programs):
         tur = next((TUR_FULL.get(_base.get(r.get("t"), r.get("t"))) for r in recs if r.get("t")), "")
         rows = ""
         for r in recs:
-            rows += ("<tr><td><strong>" + (r.get("b") or "") + "</strong></td>"
+            _dl = _bdil_py(r.get("dil"))
+            rows += (f'<tr data-dil="{_dl}"><td><strong>' + (r.get("b") or "") + "</strong></td>"
                      "<td>" + (r.get("g") or "—") + "</td>"
                      "<td>" + PT_LABEL.get(r.get("p"), r.get("p") or "—") + "</td>"
                      "<td>" + fmt_sira(r.get("kont")) + "</td>"
                      "<td>" + doluluk_html(r) + "</td>"
                      "<td><strong>" + fmt_puan(r.get("tp")) + "</strong></td>"
                      "<td>" + fmt_puan(hist_taban(r, 2024)) + "</td>"
-                     "<td>" + fmt_sira(r.get("sira")) + "</td></tr>")
+                     "<td>" + fmt_sira(r.get("sira")) + "</td>"
+                     '<td style="text-align:center"><input type="checkbox" class="dcmp" aria-label="Karşılaştır"></td></tr>')
         body = f"""
 <div class="crumb"><a href="/index.html">Ana Sayfa</a> / <a href="/universiteler.html">Üniversiteler</a> / {u}</div>
 <div class="page-title"><h1>{u} Taban Puanları 2025</h1><span class="sub">{il} · {tur} · {len(recs)} program · YÖK Atlas 2025</span></div>
+{DETAIL_BAR}
 <div class="data-table-wrap">
-<table class="data-table">
-<thead><tr><th>Program</th><th>Bölüm Grubu</th><th>Puan Türü</th><th>Kont.</th><th>Doluluk</th><th>Taban 2025</th><th>Taban 2024</th><th>Başarı Sırası</th></tr></thead>
+<table class="data-table detail-table">
+<thead><tr><th>Program</th><th>Bölüm Grubu</th><th>Puan Türü</th><th>Kont.</th><th>Doluluk</th><th>Taban 2025</th><th>Taban 2024</th><th>Başarı Sırası</th><th data-nosort title="Karşılaştır">Kıyas</th></tr></thead>
 <tbody>{rows}</tbody>
 </table>
 </div>
+{DETAIL_CMP}
+{DETAIL_TOOLS_JS}
 <div class="notice"><b>Kaynak:</b> YÖK Atlas 2025 (geçmiş: 2024). Doluluk = yerleşen ÷ kontenjan. Başarı sırasına göre sıralı.
 <a href="/taban-puanlari.html">Tüm taban puanları</a> · <a href="/tercih-robotu.html">tercih robotu</a> · <a href="/doluluk.html">doluluk analizi</a>.</div>
 """
