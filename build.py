@@ -1497,6 +1497,7 @@ SEARCH_JS = r"""<script nonce="__NONCE__">
     if(qs.q!=null)el('fQ').value=qs.q;
     if(qs.tur!=null)el('fTur').value=qs.tur;
     if(qs.burs==='1'&&el('fBurs'))el('fBurs').checked=true;
+    if(qs.dol==='1'&&el('fDol'))el('fDol').checked=true;
     if(qs.dil!=null&&el('fDil')){var s=el('fDil');var o=document.createElement('option');o.value=qs.dil;o.textContent=qs.dil;o.selected=true;s.appendChild(o);}
     if(qs.il!=null){var si=el('fIl');var oi=document.createElement('option');oi.value=qs.il;oi.textContent=qs.il;oi.selected=true;si.appendChild(oi);}
   }
@@ -1505,6 +1506,7 @@ SEARCH_JS = r"""<script nonce="__NONCE__">
     if(el('fIl').value)o.il=el('fIl').value; if(el('fTur').value)o.tur=el('fTur').value;
     if(el('fDil')&&el('fDil').value)o.dil=el('fDil').value;
     if(el('fBurs')&&el('fBurs').checked)o.burs='1';
+    if(el('fDol')&&el('fDol').checked)o.dol='1';
     if(SV.qsSet)SV.qsSet(o); drawChips();
   }
   function drawChips(){
@@ -1514,12 +1516,14 @@ SEARCH_JS = r"""<script nonce="__NONCE__">
     if(el('fTur').value)items.push({key:'tur',label:'Tür: '+(TUR[el('fTur').value]||el('fTur').value)});
     if(el('fDil')&&el('fDil').value)items.push({key:'dil',label:'Dil: '+el('fDil').value});
     if(el('fBurs')&&el('fBurs').checked)items.push({key:'burs',label:'Sadece burslu'});
+    if(el('fDol')&&el('fDol').checked)items.push({key:'dol',label:'Kontenjanı dolmamış'});
     SV.chips('chips',items,function(key){
       if(key==='pt')return;
-      if(key==='__all__'){el('fQ').value='';el('fIl').value='';el('fTur').value='';if(el('fDil'))el('fDil').value='';if(el('fBurs'))el('fBurs').checked=false;}
+      if(key==='__all__'){el('fQ').value='';el('fIl').value='';el('fTur').value='';if(el('fDil'))el('fDil').value='';if(el('fBurs'))el('fBurs').checked=false;if(el('fDol'))el('fDol').checked=false;}
       else if(key==='q')el('fQ').value='';else if(key==='il')el('fIl').value='';
       else if(key==='tur')el('fTur').value='';else if(key==='dil'&&el('fDil'))el('fDil').value='';
       else if(key==='burs'&&el('fBurs'))el('fBurs').checked=false;
+      else if(key==='dol'&&el('fDol'))el('fDol').checked=false;
       render(true);
     });
   }
@@ -1528,11 +1532,13 @@ SEARCH_JS = r"""<script nonce="__NONCE__">
     var q=(el('fQ').value||'').toLocaleLowerCase('tr').trim();
     var il=el('fIl').value, tur=el('fTur').value, dilSel=el('fDil')?el('fDil').value:'';
     var bursOnly=el('fBurs')&&el('fBurs').checked;
+    var dolOnly=el('fDol')&&el('fDol').checked;
     var out=data.filter(function(r){
       if(il&&r[IDX.il]!==il)return false;
       if(tur&&r[IDX.t]!==tur)return false;
       if(dilSel&&bdil(r[IDX.dil])!==dilSel)return false;
       if(bursOnly&&!/Burslu/i.test(r[IDX.bs]||''))return false;
+      if(dolOnly){var k=r[IDX.kont],y=r[IDX.yer];if(!(k!=null&&y!=null&&y<k))return false;}
       if(q){
         var hay=(r[IDX.b]||'')+' '+(r[IDX.u]||'')+' '+(r[IDX.g]||'')+' '+(r[IDX.il]||'');
         if(SV.tokMatch?!SV.tokMatch(hay,q):hay.toLocaleLowerCase('tr').indexOf(q)<0)return false;
@@ -1614,6 +1620,7 @@ SEARCH_JS = r"""<script nonce="__NONCE__">
   });
   ['fQ','fIl','fTur','fDil'].forEach(function(id){var e=el(id);if(e)e.addEventListener('input',function(){render(true);});});
   if(el('fBurs'))el('fBurs').addEventListener('change',function(){render(true);});
+  if(el('fDol'))el('fDol').addEventListener('change',function(){render(true);});
   el('ptSel').addEventListener('change',function(){load(this.value);});
   el('moreBtn').addEventListener('click',function(){render(false);});
   (function(){var ths=document.querySelectorAll('.data-table thead th');ths.forEach(function(th,i){
@@ -1651,6 +1658,7 @@ def page_taban_index():
     </select>
     <select id="fDil" class="btn btn-ghost" style="text-align:left"><option value="">Tüm öğrenim dilleri</option></select>
     <label style="display:flex;align-items:center;gap:6px;font-size:13px;color:var(--fg-muted)"><input type="checkbox" id="fBurs"> Sadece burslu</label>
+    <label style="display:flex;align-items:center;gap:6px;font-size:13px;color:var(--fg-muted)"><input type="checkbox" id="fDol"> Sadece kontenjanı dolmamışlar</label>
   </div>
   <div class="filter-chips" id="chips" style="display:none"></div>
   <div id="status" style="margin-top:12px;font-size:13px;color:var(--accent);font-weight:700">Yükleniyor…</div>
