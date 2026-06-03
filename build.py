@@ -342,7 +342,7 @@ def slugify(s):
 
 
 PT_LABEL = {"SAY": "Sayısal", "EA": "Eşit Ağırlık", "SÖZ": "Sözel", "DİL": "Dil", "TYT": "TYT (Önlisans)"}
-TUR_FULL = {"D": "Devlet", "V": "Vakıf", "K": "KKTC", "DK": "Devlet (KKTC Kampüs)", "DU": "Devlet (Ücretli)", "Y": "Diğer", "?": "—"}
+TUR_FULL = {"D": "Devlet", "V": "Vakıf", "K": "KKTC", "DK": "Devlet (KKTC Kampüs)", "DU": "Devlet (Ücretli)", "DKU": "Devlet (KKTC Uyruklu)", "Y": "Diğer", "?": "—"}
 
 
 def _short_fak(f):
@@ -401,6 +401,9 @@ def load_programs():
     # Türk devlet üniversitelerinin KKTC kampüsleri (ODTÜ/İTÜ/ASBÜ Kıbrıs) normal ücretsiz
     # devlet programı DEĞİL → ayrı tür "DK". (YÖK Atlas universiteTuru=DEVLET döner; gösterim/filtre için ayrıştırılır.)
     for r in progs:
+        if r.get("t") == "D" and "KKTC Uyruklu" in (r.get("b") or ""):
+            r["t"] = "DKU"  # Devlet üniv.'de KKTC uyruklu özel kontenjan (ad zaten "(KKTC Uyruklu)" içerir)
+            continue
         il = (r.get("il") or "").replace("İ", "i").replace("I", "i").replace("ı", "i").lower()
         if r.get("t") == "D" and il in ("kibris", "kktc"):
             r["t"] = "DK"
@@ -1401,7 +1404,7 @@ def write_veri(programs):
 SEARCH_JS = r"""<script nonce="__NONCE__">
 (function(){
   var IDX={k:0,u:1,b:2,g:3,il:4,t:5,o:6,dil:7,bs:8,kont:9,tp:10,sira:11,yer:12};
-  var TUR={D:'Devlet',V:'Vakıf',K:'KKTC',DK:'Devlet (KKTC Kampüs)',DU:'Devlet (Ücretli)',Y:'Diğer','?':'—'};
+  var TUR={D:'Devlet',V:'Vakıf',K:'KKTC',DK:'Devlet (KKTC Kampüs)',DU:'Devlet (Ücretli)',DKU:'Devlet (KKTC Uyruklu)',Y:'Diğer','?':'—'};
   var PTL={say:'Sayısal',ea:'Eşit Ağırlık',soz:'Sözel',dil:'Dil',tyt:'TYT (Önlisans)'};
   var SV=window.SV||{};
   function doluluk(r){var k=r[IDX.kont],y=r[IDX.yer];if(!k||y==null)return '—';var p=Math.round(y/k*100);var c=p>=100?'tag-lgs':(p>=70?'tag-kpss':'tag-other');return '<span class="tag '+c+'">%'+p+'</span>';}
@@ -1503,10 +1506,12 @@ SEARCH_JS = r"""<script nonce="__NONCE__">
     rows.slice(0,shown||PAGE).forEach(function(r){
       var k=rkey(r); byKey[k]=r;
       var tr=document.createElement('tr');
+      var kc=nf(r[IDX.kont]),kk=r[IDX.kont],yy=r[IDX.yer];
+      if(kk!=null&&yy!=null&&yy<kk)kc=nf(kk)+' <small style="color:var(--fg-faded)">/ '+nf(yy)+' yerleşti</small>';
       tr.innerHTML='<td><strong>'+(r[IDX.b]||'')+'</strong><br><small>'+(r[IDX.u]||'')+'</small></td>'+
         '<td>'+(r[IDX.il]||'—')+'</td>'+
         '<td><span class="tag tag-other">'+(TUR[r[IDX.t]]||'—')+'</span></td>'+
-        '<td>'+nf(r[IDX.kont])+'</td>'+
+        '<td>'+kc+'</td>'+
         '<td><strong>'+pf(r[IDX.tp])+'</strong></td>'+
         '<td>'+nf(r[IDX.sira])+'</td>'+
         '<td>'+doluluk(r)+'</td>'+
@@ -1585,7 +1590,7 @@ def page_taban_index():
     <input id="fQ" type="text" placeholder="Program / üniversite ara…" style="padding:9px 10px;border:1px solid var(--border);border-radius:8px;background:var(--bg-card-alt);color:var(--fg);font-family:inherit;font-size:13px">
     <select id="fIl" class="btn btn-ghost" style="text-align:left"><option value="">Tüm iller</option></select>
     <select id="fTur" class="btn btn-ghost" style="text-align:left">
-      <option value="">Tüm türler</option><option value="D">Devlet</option><option value="V">Vakıf</option><option value="K">KKTC</option><option value="DK">Devlet (KKTC Kampüs)</option><option value="DU">Devlet (Ücretli)</option>
+      <option value="">Tüm türler</option><option value="D">Devlet</option><option value="V">Vakıf</option><option value="K">KKTC</option><option value="DK">Devlet (KKTC Kampüs)</option><option value="DU">Devlet (Ücretli)</option><option value="DKU">Devlet (KKTC Uyruklu)</option>
     </select>
     <select id="fDil" class="btn btn-ghost" style="text-align:left"><option value="">Tüm öğrenim dilleri</option></select>
     <label style="display:flex;align-items:center;gap:6px;font-size:13px;color:var(--fg-muted)"><input type="checkbox" id="fBurs"> Sadece burslu</label>
@@ -1596,7 +1601,7 @@ def page_taban_index():
 
 <div class="data-table-wrap">
 <table class="data-table" data-live="1">
-<thead><tr><th>Program / Üniversite</th><th>İl</th><th>Tür</th><th>Kont.</th><th>Taban Puan</th><th>Başarı Sırası</th><th>Doluluk</th><th data-nosort title="Karşılaştırmak için seç">Kıyas</th></tr></thead>
+<thead><tr><th>Program / Üniversite</th><th>İl</th><th>Tür</th><th>Kont. / Yerleşen</th><th>Taban Puan</th><th>Başarı Sırası</th><th>Doluluk</th><th data-nosort title="Karşılaştırmak için seç">Kıyas</th></tr></thead>
 <tbody id="tbody"></tbody>
 </table>
 </div>
@@ -1623,7 +1628,7 @@ o programa <b>en son yerleşen</b> adayın verisidir. Yerleşen olmayan programl
 ROBOT_JS = r"""<script nonce="__NONCE__">
 (function(){
   var IDX={k:0,u:1,b:2,g:3,il:4,t:5,o:6,dil:7,bs:8,kont:9,tp:10,sira:11};
-  var TUR={D:'Devlet',V:'Vakıf',K:'KKTC',DK:'Devlet (KKTC Kampüs)',DU:'Devlet (Ücretli)',Y:'Diğer','?':'—'};
+  var TUR={D:'Devlet',V:'Vakıf',K:'KKTC',DK:'Devlet (KKTC Kampüs)',DU:'Devlet (Ücretli)',DKU:'Devlet (KKTC Uyruklu)',Y:'Diğer','?':'—'};
   var PTL={say:'Sayısal',ea:'Eşit Ağırlık',soz:'Sözel',dil:'Dil',tyt:'TYT (Önlisans)'};
   var SV=window.SV||{};
   var data=[],cache={},byId={};
@@ -1749,7 +1754,7 @@ def page_tercih_robotu():
     <div><label style="font-size:12px;color:var(--fg-faded);font-weight:700">İl (ops.)</label>
       <select id="rIl" class="btn btn-ghost" style="text-align:left;width:100%;margin-top:4px"><option value="">Tüm iller</option></select></div>
     <div><label style="font-size:12px;color:var(--fg-faded);font-weight:700">Tür (ops.)</label>
-      <select id="rTur" class="btn btn-ghost" style="text-align:left;width:100%;margin-top:4px"><option value="">Hepsi</option><option value="D">Devlet</option><option value="V">Vakıf</option><option value="K">KKTC</option><option value="DK">Devlet (KKTC Kampüs)</option><option value="DU">Devlet (Ücretli)</option></select></div>
+      <select id="rTur" class="btn btn-ghost" style="text-align:left;width:100%;margin-top:4px"><option value="">Hepsi</option><option value="D">Devlet</option><option value="V">Vakıf</option><option value="K">KKTC</option><option value="DK">Devlet (KKTC Kampüs)</option><option value="DU">Devlet (Ücretli)</option><option value="DKU">Devlet (KKTC Uyruklu)</option></select></div>
     <div><label style="font-size:12px;color:var(--fg-faded);font-weight:700">Öğrenim Dili (ops.)</label>
       <select id="rDil" class="btn btn-ghost" style="text-align:left;width:100%;margin-top:4px"><option value="">Tüm diller</option></select></div>
     <button type="button" class="btn btn-primary" id="rBtn">Programları Göster</button>
@@ -2108,7 +2113,9 @@ def gen_universite_pages(programs):
     for s, u in u_by_slug.items():
         recs = sorted(unis[u], key=lambda r: (r.get("sira") is None, r.get("sira") or 0))
         il = next((r.get("il") for r in recs if r.get("il")), "")
-        tur = next((TUR_FULL.get(r.get("t")) for r in recs if r.get("t")), "")
+        # Üniversite kartı türü: program-düzeyi özel kontenjanları (DKU/DU) temel devlet türüne indir
+        _base = {"DKU": "D", "DU": "D"}
+        tur = next((TUR_FULL.get(_base.get(r.get("t"), r.get("t"))) for r in recs if r.get("t")), "")
         rows = ""
         for r in recs:
             rows += ("<tr><td><strong>" + (r.get("b") or "") + "</strong></td>"
@@ -2993,7 +3000,7 @@ def page_doluluk(programs):
   <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px">
     <input id="bq" type="text" placeholder="Program / üniversite ara…" style="padding:9px 10px;border:1px solid var(--border);border-radius:8px;background:var(--bg-card-alt);color:var(--fg);font-family:inherit;font-size:13px">
     <select id="bil" class="btn btn-ghost" style="text-align:left"><option value="">Tüm iller</option></select>
-    <select id="btur" class="btn btn-ghost" style="text-align:left"><option value="">Tüm türler</option><option value="D">Devlet</option><option value="V">Özel (Vakıf)</option><option value="K">KKTC</option><option value="DK">Devlet (KKTC Kampüs)</option><option value="DU">Devlet (Ücretli)</option></select>
+    <select id="btur" class="btn btn-ghost" style="text-align:left"><option value="">Tüm türler</option><option value="D">Devlet</option><option value="V">Özel (Vakıf)</option><option value="K">KKTC</option><option value="DK">Devlet (KKTC Kampüs)</option><option value="DU">Devlet (Ücretli)</option><option value="DKU">Devlet (KKTC Uyruklu)</option></select>
     <select id="bduz" class="btn btn-ghost" style="text-align:left"><option value="">Tüm düzeyler</option><option value="L">Lisans</option><option value="O">Önlisans</option></select>
   </div>
   <div id="bstatus" style="margin-top:12px;font-size:13px;color:var(--accent);font-weight:700">Yükleniyor…</div>
@@ -3008,7 +3015,7 @@ def page_doluluk(programs):
 </div></div>
 <script nonce="__NONCE__">
 (function(){{
-  var TUR={{D:'Devlet',V:'Özel (Vakıf)',K:'KKTC',DK:'Devlet (KKTC Kampüs)',DU:'Devlet (Ücretli)','?':'—'}},DUZ={{L:'Lisans',O:'Önlisans'}};
+  var TUR={{D:'Devlet',V:'Özel (Vakıf)',K:'KKTC',DK:'Devlet (KKTC Kampüs)',DU:'Devlet (Ücretli)',DKU:'Devlet (KKTC Uyruklu)','?':'—'}},DUZ={{L:'Lisans',O:'Önlisans'}};
   var data=[],page=0,PAGE=20,sortI=null,sortD=1;
   var SCOLS=[[1,0],[2,0],[3,0],[4,0],[5,1],[6,1],['bos',1],[7,1]];
   function el(i){{return document.getElementById(i);}}

@@ -235,7 +235,7 @@
     <input id="fQ" type="text" placeholder="Program / üniversite ara…" style="padding:9px 10px;border:1px solid var(--border);border-radius:8px;background:var(--bg-card-alt);color:var(--fg);font-family:inherit;font-size:13px">
     <select id="fIl" class="btn btn-ghost" style="text-align:left"><option value="">Tüm iller</option></select>
     <select id="fTur" class="btn btn-ghost" style="text-align:left">
-      <option value="">Tüm türler</option><option value="D">Devlet</option><option value="V">Vakıf</option><option value="K">KKTC</option><option value="DK">Devlet (KKTC Kampüs)</option><option value="DU">Devlet (Ücretli)</option>
+      <option value="">Tüm türler</option><option value="D">Devlet</option><option value="V">Vakıf</option><option value="K">KKTC</option><option value="DK">Devlet (KKTC Kampüs)</option><option value="DU">Devlet (Ücretli)</option><option value="DKU">Devlet (KKTC Uyruklu)</option>
     </select>
     <select id="fDil" class="btn btn-ghost" style="text-align:left"><option value="">Tüm öğrenim dilleri</option></select>
     <label style="display:flex;align-items:center;gap:6px;font-size:13px;color:var(--fg-muted)"><input type="checkbox" id="fBurs"> Sadece burslu</label>
@@ -246,7 +246,7 @@
 
 <div class="data-table-wrap">
 <table class="data-table" data-live="1">
-<thead><tr><th>Program / Üniversite</th><th>İl</th><th>Tür</th><th>Kont.</th><th>Taban Puan</th><th>Başarı Sırası</th><th>Doluluk</th><th data-nosort title="Karşılaştırmak için seç">Kıyas</th></tr></thead>
+<thead><tr><th>Program / Üniversite</th><th>İl</th><th>Tür</th><th>Kont. / Yerleşen</th><th>Taban Puan</th><th>Başarı Sırası</th><th>Doluluk</th><th data-nosort title="Karşılaştırmak için seç">Kıyas</th></tr></thead>
 <tbody id="tbody"></tbody>
 </table>
 </div>
@@ -266,7 +266,7 @@ o programa <b>en son yerleşen</b> adayın verisidir. Yerleşen olmayan programl
 <script nonce="__NONCE__">
 (function(){
   var IDX={k:0,u:1,b:2,g:3,il:4,t:5,o:6,dil:7,bs:8,kont:9,tp:10,sira:11,yer:12};
-  var TUR={D:'Devlet',V:'Vakıf',K:'KKTC',DK:'Devlet (KKTC Kampüs)',DU:'Devlet (Ücretli)',Y:'Diğer','?':'—'};
+  var TUR={D:'Devlet',V:'Vakıf',K:'KKTC',DK:'Devlet (KKTC Kampüs)',DU:'Devlet (Ücretli)',DKU:'Devlet (KKTC Uyruklu)',Y:'Diğer','?':'—'};
   var PTL={say:'Sayısal',ea:'Eşit Ağırlık',soz:'Sözel',dil:'Dil',tyt:'TYT (Önlisans)'};
   var SV=window.SV||{};
   function doluluk(r){var k=r[IDX.kont],y=r[IDX.yer];if(!k||y==null)return '—';var p=Math.round(y/k*100);var c=p>=100?'tag-lgs':(p>=70?'tag-kpss':'tag-other');return '<span class="tag '+c+'">%'+p+'</span>';}
@@ -368,10 +368,12 @@ o programa <b>en son yerleşen</b> adayın verisidir. Yerleşen olmayan programl
     rows.slice(0,shown||PAGE).forEach(function(r){
       var k=rkey(r); byKey[k]=r;
       var tr=document.createElement('tr');
+      var kc=nf(r[IDX.kont]),kk=r[IDX.kont],yy=r[IDX.yer];
+      if(kk!=null&&yy!=null&&yy<kk)kc=nf(kk)+' <small style="color:var(--fg-faded)">/ '+nf(yy)+' yerleşti</small>';
       tr.innerHTML='<td><strong>'+(r[IDX.b]||'')+'</strong><br><small>'+(r[IDX.u]||'')+'</small></td>'+
         '<td>'+(r[IDX.il]||'—')+'</td>'+
         '<td><span class="tag tag-other">'+(TUR[r[IDX.t]]||'—')+'</span></td>'+
-        '<td>'+nf(r[IDX.kont])+'</td>'+
+        '<td>'+kc+'</td>'+
         '<td><strong>'+pf(r[IDX.tp])+'</strong></td>'+
         '<td>'+nf(r[IDX.sira])+'</td>'+
         '<td>'+doluluk(r)+'</td>'+
