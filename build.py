@@ -2467,6 +2467,36 @@ def gen_bolum_pages(programs):
         pts = sorted(set(r.get("p") for r in recs if r.get("p")))
         summary = (f"<strong>{g}</strong> bölümü 2025'te <strong>{len(recs)}</strong> programda açıldı"
                    + (f", taban puanları <strong>{fmt_puan(en_dusuk)}</strong> – <strong>{fmt_puan(en_yuksek)}</strong> aralığında." if tabans else "."))
+        # Veri-dayalı FAQ (uydurma yok — yalnızca YÖK Atlas 2025 verisinden türetilir)
+        from collections import Counter as _C
+        wp = sorted(with_p, key=lambda r: -(r.get("tp") or 0))
+        top = wp[0] if wp else None
+        ilc = _C(r.get("il") for r in recs if r.get("il"))
+        top_iller = ", ".join(i for i, _ in ilc.most_common(3))
+        dev = sum(1 for r in recs if r.get("t") in ("D", "DK", "DU", "DKU"))
+        vak = sum(1 for r in recs if r.get("t") == "V")
+        pts_tr = ", ".join(pts)
+        faqs = []
+        if tabans:
+            faqs.append((f"{g} taban puanı 2025'te kaç oldu?",
+                f"2025 yılında {g} programları en düşük {fmt_puan(en_dusuk)}, en yüksek {fmt_puan(en_yuksek)} taban puanıyla öğrenci aldı."
+                + (f" En yüksek tabanı {top.get('u')} ({fmt_puan(top.get('tp'))}) yaptı." if top else "")))
+        faqs.append((f"{g} hangi puan türüyle tercih edilir?",
+            f"{g} {pts_tr} puan türüyle tercih edilir ve 2025'te toplam {len(recs)} programda açıldı"
+            + (f" ({dev} devlet, {vak} vakıf üniversitesi)." if (dev or vak) else ".")))
+        if top_iller:
+            faqs.append((f"{g} en çok hangi illerde okutuluyor?",
+                f"{g} bölümü en çok {top_iller} illerinde bulunuyor."))
+        sures = _C(r.get("sure") for r in recs if r.get("sure"))
+        if sures:
+            sy = sures.most_common(1)[0][0]
+            faqs.append((f"{g} kaç yıllık bir bölümdür?",
+                f"{g} programları genel olarak {sy} yıllık lisans eğitimidir (bazı üniversitelerde süre değişebilir)."))
+        faq_html = ('<div class="section" style="margin-top:24px"><h2>' + g + ' — Sık Sorulan Sorular</h2><div class="prose" style="max-width:none">'
+                    + "".join(f"<h3>{q}</h3><p>{a}</p>" for q, a in faqs) + "</div></div>")
+        extra_ld_b = [breadcrumb_ld([("Ana Sayfa", "index.html"), ("Bölümler", "bolumler.html"), (g, None)]),
+                      {"@type": "FAQPage", "mainEntity": [
+                          {"@type": "Question", "name": q, "acceptedAnswer": {"@type": "Answer", "text": a}} for q, a in faqs]}]
         chart = trend_chart(recs, "trend_" + s.replace("-", "_")[:40])
         head = PLOTLY_CDN if chart else ""
         body = f"""
@@ -2485,10 +2515,11 @@ def gen_bolum_pages(programs):
 {DETAIL_TOOLS_JS}
 <div class="notice"><b>Kaynak:</b> YÖK Atlas 2025 Tercih Kılavuzu (geçmiş: 2024/2023). Boş (—) değerler o yıl yerleşen/veri olmadığını gösterir.
 Doluluk = yerleşen ÷ kontenjan. Daha fazlası: <a href="/taban-puanlari.html">tüm taban puanları</a> · <a href="/tercih-robotu.html">tercih robotu</a> · <a href="/doluluk.html">doluluk analizi</a>.</div>
+{faq_html}
 """
         html = base(f"bolum/{s}.html", f"{g} Taban Puanları 2025 ve Başarı Sıralaması | SınavVeri",
                     f"{g} bölümü 2025 taban puanları, son 4 yıl trendi, doluluk oranları ve başarı sıralaması. {len(recs)} üniversite programı YÖK Atlas verisiyle.",
-                    body, extra_head=head)
+                    body, extra_head=head, extra_ld=extra_ld_b)
         write(f"bolum/{s}.html", html)
     return g_by_slug
 
