@@ -623,6 +623,8 @@ def trend_chart(group_recs, divid):
 
 # ───────────────────────── TAKVİM VERİSİ ─────────────────────────
 CAL = json.loads((ROOT / "data" / "takvim-2026.json").read_text(encoding="utf-8"))
+_demo_p = ROOT / "data" / "demografi.json"
+DEMOGRAFI = json.loads(_demo_p.read_text(encoding="utf-8")) if _demo_p.exists() else {}
 TUR_LABEL = {"yks": ("YKS", "tag-yks"), "lgs": ("LGS", "tag-lgs"), "kpss": ("KPSS", "tag-kpss"), "other": ("Diğer", "tag-other")}
 AY_TR = ["", "Ocak", "Şubat", "Mart", "Nisan", "Mayıs", "Haziran", "Temmuz", "Ağustos", "Eylül", "Ekim", "Kasım", "Aralık"]
 
@@ -2428,13 +2430,18 @@ def _pdet_btn(r):
     akr = r.get("akr") or ""
     sure = r.get("sure")
     ucret = r.get("ucret")
-    if not (kosul or any(kadro) or akr or sure):
+    demo = DEMOGRAFI.get(str(r.get("k"))) if r.get("k") is not None else None
+    if not (kosul or any(kadro) or akr or sure or demo):
         return ""
     kd = ",".join(str(x if x else 0) for x in (kadro + [0, 0, 0, 0, 0])[:5])
     attrs = (f' data-kosul="{kosul}" data-kadro="{kd}"'
              + (f' data-akr="{akr}"' if akr else "")
              + (f' data-sure="{sure}"' if sure else "")
              + (f' data-ucret="{ucret}"' if ucret else ""))
+    if demo:
+        # y|kız|erkek|liseli|mezun|üni-iken|üni-mezunu  (yerleşen profili, YÖK Atlas arşivi)
+        dv = "|".join(str(demo.get(x, 0)) for x in ("y", "k", "e", "ls", "mz", "ub", "um"))
+        attrs += f' data-demo="{dv}"'
     return f'<button type="button" class="pdet" title="Program detayı"{attrs}>ℹ️</button>'
 
 
@@ -2563,6 +2570,28 @@ DETAIL_TOOLS_JS = r"""<script nonce="__NONCE__">
       var ks=(btn.getAttribute('data-kosul')||'').split(',').filter(Boolean);
       if(ks.length&&KOSUL){ var li=ks.map(function(c){return KOSUL[c]?'<li>'+esc(KOSUL[c])+'</li>':'';}).filter(Boolean).join('');
         if(li)parts.push('<div style="margin-top:6px"><b>Özel koşullar:</b><ul style="margin:4px 0 0 18px">'+li+'</ul></div>'); }
+      var dm=(btn.getAttribute('data-demo')||'').split('|');
+      if(dm.length===7){
+        var dy=dm[0],kz=+dm[1]||0,er=+dm[2]||0,ls=+dm[3]||0,mz=+dm[4]||0,ub=+dm[5]||0,um=+dm[6]||0;
+        var ct=kz+er;
+        if(ct>0){
+          var kzp=Math.round(100*kz/ct),erp=100-kzp;
+          parts.push('<div style="margin-top:8px"><b>Yerleşen profili ('+esc(dy)+'):</b>'
+            +'<div style="margin:5px 0 2px;font-size:12px">Cinsiyet — Kız %'+kzp+' · Erkek %'+erp+'</div>'
+            +'<div style="display:flex;height:14px;border-radius:7px;overflow:hidden;font-size:9px;line-height:14px;color:#fff">'
+            +'<div style="width:'+kzp+'%;background:#d6336c;text-align:center">'+kz+'</div>'
+            +'<div style="width:'+erp+'%;background:#1c7ed6;text-align:center">'+er+'</div></div>');
+          var ot=ls+mz+ub+um;
+          if(ot>0){
+            var seg=[['Lise son sınıf',ls,'#2f9e44'],['Önceki yıl mezunu',mz,'#f08c00'],['Üniv. öğrencisi iken',ub,'#7048e8'],['Üniv. mezunu',um,'#e8590c']].filter(function(s){return s[1]>0;});
+            parts.push('<div style="margin-top:6px;font-size:12px">Öğrenim durumu:</div>'
+              +'<div style="display:flex;height:14px;border-radius:7px;overflow:hidden;font-size:9px;line-height:14px;color:#fff">'
+              +seg.map(function(s){return '<div style="width:'+Math.round(100*s[1]/ot)+'%;background:'+s[2]+'" title="'+s[0]+': '+s[1]+'"></div>';}).join('')+'</div>'
+              +'<div style="font-size:11px;color:var(--fg-faded);margin-top:3px">'+seg.map(function(s){return esc(s[0])+' %'+Math.round(100*s[1]/ot);}).join(' · ')+'</div>');
+          }
+          parts.push('<div style="font-size:10px;color:var(--fg-faded);margin-top:4px">Kaynak: YÖK Atlas (yerleşen istatistikleri arşivi)</div></div>');
+        }
+      }
       if(!parts.length)parts.push('<div style="color:var(--fg-faded)">Ek detay bulunmuyor.</div>');
       var row=document.createElement('tr'); row.className='pdet-row';
       row.innerHTML='<td colspan="'+ncol+'"><div class="pdet-box">'+parts.join('')+'</div></td>';

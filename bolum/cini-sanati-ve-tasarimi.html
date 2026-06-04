@@ -355,7 +355,7 @@
 <div class="data-table-wrap">
 <table class="data-table detail-table" data-live="1">
 <thead><tr><th>Üniversite</th><th>Program</th><th>İl</th><th>Tür</th><th>Kont.</th><th>Doluluk</th><th>Taban 2025</th><th>Taban 2024</th><th>Taban 2023</th><th>Sıra 2025</th><th data-nosort title="Karşılaştır">Kıyas</th></tr></thead>
-<tbody><tr data-il="Bursa" data-tur="Devlet" data-dil="Türkçe" data-uni="BURSA ULUDAĞ ÜNİVERSİTESİ"><td><strong>BURSA ULUDAĞ ÜNİVERSİTESİ</strong> <button type="button" class="pdet" title="Program detayı" data-kosul="" data-kadro="0,0,0,0,4" data-sure="2">ℹ️</button></td><td>Çini Sanatı ve Tasarımı</td><td>Bursa</td><td>Devlet</td><td>25</td><td><span class="tag tag-lgs">%104</span></td><td><strong>267,24</strong></td><td>278,21</td><td>235,99</td><td>1.290.918</td><td style="text-align:center"><input type="checkbox" class="dcmp" aria-label="Karşılaştır"></td></tr><tr data-il="Kütahya" data-tur="Devlet" data-dil="Türkçe" data-uni="KÜTAHYA DUMLUPINAR ÜNİVERSİTESİ"><td><strong>KÜTAHYA DUMLUPINAR ÜNİVERSİTESİ</strong> <button type="button" class="pdet" title="Program detayı" data-kosul="" data-kadro="0,1,0,0,2" data-sure="2">ℹ️</button></td><td>Çini Sanatı ve Tasarımı</td><td>Kütahya</td><td>Devlet</td><td>20</td><td><span class="tag tag-lgs">%105</span></td><td><strong>248,67</strong></td><td>244,30</td><td>232,74</td><td>1.562.345</td><td style="text-align:center"><input type="checkbox" class="dcmp" aria-label="Karşılaştır"></td></tr></tbody>
+<tbody><tr data-il="Bursa" data-tur="Devlet" data-dil="Türkçe" data-uni="BURSA ULUDAĞ ÜNİVERSİTESİ"><td><strong>BURSA ULUDAĞ ÜNİVERSİTESİ</strong> <button type="button" class="pdet" title="Program detayı" data-kosul="" data-kadro="0,0,0,0,4" data-sure="2" data-demo="2023|24|3|2|8|2|11">ℹ️</button></td><td>Çini Sanatı ve Tasarımı</td><td>Bursa</td><td>Devlet</td><td>25</td><td><span class="tag tag-lgs">%104</span></td><td><strong>267,24</strong></td><td>278,21</td><td>235,99</td><td>1.290.918</td><td style="text-align:center"><input type="checkbox" class="dcmp" aria-label="Karşılaştır"></td></tr><tr data-il="Kütahya" data-tur="Devlet" data-dil="Türkçe" data-uni="KÜTAHYA DUMLUPINAR ÜNİVERSİTESİ"><td><strong>KÜTAHYA DUMLUPINAR ÜNİVERSİTESİ</strong> <button type="button" class="pdet" title="Program detayı" data-kosul="" data-kadro="0,1,0,0,2" data-sure="2" data-demo="2023|16|6|2|6|3|11">ℹ️</button></td><td>Çini Sanatı ve Tasarımı</td><td>Kütahya</td><td>Devlet</td><td>20</td><td><span class="tag tag-lgs">%105</span></td><td><strong>248,67</strong></td><td>244,30</td><td>232,74</td><td>1.562.345</td><td style="text-align:center"><input type="checkbox" class="dcmp" aria-label="Karşılaştır"></td></tr></tbody>
 </table>
 </div>
 
@@ -467,6 +467,28 @@
       var ks=(btn.getAttribute('data-kosul')||'').split(',').filter(Boolean);
       if(ks.length&&KOSUL){ var li=ks.map(function(c){return KOSUL[c]?'<li>'+esc(KOSUL[c])+'</li>':'';}).filter(Boolean).join('');
         if(li)parts.push('<div style="margin-top:6px"><b>Özel koşullar:</b><ul style="margin:4px 0 0 18px">'+li+'</ul></div>'); }
+      var dm=(btn.getAttribute('data-demo')||'').split('|');
+      if(dm.length===7){
+        var dy=dm[0],kz=+dm[1]||0,er=+dm[2]||0,ls=+dm[3]||0,mz=+dm[4]||0,ub=+dm[5]||0,um=+dm[6]||0;
+        var ct=kz+er;
+        if(ct>0){
+          var kzp=Math.round(100*kz/ct),erp=100-kzp;
+          parts.push('<div style="margin-top:8px"><b>Yerleşen profili ('+esc(dy)+'):</b>'
+            +'<div style="margin:5px 0 2px;font-size:12px">Cinsiyet — Kız %'+kzp+' · Erkek %'+erp+'</div>'
+            +'<div style="display:flex;height:14px;border-radius:7px;overflow:hidden;font-size:9px;line-height:14px;color:#fff">'
+            +'<div style="width:'+kzp+'%;background:#d6336c;text-align:center">'+kz+'</div>'
+            +'<div style="width:'+erp+'%;background:#1c7ed6;text-align:center">'+er+'</div></div>');
+          var ot=ls+mz+ub+um;
+          if(ot>0){
+            var seg=[['Lise son sınıf',ls,'#2f9e44'],['Önceki yıl mezunu',mz,'#f08c00'],['Üniv. öğrencisi iken',ub,'#7048e8'],['Üniv. mezunu',um,'#e8590c']].filter(function(s){return s[1]>0;});
+            parts.push('<div style="margin-top:6px;font-size:12px">Öğrenim durumu:</div>'
+              +'<div style="display:flex;height:14px;border-radius:7px;overflow:hidden;font-size:9px;line-height:14px;color:#fff">'
+              +seg.map(function(s){return '<div style="width:'+Math.round(100*s[1]/ot)+'%;background:'+s[2]+'" title="'+s[0]+': '+s[1]+'"></div>';}).join('')+'</div>'
+              +'<div style="font-size:11px;color:var(--fg-faded);margin-top:3px">'+seg.map(function(s){return esc(s[0])+' %'+Math.round(100*s[1]/ot);}).join(' · ')+'</div>');
+          }
+          parts.push('<div style="font-size:10px;color:var(--fg-faded);margin-top:4px">Kaynak: YÖK Atlas (yerleşen istatistikleri arşivi)</div></div>');
+        }
+      }
       if(!parts.length)parts.push('<div style="color:var(--fg-faded)">Ek detay bulunmuyor.</div>');
       var row=document.createElement('tr'); row.className='pdet-row';
       row.innerHTML='<td colspan="'+ncol+'"><div class="pdet-box">'+parts.join('')+'</div></td>';
