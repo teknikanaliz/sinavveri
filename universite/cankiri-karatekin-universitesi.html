@@ -152,7 +152,8 @@
       has: function(id){ return read().some(function(x){return x.id===id;}); },
       toggle: function(it){ var a=read(); var i=-1,k; for(k=0;k<a.length;k++){ if(a[k].id===it.id){i=k;break;} } if(i>=0){a.splice(i,1);} else {a.push(it);} write(a); return i<0; },
       remove: function(id){ write(read().filter(function(x){return x.id!==id;})); },
-      clear: function(){ write([]); }
+      clear: function(){ write([]); },
+      move: function(id,dir){ var a=read(); var i=-1,k; for(k=0;k<a.length;k++){if(a[k].id===id){i=k;break;}} if(i<0)return; var j=i+dir; if(j<0||j>=a.length)return; var t=a[i];a[i]=a[j];a[j]=t; write(a); }
     };
   };
   // Tercih Listem UI controller — bar/panel + ☆ stars
@@ -160,13 +161,25 @@
     var store=SV.fav(opts.ns);
     var bar=document.getElementById(opts.barId), panel=document.getElementById(opts.panelId), btn=document.getElementById(opts.btnId);
     function esc(s){ return (''+(s==null?'':s)).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+    function asText(arr){ return arr.map(function(x,i){return (i+1)+'. '+x.name+(x.sub?' — '+x.sub:'')+(x.meta?' ('+x.meta+')':'');}).join('\n'); }
     function renderPanel(arr){
       if(!panel)return;
       var h='<h3>⭐ Tercih Listem ('+arr.length+')</h3>';
       if(!arr.length){ h+='<p style="font-size:13px;color:var(--fg-faded);margin:6px 0 0">Henüz tercih eklemediniz. Tablodaki ☆ simgesiyle ekleyin; listeniz bu tarayıcıda saklanır.</p>'; }
       else{
-        h+='<div class="fp-actions"><button type="button" class="btn btn-ghost" id="'+opts.panelId+'C">Listeyi Kopyala</button><button type="button" class="fchip-clear" id="'+opts.panelId+'X">Listeyi Temizle</button></div><ul class="fav-list">';
-        arr.forEach(function(it){ h+='<li><span><b>'+esc(it.name)+'</b>'+(it.sub?' <small>'+esc(it.sub)+'</small>':'')+(it.meta?' — '+esc(it.meta):'')+'</span><button type="button" class="fl-x" aria-label="Çıkar" data-rm="'+esc(it.id)+'">×</button></li>'; });
+        h+='<p style="font-size:12px;color:var(--fg-faded);margin:0 0 8px">Sıralamak için ↑↓ kullanın — tercih sıranız bu düzendir.</p>';
+        h+='<div class="fp-actions">'
+          +'<button type="button" class="btn btn-ghost" id="'+opts.panelId+'C">📋 Kopyala</button>'
+          +'<button type="button" class="btn btn-ghost" id="'+opts.panelId+'P">🖨️ Yazdır / PDF</button>'
+          +'<button type="button" class="btn btn-ghost" id="'+opts.panelId+'S">🔗 Paylaş</button>'
+          +'<button type="button" class="fchip-clear" id="'+opts.panelId+'X">Temizle</button></div>';
+        h+='<ul class="fav-list">';
+        arr.forEach(function(it,i){
+          h+='<li><span style="display:flex;align-items:baseline;gap:8px"><span class="fl-n">'+(i+1)+'.</span><span><b>'+esc(it.name)+'</b>'+(it.sub?' <small>'+esc(it.sub)+'</small>':'')+(it.meta?' — '+esc(it.meta):'')+'</span></span>'
+            +'<span class="fl-ops"><button type="button" class="fl-mv" data-mv="'+esc(it.id)+'" data-dir="-1" aria-label="Yukarı"'+(i===0?' disabled':'')+'>↑</button>'
+            +'<button type="button" class="fl-mv" data-mv="'+esc(it.id)+'" data-dir="1" aria-label="Aşağı"'+(i===arr.length-1?' disabled':'')+'>↓</button>'
+            +'<button type="button" class="fl-x" aria-label="Çıkar" data-rm="'+esc(it.id)+'">×</button></span></li>';
+        });
         h+='</ul>';
       }
       panel.innerHTML=h;
@@ -178,18 +191,52 @@
       if(panel&&panel.classList.contains('open'))renderPanel(arr);
       document.querySelectorAll('.fav-star[data-fid]').forEach(function(s){ var on=store.has(s.getAttribute('data-fid')); s.classList.toggle('on',on); s.textContent=on?'★':'☆'; });
     }
+    function printList(){
+      var arr=store.list(); if(!arr.length)return;
+      var rows=arr.map(function(x,i){return '<tr><td>'+(i+1)+'</td><td><b>'+esc(x.name)+'</b>'+(x.sub?'<br><small>'+esc(x.sub)+'</small>':'')+'</td><td>'+esc(x.meta||'')+'</td></tr>';}).join('');
+      var w=window.open('','_blank'); if(!w)return;
+      w.document.write('<!doctype html><html lang=tr><head><meta charset=utf-8><title>Tercih Listem — SınavVeri.com</title><style>body{font-family:Arial,sans-serif;padding:24px;color:#15192b}h1{font-size:20px;color:#b45309}table{width:100%;border-collapse:collapse;margin-top:12px;font-size:13px}td,th{border:1px solid #ccc;padding:7px 10px;text-align:left}th{background:#f0f3fa}td:first-child{width:36px;text-align:center;font-weight:700}small{color:#666}.f{margin-top:16px;font-size:11px;color:#888}</style></head><body><h1>⭐ Tercih Listem</h1><table><thead><tr><th>#</th><th>Program / Üniversite</th><th>Bilgi</th></tr></thead><tbody>'+rows+'</tbody></table><div class=f>SınavVeri.com · '+arr.length+' tercih · Bu liste resmî tercih belgesi değildir; kesin tercih ÖSYM AİS üzerinden yapılır.</div></body></html>');
+      w.document.close(); setTimeout(function(){try{w.print();}catch(e){}},300);
+    }
+    function shareLink(t){
+      var arr=store.list(); if(!arr.length)return;
+      try{ var slim=arr.map(function(x){return {n:x.name,s:x.sub||'',m:x.meta||''};});
+        var enc=btoa(unescape(encodeURIComponent(JSON.stringify(slim))));
+        var url=location.origin+location.pathname+'?l='+enc;
+        SV.copy(url,t);
+      }catch(e){}
+    }
     if(btn)btn.addEventListener('click',function(){ var op=panel.classList.toggle('open'); if(op)renderPanel(store.list()); });
     if(panel)panel.addEventListener('click',function(e){
       var t=e.target;
       if(t.getAttribute&&t.getAttribute('data-rm')!=null){ store.remove(t.getAttribute('data-rm')); refresh(); }
-      else if(t.id===opts.panelId+'X'){ store.clear(); refresh(); }
-      else if(t.id===opts.panelId+'C'){ var txt=store.list().map(function(x,i){return (i+1)+'. '+x.name+(x.sub?' — '+x.sub:'')+(x.meta?' ('+x.meta+')':'');}).join('\n'); SV.copy('Tercih Listem — SınavVeri.com\n\n'+txt, t); }
+      else if(t.getAttribute&&t.getAttribute('data-mv')!=null){ store.move(t.getAttribute('data-mv'),parseInt(t.getAttribute('data-dir'),10)); refresh(); }
+      else if(t.id===opts.panelId+'X'){ if(confirm('Tercih listeniz silinsin mi?')){store.clear(); refresh();} }
+      else if(t.id===opts.panelId+'C'){ SV.copy('Tercih Listem — SınavVeri.com\n\n'+asText(store.list()), t); }
+      else if(t.id===opts.panelId+'P'){ printList(); }
+      else if(t.id===opts.panelId+'S'){ shareLink(t); }
     });
+    // Paylaşılan liste (?l=) → kendi listene ekleme önerisi
+    (function(){
+      try{ var qs=SV.qsGet?SV.qsGet():{}; if(!qs.l)return;
+        var slim=JSON.parse(decodeURIComponent(escape(atob(qs.l))));
+        if(!slim||!slim.length||!bar)return;
+        var box=document.createElement('div'); box.className='fav-panel open'; box.style.marginBottom='10px';
+        box.innerHTML='<h3>🔗 Paylaşılan Tercih Listesi ('+slim.length+')</h3><ul class="fav-list">'+
+          slim.map(function(x,i){return '<li><span>'+(i+1)+'. <b>'+esc(x.n)+'</b>'+(x.s?' <small>'+esc(x.s)+'</small>':'')+'</span></li>';}).join('')+
+          '</ul><div class="fp-actions"><button type="button" class="btn btn-primary" id="'+opts.panelId+'imp">Bu listeyi listeme ekle</button></div>';
+        bar.parentNode.insertBefore(box,bar);
+        box.querySelector('#'+opts.panelId+'imp').addEventListener('click',function(){
+          slim.forEach(function(x){ var id=x.n+'|'+x.s; if(!store.has(id))store.toggle({id:id,name:x.n,sub:x.s,meta:x.m}); });
+          refresh(); box.parentNode.removeChild(box);
+        });
+      }catch(e){}
+    })();
     return { store:store, toggle:function(it){ store.toggle(it); refresh(); }, has:function(id){return store.has(id);}, refresh:refresh };
   };
 })();
 </script>
-<link rel="stylesheet" href="/assets/style.css?v=20260604c">
+<link rel="stylesheet" href="/assets/style.css?v=20260604d">
 <link rel="manifest" href="/manifest.json">
 
 </head>

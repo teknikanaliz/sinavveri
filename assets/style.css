@@ -285,6 +285,11 @@ footer a[href*="trveri.com"]:hover { color: var(--accent-light) !important; }
 .fav-list li .fl-x { background: none; border: none; color: var(--fg-faded); cursor: pointer; font-size: 16px; font-family: inherit; }
 .fav-list li .fl-x:hover { color: var(--accent); }
 .fav-list li small { color: var(--fg-faded); }
+.fav-list li .fl-n { color: var(--fg-faded); font-weight: 700; min-width: 20px; }
+.fav-list li .fl-ops { display: inline-flex; gap: 3px; align-items: center; flex-shrink: 0; }
+.fl-mv { background: none; border: 1px solid var(--border); border-radius: 5px; cursor: pointer; color: var(--fg-muted); width: 26px; height: 24px; font-size: 13px; font-family: inherit; line-height: 1; }
+.fl-mv:hover { background: var(--bg-table-hover); }
+.fl-mv:disabled { opacity: .3; cursor: default; }
 
 /* ── Compare (Karşılaştır) ── */
 .cmp-bar { position: sticky; bottom: 12px; z-index: 90; display: none; text-align: center; margin-top: 14px; }
