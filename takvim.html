@@ -330,6 +330,15 @@
     'çü':'çukurova','atatürk':'atatürk üniversitesi','asbü':'ankara sosyal bilimler','ybü':'yıldırım beyazıt',
     'gop':'gaziosmanpaşa','nef':'necmettin erbakan','marmara':'marmara üniversitesi','msü':'millî savunma'
   };
+  SV.estSira = function(curve, p){
+    if(!curve || !curve.length || !(p>0)) return null;
+    if(p<=curve[0][0]) return curve[0][1];
+    if(p>=curve[curve.length-1][0]) return curve[curve.length-1][1];
+    var lo=0,hi=curve.length-1;
+    while(hi-lo>1){ var m=(lo+hi)>>1; if(curve[m][0]<=p)lo=m; else hi=m; }
+    var a=curve[lo],b=curve[hi],t=(p-a[0])/((b[0]-a[0])||1);
+    return Math.max(1, Math.round(a[1]+(b[1]-a[1])*t));
+  };
   SV.spark = function(vals){
     var pts=[]; for(var i=0;i<vals.length;i++){ var v=vals[i]; if(v!=null && !isNaN(v)) pts.push({i:i,v:Number(v)}); }
     if(pts.length<2) return '';

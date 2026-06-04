@@ -1,0 +1,438 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>2026 YKS Sıralama Hesaplama — Puanına Göre Tahmini Başarı Sırası | SınavVeri</title>
+<meta name="description" content="2026 YKS sıralama hesaplama: yerleştirme puanını gir, 2025 YÖK Atlas verisine göre tahmini başarı sıralamanı ve gidebileceğin bölümleri anında gör.">
+<link rel="canonical" href="https://sinavveri.com/yks-siralama-hesaplama.html">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📝</text></svg>">
+<meta name="theme-color" content="#0f172a" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0a0d14" media="(prefers-color-scheme: dark)">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="SınavVeri.com">
+<meta property="og:url" content="https://sinavveri.com/yks-siralama-hesaplama.html">
+<meta property="og:title" content="2026 YKS Sıralama Hesaplama — Puanına Göre Tahmini Başarı Sırası | SınavVeri">
+<meta property="og:description" content="2026 YKS sıralama hesaplama: yerleştirme puanını gir, 2025 YÖK Atlas verisine göre tahmini başarı sıralamanı ve gidebileceğin bölümleri anında gör.">
+<meta property="og:image" content="https://sinavveri.com/assets/og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:locale" content="tr_TR">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="2026 YKS Sıralama Hesaplama — Puanına Göre Tahmini Başarı Sırası | SınavVeri">
+<meta name="twitter:description" content="2026 YKS sıralama hesaplama: yerleştirme puanını gir, 2025 YÖK Atlas verisine göre tahmini başarı sıralamanı ve gidebileceğin bölümleri anında gör.">
+<meta name="twitter:image" content="https://sinavveri.com/assets/og.png">
+<script nonce="__NONCE__" type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "Organization",
+      "@id": "https://sinavveri.com/#organization",
+      "name": "SınavVeri.com",
+      "url": "https://sinavveri.com",
+      "memberOf": {
+        "@type": "Organization",
+        "name": "Türkiye Veri Platformu",
+        "url": "https://trveri.com/"
+      }
+    },
+    {
+      "@type": "WebPage",
+      "name": "2026 YKS Sıralama Hesaplama — Puanına Göre Tahmini Başarı Sırası | SınavVeri",
+      "description": "2026 YKS sıralama hesaplama: yerleştirme puanını gir, 2025 YÖK Atlas verisine göre tahmini başarı sıralamanı ve gidebileceğin bölümleri anında gör.",
+      "url": "https://sinavveri.com/yks-siralama-hesaplama.html",
+      "inLanguage": "tr",
+      "isPartOf": {
+        "@type": "WebSite",
+        "name": "SınavVeri.com",
+        "url": "https://sinavveri.com"
+      },
+      "publisher": {
+        "@id": "https://sinavveri.com/#organization"
+      }
+    },
+    {
+      "@type": "BreadcrumbList",
+      "itemListElement": [
+        {
+          "@type": "ListItem",
+          "position": 1,
+          "name": "Ana Sayfa",
+          "item": "https://sinavveri.com/"
+        },
+        {
+          "@type": "ListItem",
+          "position": 2,
+          "name": "Puan Hesaplama",
+          "item": "https://sinavveri.com/puan-hesaplama.html"
+        },
+        {
+          "@type": "ListItem",
+          "position": 3,
+          "name": "YKS Sıralama"
+        }
+      ]
+    }
+  ]
+}</script>
+<script nonce="__NONCE__">
+  (function(){ try { if (localStorage.getItem('sinavveri-theme') === 'dark') document.documentElement.setAttribute('data-theme','dark'); } catch(e){} })();
+</script>
+<script nonce="__NONCE__">
+(function(){
+  var SV = window.SV = window.SV || {};
+  SV.qsGet = function(){ var o={}; try{ new URLSearchParams(location.search).forEach(function(v,k){o[k]=v;}); }catch(e){} return o; };
+  SV.qsSet = function(obj){
+    try{
+      var p=new URLSearchParams();
+      Object.keys(obj).forEach(function(k){ var v=obj[k]; if(v!=null && v!=='') p.set(k,v); });
+      var s=p.toString();
+      history.replaceState(null,'',location.pathname+(s?'?'+s:'')+location.hash);
+    }catch(e){}
+  };
+  SV.chips = function(id, items, onRemove){
+    var c=document.getElementById(id); if(!c) return;
+    c.innerHTML='';
+    if(!items.length){ c.style.display='none'; return; }
+    c.style.display='flex';
+    items.forEach(function(it){
+      var ch=document.createElement('span'); ch.className='fchip';
+      ch.appendChild(document.createTextNode(it.label+' '));
+      var b=document.createElement('button'); b.type='button'; b.setAttribute('aria-label','Kaldır'); b.textContent='×';
+      b.addEventListener('click',function(){ onRemove(it.key); });
+      ch.appendChild(b); c.appendChild(ch);
+    });
+    var clr=document.createElement('button'); clr.type='button'; clr.className='fchip-clear'; clr.textContent='Tümünü temizle';
+    clr.addEventListener('click',function(){ onRemove('__all__'); });
+    c.appendChild(clr);
+  };
+  // Üniversite kısaltmaları → ad içinde aranan bitişik ifade (yanlış eşleşmeyi önlemek için ifade-tam)
+  SV.alias = {
+    'odtü':'orta doğu teknik','odtu':'orta doğu teknik','metu':'orta doğu teknik',
+    'itü':'istanbul teknik','itu':'istanbul teknik',
+    'ytü':'yıldız teknik','ytu':'yıldız teknik',
+    'gtü':'gebze teknik','gtu':'gebze teknik',
+    'ktü':'karadeniz teknik','ktu':'karadeniz teknik',
+    'btü':'bursa teknik','btu':'bursa teknik',
+    'boun':'boğaziçi','boğaziçi':'boğaziçi',
+    'iü':'istanbul üniversitesi','iüc':'istanbul üniversitesi-cerrahpaşa','iü-c':'istanbul üniversitesi-cerrahpaşa',
+    'aü':'ankara üniversitesi','hü':'hacettepe','gü':'gazi üniversitesi','eü':'ege üniversitesi',
+    'deü':'dokuz eylül','msgsü':'mimar sinan','iyte':'izmir yüksek teknoloji','iztech':'izmir yüksek teknoloji',
+    'omü':'ondokuz mayıs','sdü':'süleyman demirel','akü':'afyon kocatepe','pau':'pamukkale',
+    'çü':'çukurova','atatürk':'atatürk üniversitesi','asbü':'ankara sosyal bilimler','ybü':'yıldırım beyazıt',
+    'gop':'gaziosmanpaşa','nef':'necmettin erbakan','marmara':'marmara üniversitesi','msü':'millî savunma'
+  };
+  SV.estSira = function(curve, p){
+    if(!curve || !curve.length || !(p>0)) return null;
+    if(p<=curve[0][0]) return curve[0][1];
+    if(p>=curve[curve.length-1][0]) return curve[curve.length-1][1];
+    var lo=0,hi=curve.length-1;
+    while(hi-lo>1){ var m=(lo+hi)>>1; if(curve[m][0]<=p)lo=m; else hi=m; }
+    var a=curve[lo],b=curve[hi],t=(p-a[0])/((b[0]-a[0])||1);
+    return Math.max(1, Math.round(a[1]+(b[1]-a[1])*t));
+  };
+  SV.spark = function(vals){
+    var pts=[]; for(var i=0;i<vals.length;i++){ var v=vals[i]; if(v!=null && !isNaN(v)) pts.push({i:i,v:Number(v)}); }
+    if(pts.length<2) return '';
+    var w=42,h=14,pad=2,xs=vals.length-1||1;
+    var vs=pts.map(function(p){return p.v;}); var mn=Math.min.apply(null,vs),mx=Math.max.apply(null,vs),rng=mx-mn||1;
+    var d=pts.map(function(p){var x=pad+(p.i/xs)*(w-2*pad);var y=h-pad-((p.v-mn)/rng)*(h-2*pad);return x.toFixed(1)+','+y.toFixed(1);}).join(' ');
+    var f=pts[0].v,l=pts[pts.length-1].v,col=l>f?'#16a34a':(l<f?'#dc2626':'#94a3b8');
+    return '<svg width="'+w+'" height="'+h+'" viewBox="0 0 '+w+' '+h+'" style="vertical-align:middle;margin-left:6px;flex:0 0 auto" aria-hidden="true"><polyline fill="none" stroke="'+col+'" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round" points="'+d+'"/></svg>';
+  };
+  SV.tokMatch = function(hay, q){
+    hay = (hay || '').toLocaleLowerCase('tr');
+    var ts = (q || '').toLocaleLowerCase('tr').trim().split(/\s+/);
+    for (var i = 0; i < ts.length; i++){
+      var t = ts[i]; if (!t) continue;
+      var exp = SV.alias[t];
+      if (exp){ if (hay.indexOf(exp) < 0) return false; }
+      else if (hay.indexOf(t) < 0) return false;
+    }
+    return true;
+  };
+  SV.skel = function(tbodyId, cols, n){
+    var tb=document.getElementById(tbodyId); if(!tb) return;
+    var h=''; for(var r=0;r<(n||8);r++){ h+='<tr>'; for(var c=0;c<cols;c++){ h+='<td><div class="skel-cell"></div></td>'; } h+='</tr>'; }
+    tb.innerHTML=h;
+  };
+  SV.empty = function(tbodyId, cols, msg){
+    var tb=document.getElementById(tbodyId); if(!tb) return;
+    tb.innerHTML='<tr><td colspan="'+cols+'"><div class="empty-state"><b>Eşleşme yok</b>'+(msg||'Filtreyi gevşetmeyi veya aramayı sadeleştirmeyi deneyin.')+'</div></td></tr>';
+  };
+  SV.copy = function(text, btn){
+    function done(){ if(btn){ var t=btn.getAttribute('data-lbl')||btn.textContent; btn.setAttribute('data-lbl',t); btn.textContent='Kopyalandı ✓'; setTimeout(function(){btn.textContent=t;},1600); } }
+    function fallback(){ try{ var ta=document.createElement('textarea'); ta.value=text; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); document.body.removeChild(ta); done(); }catch(e){} }
+    try{ if(navigator.clipboard&&navigator.clipboard.writeText){ navigator.clipboard.writeText(text).then(done,fallback); } else { fallback(); } }catch(e){ fallback(); }
+  };
+  SV.fav = function(ns){
+    var KEY='sv-fav-'+ns;
+    function read(){ try{ return JSON.parse(localStorage.getItem(KEY)||'[]'); }catch(e){ return []; } }
+    function write(a){ try{ localStorage.setItem(KEY,JSON.stringify(a)); }catch(e){} }
+    return {
+      list: read,
+      has: function(id){ return read().some(function(x){return x.id===id;}); },
+      toggle: function(it){ var a=read(); var i=-1,k; for(k=0;k<a.length;k++){ if(a[k].id===it.id){i=k;break;} } if(i>=0){a.splice(i,1);} else {a.push(it);} write(a); return i<0; },
+      remove: function(id){ write(read().filter(function(x){return x.id!==id;})); },
+      clear: function(){ write([]); }
+    };
+  };
+  // Tercih Listem UI controller — bar/panel + ☆ stars
+  SV.initFav = function(opts){
+    var store=SV.fav(opts.ns);
+    var bar=document.getElementById(opts.barId), panel=document.getElementById(opts.panelId), btn=document.getElementById(opts.btnId);
+    function esc(s){ return (''+(s==null?'':s)).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+    function renderPanel(arr){
+      if(!panel)return;
+      var h='<h3>⭐ Tercih Listem ('+arr.length+')</h3>';
+      if(!arr.length){ h+='<p style="font-size:13px;color:var(--fg-faded);margin:6px 0 0">Henüz tercih eklemediniz. Tablodaki ☆ simgesiyle ekleyin; listeniz bu tarayıcıda saklanır.</p>'; }
+      else{
+        h+='<div class="fp-actions"><button type="button" class="btn btn-ghost" id="'+opts.panelId+'C">Listeyi Kopyala</button><button type="button" class="fchip-clear" id="'+opts.panelId+'X">Listeyi Temizle</button></div><ul class="fav-list">';
+        arr.forEach(function(it){ h+='<li><span><b>'+esc(it.name)+'</b>'+(it.sub?' <small>'+esc(it.sub)+'</small>':'')+(it.meta?' — '+esc(it.meta):'')+'</span><button type="button" class="fl-x" aria-label="Çıkar" data-rm="'+esc(it.id)+'">×</button></li>'; });
+        h+='</ul>';
+      }
+      panel.innerHTML=h;
+    }
+    function refresh(){
+      var arr=store.list();
+      if(bar)bar.classList.toggle('show',arr.length>0);
+      if(btn)btn.textContent='⭐ Tercih Listem ('+arr.length+')';
+      if(panel&&panel.classList.contains('open'))renderPanel(arr);
+      document.querySelectorAll('.fav-star[data-fid]').forEach(function(s){ var on=store.has(s.getAttribute('data-fid')); s.classList.toggle('on',on); s.textContent=on?'★':'☆'; });
+    }
+    if(btn)btn.addEventListener('click',function(){ var op=panel.classList.toggle('open'); if(op)renderPanel(store.list()); });
+    if(panel)panel.addEventListener('click',function(e){
+      var t=e.target;
+      if(t.getAttribute&&t.getAttribute('data-rm')!=null){ store.remove(t.getAttribute('data-rm')); refresh(); }
+      else if(t.id===opts.panelId+'X'){ store.clear(); refresh(); }
+      else if(t.id===opts.panelId+'C'){ var txt=store.list().map(function(x,i){return (i+1)+'. '+x.name+(x.sub?' — '+x.sub:'')+(x.meta?' ('+x.meta+')':'');}).join('\n'); SV.copy('Tercih Listem — SınavVeri.com\n\n'+txt, t); }
+    });
+    return { store:store, toggle:function(it){ store.toggle(it); refresh(); }, has:function(id){return store.has(id);}, refresh:refresh };
+  };
+})();
+</script>
+<link rel="stylesheet" href="/assets/style.css?v=20260604c">
+<link rel="manifest" href="/manifest.json">
+
+</head>
+<body>
+<header>
+  <div class="header-inner">
+    <a href="/index.html" class="logo">Sınav<span class="logo-veri">Veri</span></a>
+    <div class="header-right">
+      <form class="hsearch" id="hsearch" role="search" action="/ara.html" method="get" autocomplete="off">
+        <span class="hs-ic">🔍</span>
+        <input type="search" name="q" id="hsQ" placeholder="Üniversite, bölüm, lise, kadro…" aria-label="Sitede ara">
+        <div class="hs-drop" id="hsDrop" role="listbox"></div>
+      </form>
+      <button type="button" class="nav-toggle" id="navToggle" aria-label="Menü" aria-expanded="false">☰</button>
+      <nav id="mainNav"><a href="/index.html">Ana Sayfa</a>
+<a href="/taban-puanlari.html">Taban Puanları</a>
+<a href="/tercih-robotu.html">Tercih Robotu</a>
+<a href="/puan-hesaplama.html">Puan Hesaplama</a>
+<a href="/takvim.html">Takvim</a>
+<a href="/rehberler.html">Rehberler</a></nav>
+      <button type="button" class="theme-toggle" id="themeToggle" aria-label="Tema değiştir" title="Açık/Koyu tema"><span class="toggle-icon">🌙</span><span class="toggle-text">Koyu Tema</span></button>
+    </div>
+  </div>
+</header>
+<main>
+
+<div class="crumb"><a href="/index.html">Ana Sayfa</a> / <a href="/puan-hesaplama.html">Puan Hesaplama</a> / YKS Sıralama</div>
+<div class="page-title"><h1>2026 YKS Sıralama Hesaplama — Puan → Tahmini Başarı Sırası</h1><span class="sub">Puanını gir, tahmini sıralamanı ve gidebileceğin bölümleri gör · 2025 YÖK Atlas verisine göre</span></div>
+<div class="info-box">Denemende/ÖSYM sonucunda aldığın <b>yerleştirme puanını</b> ve puan türünü gir → 2025 gerçek yerleştirme verisinden
+<b>tahmini başarı sıralaman</b> ve o sırayla <b>gidebileceğin bölümler</b>. Puanını bilmiyorsan aşağıdaki net aracıyla kaba tahmin alabilirsin.</div>
+<div class="calc-card" style="margin-bottom:18px">
+  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;align-items:end">
+    <div><label style="font-size:12px;color:var(--fg-faded);font-weight:700">Puan Türü</label>
+      <select id="sPt" class="btn btn-ghost" style="text-align:left;width:100%;margin-top:4px">
+        <option value="say">Sayısal (SAY)</option><option value="ea">Eşit Ağırlık (EA)</option>
+        <option value="soz">Sözel (SÖZ)</option><option value="dil">Dil (DİL)</option><option value="tyt">TYT (Önlisans)</option></select></div>
+    <div><label style="font-size:12px;color:var(--fg-faded);font-weight:700">Yerleştirme Puanın</label>
+      <input id="sPuan" type="text" inputmode="decimal" placeholder="örn. 480,50" style="width:100%;margin-top:4px;padding:9px 10px;border:1px solid var(--border);border-radius:8px;background:var(--bg-card-alt);color:var(--fg);font-family:inherit;font-size:15px"></div>
+    <button type="button" class="btn btn-primary" id="sBtn">Sıralamamı Hesapla</button>
+  </div>
+  <div id="sResult" style="margin-top:16px;display:none">
+    <div class="res-est" style="background:var(--bg-soft);text-align:center;padding:16px">
+      <div class="re-label">Tahmini Başarı Sıralaman</div>
+      <div class="re-value" id="sSira" style="font-size:30px">—</div>
+      <div id="sNote" style="font-size:12px;color:var(--fg-faded);margin-top:4px"></div>
+    </div>
+    <a id="sBolum" class="btn btn-primary" style="display:block;text-align:center;margin-top:12px;text-decoration:none">Bu sırayla gidebileceğim bölümler →</a>
+  </div>
+</div>
+<details style="margin-bottom:18px">
+  <summary style="cursor:pointer;font-weight:700;color:var(--accent)">Puanını bilmiyor musun? Net'ten kaba puan tahmini al</summary>
+  <div class="calc-card" style="margin-top:10px">
+    <div class="calc-hint" style="margin-bottom:12px">Denemendeki <b>toplam</b> TYT ve AYT netini gir; sana kaba bir yerleştirme puanı tahmini hesaplar (üstteki kutuya yazılır).</div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;align-items:end">
+      <div><label style="font-size:12px;color:var(--fg-faded);font-weight:700">TYT Net (/120)</label>
+        <input id="nTyt" type="number" min="0" max="120" step="0.25" inputmode="decimal" placeholder="0" style="width:100%;margin-top:4px;padding:8px;border:1px solid var(--border);border-radius:8px;background:var(--bg-card-alt);color:var(--fg);font-family:inherit"></div>
+      <div><label style="font-size:12px;color:var(--fg-faded);font-weight:700">AYT Net (/80)</label>
+        <input id="nAyt" type="number" min="0" max="80" step="0.25" inputmode="decimal" placeholder="0" style="width:100%;margin-top:4px;padding:8px;border:1px solid var(--border);border-radius:8px;background:var(--bg-card-alt);color:var(--fg);font-family:inherit"></div>
+      <div><label style="font-size:12px;color:var(--fg-faded);font-weight:700">Diploma (50-100)</label>
+        <input id="nDip" type="number" min="50" max="100" step="0.01" inputmode="decimal" placeholder="opsiyonel" style="width:100%;margin-top:4px;padding:8px;border:1px solid var(--border);border-radius:8px;background:var(--bg-card-alt);color:var(--fg);font-family:inherit"></div>
+      <button type="button" class="btn btn-ghost" id="nBtn">Kaba Puan Tahmini</button>
+    </div>
+    <div id="nOut" style="margin-top:10px;font-size:13px;color:var(--accent);font-weight:700"></div>
+  </div>
+</details>
+<div class="notice"><b>Nasıl çalışır?</b> Tahmini sıralama, 2025 yılında <b>gerçek</b> yerleşen adayların (taban puan ↔ başarı sırası) verisinden
+enterpolasyonla bulunur — bu kısım veriye dayalıdır. Net'ten puan tahmini ise ÖSYM'nin standart puan sistemi nedeniyle
+<b>çok kabadır</b>; mümkünse denemenizin/ÖSYM'nin verdiği yerleştirme puanını girin. 2026 sıralamaları kontenjan ve aday
+sayısına göre değişebilir.</div>
+<script nonce="__NONCE__">
+(function(){
+  var SV=window.SV||{}, DATA=null;
+  function el(i){return document.getElementById(i);}
+  var PTL={say:'Sayısal',ea:'Eşit Ağırlık',soz:'Sözel',dil:'Dil',tyt:'TYT'};
+  fetch('/veri/puan_sira.json').then(function(r){return r.json();}).then(function(j){DATA=j;}).catch(function(){});
+  function pnum(s){s=(s||'').replace(/\./g,'').replace(',','.').replace(/[^0-9.]/g,'');return parseFloat(s);}
+  function run(){
+    if(!DATA){el('sNote').textContent='Veri yükleniyor, tekrar deneyin.';return;}
+    var pt=el('sPt').value, p=pnum(el('sPuan').value);
+    if(!(p>0)){el('sResult').style.display='none';return;}
+    var sira=SV.estSira?SV.estSira(DATA[pt]||[],p):null;
+    el('sResult').style.display='block';
+    if(sira==null){el('sSira').textContent='—';el('sNote').textContent='Bu puan türü için veri yok.';el('sBolum').style.display='none';return;}
+    el('sSira').textContent='~ '+sira.toLocaleString('tr-TR');
+    var curve=DATA[pt]||[];
+    var top=curve.length?curve[curve.length-1][0]:0, low=curve.length?curve[0][0]:0;
+    if(p>=top)el('sNote').textContent='En yüksek puan aralığında — ilk sıralarda.';
+    else if(p<=low)el('sNote').textContent='Veri aralığının altında — sıralama daha geride olabilir.';
+    else el('sNote').textContent=PTL[pt]+' · 2025 yerleştirme verisine göre tahmini';
+    el('sBolum').style.display='block';
+    el('sBolum').setAttribute('href','/tercih-robotu.html?pt='+pt+'&sira='+sira);
+  }
+  el('sBtn').addEventListener('click',run);
+  el('sPuan').addEventListener('keydown',function(e){if(e.key==='Enter')run();});
+  el('sPt').addEventListener('change',function(){if(el('sPuan').value)run();});
+  // net → kaba puan
+  el('nBtn').addEventListener('click',function(){
+    var tyt=parseFloat(el('nTyt').value)||0, ayt=parseFloat(el('nAyt').value)||0, dip=parseFloat(el('nDip').value)||0;
+    tyt=Math.max(0,Math.min(120,tyt)); ayt=Math.max(0,Math.min(80,ayt));
+    var obp=(dip>=50&&dip<=100)?Math.min(dip*5*0.12,60):0;
+    var puan=100+(tyt/120)*190+(ayt/80)*190+obp;
+    puan=Math.round(puan*100)/100;
+    el('sPuan').value=puan.toLocaleString('tr-TR',{minimumFractionDigits:2,maximumFractionDigits:2});
+    el('nOut').textContent='Kaba tahmini puan: '+puan.toLocaleString('tr-TR')+' (yukarıda hesaplandı)';
+    run();
+  });
+})();
+</script>
+</main>
+<footer>
+  <div class="footer-inner">
+    <span>© 2026 SınavVeri.com · <a href="https://www.trveri.com" target="_blank" rel="noopener noreferrer">Türkiye Veri Platformu</a> ürünüdür.</span>
+    <span class="fi-grow"></span>
+    <span>Kaynak: <a href="https://www.osym.gov.tr" target="_blank" rel="noopener noreferrer">ÖSYM</a> · <a href="https://www.meb.gov.tr" target="_blank" rel="noopener noreferrer">MEB</a></span>
+    <span>Resmî kaynak değildir; bilgi amaçlıdır.</span>
+  </div>
+</footer>
+<script nonce="__NONCE__">
+  (function(){
+    var btn=document.getElementById('themeToggle'); if(!btn) return;
+    var root=document.documentElement, ic=btn.querySelector('.toggle-icon'), tx=btn.querySelector('.toggle-text');
+    function lab(){ var d=root.getAttribute('data-theme')==='dark'; if(ic)ic.textContent=d?'☀️':'🌙'; if(tx)tx.textContent=d?'Açık Tema':'Koyu Tema'; }
+    lab();
+    btn.addEventListener('click',function(){
+      var n=root.getAttribute('data-theme')==='dark'?'light':'dark';
+      if(n==='dark')root.setAttribute('data-theme','dark'); else root.removeAttribute('data-theme');
+      try{localStorage.setItem('sinavveri-theme',n);}catch(e){} lab();
+    });
+  })();
+</script>
+<script nonce="__NONCE__">
+(function(){
+  function num(s){s=(s||'').replace(/[^0-9,.\-]/g,'').replace(/\./g,'').replace(',','.');return s===''||s==='-'?NaN:parseFloat(s);}
+  function sortBody(tb,idx,dir){
+    var body=tb.querySelector('tbody'); if(!body)return;
+    var rows=Array.prototype.slice.call(body.querySelectorAll(':scope>tr'));
+    rows.sort(function(a,b){
+      var x=a.children[idx],y=b.children[idx]; if(!x||!y)return 0;
+      var xt=x.textContent.trim(),yt=y.textContent.trim(),xn=num(xt),yn=num(yt),c;
+      if(!isNaN(xn)&&!isNaN(yn))c=xn-yn;
+      else if(isNaN(xn)&&isNaN(yn))c=xt.localeCompare(yt,'tr');
+      else c=isNaN(xn)?1:-1;
+      return c*dir;
+    });
+    rows.forEach(function(r){body.appendChild(r);});
+  }
+  document.querySelectorAll('table.data-table:not([data-live])').forEach(function(tb){
+    var ths=tb.querySelectorAll('thead th'); if(!ths.length)return;
+    ths.forEach(function(th,i){
+      if(th.hasAttribute('data-nosort'))return;
+      th.style.cursor='pointer'; th.title='Sıralamak için tıklayın'; th.dataset.dir='0';
+      th.addEventListener('click',function(){
+        var dir=th.dataset.dir==='1'?-1:1;
+        ths.forEach(function(o){o.dataset.dir='0';var a=o.querySelector('.s-arrow');if(a)a.remove();});
+        th.dataset.dir=dir>0?'1':'-1';
+        sortBody(tb,i,dir);
+        var ar=document.createElement('span');ar.className='s-arrow';ar.textContent=dir>0?' ▲':' ▼';th.appendChild(ar);
+      });
+    });
+  });
+})();
+</script>
+<script nonce="__NONCE__">
+(function(){
+  var form=document.getElementById('hsearch'); if(!form) return;
+  var inp=document.getElementById('hsQ'), drop=document.getElementById('hsDrop');
+  var DATA=null, loading=false, sel=-1;
+  function load(cb){ if(DATA){cb&&cb();return;} if(loading)return; loading=true;
+    fetch('/veri/arama.json').then(function(r){return r.json();}).then(function(j){DATA=j;loading=false;cb&&cb();}).catch(function(){loading=false;}); }
+  function norm(s){return (s||'').toLocaleLowerCase('tr');}
+  function tok(hay,q){ var SV=window.SV; if(SV&&SV.tokMatch)return SV.tokMatch(hay,q); return norm(hay).indexOf(norm(q))>=0; }
+  function search(q){ if(!DATA)return []; if(q.trim().length<2)return [];
+    var out=[]; for(var i=0;i<DATA.length && out.length<8;i++){ var d=DATA[i]; if(tok((d.n||'')+' '+(d.s||''),q)){ out.push(d); } } return out; }
+  function esc(s){ return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+  function close(){ drop.classList.remove('open'); drop.innerHTML=''; sel=-1; }
+  function show(){ var q=inp.value; if(!q||q.trim().length<2){ close(); return; } var res=search(q);
+    var multi=q.trim().split(/\s+/).filter(Boolean).length>=2;
+    var prog=multi?'<a class="hs-item" href="/universite-taban-puanlari.html?q='+encodeURIComponent(q)+'"><span class="hs-kind">Program →</span>🎓 “'+esc(q)+'” programları</a>':'';
+    if(!res.length){ drop.innerHTML=prog+'<a class="hs-item" href="/ara.html?q='+encodeURIComponent(q)+'">"'+esc(q)+'" için tüm sonuçlar…</a>'; drop.classList.add('open'); return; }
+    var h=prog; res.forEach(function(d){ h+='<a class="hs-item" href="'+d.u+'"><span class="hs-kind">'+esc(d.t)+'</span>'+esc(d.n)+(d.s?'<small>'+esc(d.s)+'</small>':'')+'</a>'; });
+    h+='<a class="hs-item" href="/ara.html?q='+encodeURIComponent(q)+'" style="text-align:center;color:var(--accent);font-weight:700">Tüm sonuçlar →</a>';
+    drop.innerHTML=h; drop.classList.add('open'); sel=-1;
+  }
+  inp.addEventListener('focus',function(){ load(show); });
+  inp.addEventListener('input',function(){ load(show); });
+  inp.addEventListener('keydown',function(e){
+    var links=drop.querySelectorAll('.hs-item');
+    if(e.key==='ArrowDown'){ e.preventDefault(); sel=Math.min(sel+1,links.length-1); }
+    else if(e.key==='ArrowUp'){ e.preventDefault(); sel=Math.max(sel-1,0); }
+    else if(e.key==='Enter'){ if(sel>=0&&links[sel]){ e.preventDefault(); location.href=links[sel].getAttribute('href'); } return; }
+    else { return; }
+    links.forEach(function(l,i){ l.classList.toggle('sel',i===sel); });
+  });
+  document.addEventListener('click',function(e){ if(!form.contains(e.target)) close(); });
+})();
+</script>
+<script nonce="__NONCE__">
+(function(){
+  var b=document.getElementById('navToggle'), n=document.getElementById('mainNav'); if(!b||!n)return;
+  function close(){ n.classList.remove('open'); b.setAttribute('aria-expanded','false'); b.textContent='☰'; }
+  b.addEventListener('click',function(e){ e.stopPropagation(); var o=n.classList.toggle('open'); b.setAttribute('aria-expanded',o?'true':'false'); b.textContent=o?'✕':'☰'; });
+  n.addEventListener('click',function(e){ if(e.target.tagName==='A')close(); });
+  document.addEventListener('click',function(e){ if(n.classList.contains('open') && !n.contains(e.target) && e.target!==b)close(); });
+})();
+</script>
+<script nonce="__NONCE__">
+(function(){
+  function label(tbl){
+    var ths=tbl.querySelectorAll('thead th'); if(!ths.length)return;
+    var L=Array.prototype.map.call(ths,function(t){return t.textContent.trim();});
+    tbl.querySelectorAll('tbody>tr').forEach(function(tr){
+      Array.prototype.forEach.call(tr.children,function(td,i){ if(L[i]!=null && !td.hasAttribute('data-label')) td.setAttribute('data-label',L[i]); });
+    });
+  }
+  document.querySelectorAll('table.data-table').forEach(function(tbl){
+    label(tbl);
+    var b=tbl.querySelector('tbody');
+    if(b && window.MutationObserver){ new MutationObserver(function(){label(tbl);}).observe(b,{childList:true}); }
+  });
+})();
+</script>
+<script nonce="__NONCE__">if('serviceWorker' in navigator){navigator.serviceWorker.register('/sw.js').catch(function(){});}</script>
+</body>
+</html>

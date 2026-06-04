@@ -100,6 +100,15 @@
     'çü':'çukurova','atatürk':'atatürk üniversitesi','asbü':'ankara sosyal bilimler','ybü':'yıldırım beyazıt',
     'gop':'gaziosmanpaşa','nef':'necmettin erbakan','marmara':'marmara üniversitesi','msü':'millî savunma'
   };
+  SV.estSira = function(curve, p){
+    if(!curve || !curve.length || !(p>0)) return null;
+    if(p<=curve[0][0]) return curve[0][1];
+    if(p>=curve[curve.length-1][0]) return curve[curve.length-1][1];
+    var lo=0,hi=curve.length-1;
+    while(hi-lo>1){ var m=(lo+hi)>>1; if(curve[m][0]<=p)lo=m; else hi=m; }
+    var a=curve[lo],b=curve[hi],t=(p-a[0])/((b[0]-a[0])||1);
+    return Math.max(1, Math.round(a[1]+(b[1]-a[1])*t));
+  };
   SV.spark = function(vals){
     var pts=[]; for(var i=0;i<vals.length;i++){ var v=vals[i]; if(v!=null && !isNaN(v)) pts.push({i:i,v:Number(v)}); }
     if(pts.length<2) return '';
@@ -291,6 +300,7 @@ AYT yerleştirme puanı (Sayısal/Eşit Ağırlık/Sözel/Dil) puan türüne gö
 <div class="info-box"><h3>YKS net nasıl hesaplanır?</h3>
 Her test için: <strong>Net = Doğru − (Yanlış ÷ 4)</strong>. TYT ve AYT'de 4 yanlış 1 doğruyu götürür.
 Yerleştirme puanına OBP (Okul Başarı Puanı = Diploma Notu × 5) en fazla 60 puana kadar katkı sağlar (OBP × 0,12).</div>
+<div class="tool-row" style="margin-top:16px"><a class="tool-btn" href="/yks-siralama-hesaplama.html"><span class="tb-icon">📈</span><span class="tb-text"><b>Tahmini Sıralaman ve Gidebileceğin Bölümler</b><span>Puanından başarı sıranı tahmin et → tercih robotuna git</span></span></a></div>
 <script nonce="__NONCE__">
 (function(){
   var TR=function(n){return n.toLocaleString('tr-TR',{minimumFractionDigits:2,maximumFractionDigits:2});};

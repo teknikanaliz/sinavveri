@@ -79,6 +79,15 @@ SV_HELPER_JS = r"""<script nonce="__NONCE__">
     'çü':'çukurova','atatürk':'atatürk üniversitesi','asbü':'ankara sosyal bilimler','ybü':'yıldırım beyazıt',
     'gop':'gaziosmanpaşa','nef':'necmettin erbakan','marmara':'marmara üniversitesi','msü':'millî savunma'
   };
+  SV.estSira = function(curve, p){
+    if(!curve || !curve.length || !(p>0)) return null;
+    if(p<=curve[0][0]) return curve[0][1];
+    if(p>=curve[curve.length-1][0]) return curve[curve.length-1][1];
+    var lo=0,hi=curve.length-1;
+    while(hi-lo>1){ var m=(lo+hi)>>1; if(curve[m][0]<=p)lo=m; else hi=m; }
+    var a=curve[lo],b=curve[hi],t=(p-a[0])/((b[0]-a[0])||1);
+    return Math.max(1, Math.round(a[1]+(b[1]-a[1])*t));
+  };
   SV.spark = function(vals){
     var pts=[]; for(var i=0;i<vals.length;i++){ var v=vals[i]; if(v!=null && !isNaN(v)) pts.push({i:i,v:Number(v)}); }
     if(pts.length<2) return '';
@@ -773,6 +782,7 @@ AYT yerleştirme puanı (Sayısal/Eşit Ağırlık/Sözel/Dil) puan türüne gö
 <div class="info-box"><h3>YKS net nasıl hesaplanır?</h3>
 Her test için: <strong>Net = Doğru − (Yanlış ÷ 4)</strong>. TYT ve AYT'de 4 yanlış 1 doğruyu götürür.
 Yerleştirme puanına OBP (Okul Başarı Puanı = Diploma Notu × 5) en fazla 60 puana kadar katkı sağlar (OBP × 0,12).</div>
+<div class="tool-row" style="margin-top:16px"><a class="tool-btn" href="/yks-siralama-hesaplama.html"><span class="tb-icon">📈</span><span class="tb-text"><b>Tahmini Sıralaman ve Gidebileceğin Bölümler</b><span>Puanından başarı sıranı tahmin et → tercih robotuna git</span></span></a></div>
 {calc_js_yks()}
 """
     return base("yks-puan-hesaplama.html", "YKS Puan Hesaplama 2026 (TYT + AYT Net) | SınavVeri",
@@ -815,6 +825,95 @@ def calc_js_yks():
   });
 })();
 </script>"""
+
+
+def page_yks_siralama():
+    body = """
+<div class="crumb"><a href="/index.html">Ana Sayfa</a> / <a href="/puan-hesaplama.html">Puan Hesaplama</a> / YKS Sıralama</div>
+<div class="page-title"><h1>2026 YKS Sıralama Hesaplama — Puan → Tahmini Başarı Sırası</h1><span class="sub">Puanını gir, tahmini sıralamanı ve gidebileceğin bölümleri gör · 2025 YÖK Atlas verisine göre</span></div>
+<div class="info-box">Denemende/ÖSYM sonucunda aldığın <b>yerleştirme puanını</b> ve puan türünü gir → 2025 gerçek yerleştirme verisinden
+<b>tahmini başarı sıralaman</b> ve o sırayla <b>gidebileceğin bölümler</b>. Puanını bilmiyorsan aşağıdaki net aracıyla kaba tahmin alabilirsin.</div>
+<div class="calc-card" style="margin-bottom:18px">
+  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;align-items:end">
+    <div><label style="font-size:12px;color:var(--fg-faded);font-weight:700">Puan Türü</label>
+      <select id="sPt" class="btn btn-ghost" style="text-align:left;width:100%;margin-top:4px">
+        <option value="say">Sayısal (SAY)</option><option value="ea">Eşit Ağırlık (EA)</option>
+        <option value="soz">Sözel (SÖZ)</option><option value="dil">Dil (DİL)</option><option value="tyt">TYT (Önlisans)</option></select></div>
+    <div><label style="font-size:12px;color:var(--fg-faded);font-weight:700">Yerleştirme Puanın</label>
+      <input id="sPuan" type="text" inputmode="decimal" placeholder="örn. 480,50" style="width:100%;margin-top:4px;padding:9px 10px;border:1px solid var(--border);border-radius:8px;background:var(--bg-card-alt);color:var(--fg);font-family:inherit;font-size:15px"></div>
+    <button type="button" class="btn btn-primary" id="sBtn">Sıralamamı Hesapla</button>
+  </div>
+  <div id="sResult" style="margin-top:16px;display:none">
+    <div class="res-est" style="background:var(--bg-soft);text-align:center;padding:16px">
+      <div class="re-label">Tahmini Başarı Sıralaman</div>
+      <div class="re-value" id="sSira" style="font-size:30px">—</div>
+      <div id="sNote" style="font-size:12px;color:var(--fg-faded);margin-top:4px"></div>
+    </div>
+    <a id="sBolum" class="btn btn-primary" style="display:block;text-align:center;margin-top:12px;text-decoration:none">Bu sırayla gidebileceğim bölümler →</a>
+  </div>
+</div>
+<details style="margin-bottom:18px">
+  <summary style="cursor:pointer;font-weight:700;color:var(--accent)">Puanını bilmiyor musun? Net'ten kaba puan tahmini al</summary>
+  <div class="calc-card" style="margin-top:10px">
+    <div class="calc-hint" style="margin-bottom:12px">Denemendeki <b>toplam</b> TYT ve AYT netini gir; sana kaba bir yerleştirme puanı tahmini hesaplar (üstteki kutuya yazılır).</div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;align-items:end">
+      <div><label style="font-size:12px;color:var(--fg-faded);font-weight:700">TYT Net (/120)</label>
+        <input id="nTyt" type="number" min="0" max="120" step="0.25" inputmode="decimal" placeholder="0" style="width:100%;margin-top:4px;padding:8px;border:1px solid var(--border);border-radius:8px;background:var(--bg-card-alt);color:var(--fg);font-family:inherit"></div>
+      <div><label style="font-size:12px;color:var(--fg-faded);font-weight:700">AYT Net (/80)</label>
+        <input id="nAyt" type="number" min="0" max="80" step="0.25" inputmode="decimal" placeholder="0" style="width:100%;margin-top:4px;padding:8px;border:1px solid var(--border);border-radius:8px;background:var(--bg-card-alt);color:var(--fg);font-family:inherit"></div>
+      <div><label style="font-size:12px;color:var(--fg-faded);font-weight:700">Diploma (50-100)</label>
+        <input id="nDip" type="number" min="50" max="100" step="0.01" inputmode="decimal" placeholder="opsiyonel" style="width:100%;margin-top:4px;padding:8px;border:1px solid var(--border);border-radius:8px;background:var(--bg-card-alt);color:var(--fg);font-family:inherit"></div>
+      <button type="button" class="btn btn-ghost" id="nBtn">Kaba Puan Tahmini</button>
+    </div>
+    <div id="nOut" style="margin-top:10px;font-size:13px;color:var(--accent);font-weight:700"></div>
+  </div>
+</details>
+<div class="notice"><b>Nasıl çalışır?</b> Tahmini sıralama, 2025 yılında <b>gerçek</b> yerleşen adayların (taban puan ↔ başarı sırası) verisinden
+enterpolasyonla bulunur — bu kısım veriye dayalıdır. Net'ten puan tahmini ise ÖSYM'nin standart puan sistemi nedeniyle
+<b>çok kabadır</b>; mümkünse denemenizin/ÖSYM'nin verdiği yerleştirme puanını girin. 2026 sıralamaları kontenjan ve aday
+sayısına göre değişebilir.</div>
+""" + r"""<script nonce="__NONCE__">
+(function(){
+  var SV=window.SV||{}, DATA=null;
+  function el(i){return document.getElementById(i);}
+  var PTL={say:'Sayısal',ea:'Eşit Ağırlık',soz:'Sözel',dil:'Dil',tyt:'TYT'};
+  fetch('/veri/puan_sira.json').then(function(r){return r.json();}).then(function(j){DATA=j;}).catch(function(){});
+  function pnum(s){s=(s||'').replace(/\./g,'').replace(',','.').replace(/[^0-9.]/g,'');return parseFloat(s);}
+  function run(){
+    if(!DATA){el('sNote').textContent='Veri yükleniyor, tekrar deneyin.';return;}
+    var pt=el('sPt').value, p=pnum(el('sPuan').value);
+    if(!(p>0)){el('sResult').style.display='none';return;}
+    var sira=SV.estSira?SV.estSira(DATA[pt]||[],p):null;
+    el('sResult').style.display='block';
+    if(sira==null){el('sSira').textContent='—';el('sNote').textContent='Bu puan türü için veri yok.';el('sBolum').style.display='none';return;}
+    el('sSira').textContent='~ '+sira.toLocaleString('tr-TR');
+    var curve=DATA[pt]||[];
+    var top=curve.length?curve[curve.length-1][0]:0, low=curve.length?curve[0][0]:0;
+    if(p>=top)el('sNote').textContent='En yüksek puan aralığında — ilk sıralarda.';
+    else if(p<=low)el('sNote').textContent='Veri aralığının altında — sıralama daha geride olabilir.';
+    else el('sNote').textContent=PTL[pt]+' · 2025 yerleştirme verisine göre tahmini';
+    el('sBolum').style.display='block';
+    el('sBolum').setAttribute('href','/tercih-robotu.html?pt='+pt+'&sira='+sira);
+  }
+  el('sBtn').addEventListener('click',run);
+  el('sPuan').addEventListener('keydown',function(e){if(e.key==='Enter')run();});
+  el('sPt').addEventListener('change',function(){if(el('sPuan').value)run();});
+  // net → kaba puan
+  el('nBtn').addEventListener('click',function(){
+    var tyt=parseFloat(el('nTyt').value)||0, ayt=parseFloat(el('nAyt').value)||0, dip=parseFloat(el('nDip').value)||0;
+    tyt=Math.max(0,Math.min(120,tyt)); ayt=Math.max(0,Math.min(80,ayt));
+    var obp=(dip>=50&&dip<=100)?Math.min(dip*5*0.12,60):0;
+    var puan=100+(tyt/120)*190+(ayt/80)*190+obp;
+    puan=Math.round(puan*100)/100;
+    el('sPuan').value=puan.toLocaleString('tr-TR',{minimumFractionDigits:2,maximumFractionDigits:2});
+    el('nOut').textContent='Kaba tahmini puan: '+puan.toLocaleString('tr-TR')+' (yukarıda hesaplandı)';
+    run();
+  });
+})();
+</script>"""
+    return base("yks-siralama-hesaplama.html", "2026 YKS Sıralama Hesaplama — Puanına Göre Tahmini Başarı Sırası | SınavVeri",
+                "2026 YKS sıralama hesaplama: yerleştirme puanını gir, 2025 YÖK Atlas verisine göre tahmini başarı sıralamanı ve gidebileceğin bölümleri anında gör.",
+                body, extra_ld=[breadcrumb_ld([("Ana Sayfa", "index.html"), ("Puan Hesaplama", "puan-hesaplama.html"), ("YKS Sıralama", None)])])
 
 
 def page_lgs_calc():
@@ -1467,6 +1566,46 @@ def write_veri(programs):
         path = veri / f"{fname[pt]}.json"
         path.write_text(json.dumps(rows, ensure_ascii=False, separators=(",", ":")), encoding="utf-8")
         print(f"  [veri] {fname[pt]}.json  {len(rows)} kayıt, {path.stat().st_size//1024} KB")
+
+
+def write_puan_sira(programs):
+    """Gerçek (taban puan, başarı sırası) çiftlerinden puan→sıralama eğrisi üretir.
+    Her puan türü için monoton (puan↑ → sıra↓), ~200 çapa noktasına indirgenmiş tablo.
+    İstemci bu eğride enterpolasyon yaparak verilen puanın tahmini sırasını bulur."""
+    from collections import defaultdict
+    fname = {"SAY": "say", "EA": "ea", "SÖZ": "soz", "DİL": "dil", "TYT": "tyt"}
+    pairs = defaultdict(list)
+    for r in programs:
+        pt = r.get("p"); tp = r.get("tp"); s = r.get("sira")
+        if pt in fname and tp and s:
+            pairs[pt].append((float(tp), int(s)))
+    out = {}
+    for pt, key in fname.items():
+        pr = sorted(pairs.get(pt, []), key=lambda x: x[0])  # puana göre artan
+        if len(pr) < 5:
+            out[key] = []
+            continue
+        # ~200 çapa: puana göre eşit aralıklı örnekle, her noktada o puana en yakın sıra
+        # ve monotonluğu zorla (puan arttıkça sıra azalır → running min)
+        N = 200
+        step = max(1, len(pr) // N)
+        anc = pr[::step]
+        if anc[-1] != pr[-1]:
+            anc.append(pr[-1])
+        best = None
+        curve = []
+        for p, s in anc:
+            best = s if best is None else min(best, s)  # puan↑ iken sıra non-increasing
+            curve.append([round(p, 2), best])
+        # aynı puanlı tekrarları sadeleştir (son değer kalsın)
+        dedup = {}
+        for p, s in curve:
+            dedup[p] = s
+        out[key] = [[p, dedup[p]] for p in sorted(dedup)]
+    (ROOT / "veri").mkdir(exist_ok=True)
+    (ROOT / "veri" / "puan_sira.json").write_text(
+        json.dumps(out, ensure_ascii=False, separators=(",", ":")), encoding="utf-8")
+    print(f"  [veri] puan_sira.json  " + ", ".join(f"{k}:{len(v)}" for k, v in out.items()))
 
 
 # ───────────────────────── TABAN PUANLARI (interaktif arama) ─────────────────────────
@@ -3267,6 +3406,7 @@ geçiş hariçtir. Düşük doluluk talebin az olduğunu, yüksek doluluk progra
 # ───────────────────────── HUB SAYFALARI ─────────────────────────
 def page_puan_hesaplama_hub():
     tools = [("yks-puan-hesaplama.html", "🎓", "YKS Puan Hesaplama", "TYT + AYT net ve puan"),
+             ("yks-siralama-hesaplama.html", "📈", "YKS Sıralama Hesaplama", "Puanına göre tahmini sıra + bölümler"),
              ("lgs-puan-hesaplama.html", "🏫", "LGS Puan Hesaplama", "Ağırlıklı net ve puan"),
              ("kpss-puan-hesaplama.html", "🏛️", "KPSS Puan Hesaplama", "GY-GK net hesaplama"),
              ("dgs-puan-hesaplama.html", "📈", "DGS Puan Hesaplama", "Sayısal-Sözel net"),
@@ -3447,7 +3587,8 @@ def write_arama(g_by_slug, u_by_slug, il_slugs):
             ("LGS Lise Taban Puanları", "lise-taban-puanlari.html"), ("TUS Taban Puanları", "tus-taban-puanlari.html"),
             ("DUS Taban Puanları", "dus-taban-puanlari.html"), ("DGS Taban Puanları", "dgs-taban-puanlari.html"),
             ("KPSS Atama Taban Puanları", "kpss-atama-taban-puanlari.html"), ("Doluluk Analizi", "doluluk.html"),
-            ("YKS Puan Hesaplama", "yks-puan-hesaplama.html"), ("LGS Puan Hesaplama", "lgs-puan-hesaplama.html"),
+            ("YKS Puan Hesaplama", "yks-puan-hesaplama.html"), ("YKS Sıralama Hesaplama", "yks-siralama-hesaplama.html"),
+            ("LGS Puan Hesaplama", "lgs-puan-hesaplama.html"),
             ("KPSS Puan Hesaplama", "kpss-puan-hesaplama.html"), ("DGS Puan Hesaplama", "dgs-puan-hesaplama.html"),
             ("ALES Puan Hesaplama", "ales-puan-hesaplama.html"), ("Sınav Takvimi", "takvim.html")]
     for ad, sl in arac:
@@ -3506,6 +3647,7 @@ def main():
     W("ydus.html", page_ydus_rehber())
     W("sts.html", page_sts_rehber())
     W("yks-puan-hesaplama.html", page_yks_calc())
+    W("yks-siralama-hesaplama.html", page_yks_siralama())
     W("lgs-puan-hesaplama.html", page_lgs_calc())
     W("kpss-puan-hesaplama.html", page_kpss_calc())
     W("dgs-puan-hesaplama.html", page_dgs_calc())
@@ -3520,6 +3662,7 @@ def main():
     programs = load_programs()
     print(f"  {len(programs)} program yüklendi (YÖK Atlas 2025)")
     write_veri(programs)
+    write_puan_sira(programs)
     W("doluluk.html", page_doluluk(programs))
     print("  Bölüm sayfaları üretiliyor...")
     g_by_slug = gen_bolum_pages(programs)
