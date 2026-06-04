@@ -5,11 +5,16 @@ Tüm sayfaları assets/style.css + ortak şablonla üretir.
 Inline <script>'lar nonce="__NONCE__" taşır (nginx sub_filter ile per-request nonce).
 Inline event handler (onclick/onload) YOK — addEventListener kullanılır (CSP strict-dynamic)."""
 import json
+import re
 from pathlib import Path
+
+
+def html_escape(s):
+    return (str(s) if s is not None else "").replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;").replace('"', "&quot;")
 
 ROOT = Path(__file__).parent
 SITE = "https://sinavveri.com"
-ASSET_VER = "20260604h"
+ASSET_VER = "20260604i"
 
 NAV = [
     ("/index.html", "Ana Sayfa"),
@@ -17,6 +22,7 @@ NAV = [
     ("/tercih-robotu.html", "Tercih Robotu"),
     ("/puan-hesaplama.html", "Puan Hesaplama"),
     ("/bolumler.html", "Bölümler"),
+    ("/universiteler.html", "Üniversiteler"),
     ("/listeler.html", "Listeler"),
     ("/takvim.html", "Takvim"),
     ("/rehberler.html", "Rehberler"),
@@ -625,6 +631,188 @@ def trend_chart(group_recs, divid):
 CAL = json.loads((ROOT / "data" / "takvim-2026.json").read_text(encoding="utf-8"))
 _demo_p = ROOT / "data" / "demografi.json"
 DEMOGRAFI = json.loads(_demo_p.read_text(encoding="utf-8")) if _demo_p.exists() else {}
+_univ_p = ROOT / "data" / "universiteler.json"
+UNIV = json.loads(_univ_p.read_text(encoding="utf-8")) if _univ_p.exists() else {}
+
+
+def _uni_norm(s):
+    """Üniversite adı normalize (universiteler.json anahtarıyla aynı kural)."""
+    s = (s or "").strip().lower().replace("i̇", "i")
+    s = re.sub(r"\([^)]*\)", "", s)
+    tr = {"ı": "i", "ş": "s", "ğ": "g", "ü": "u", "ö": "o", "ç": "c", "â": "a", "î": "i", "û": "u"}
+    s = "".join(tr.get(c, c) for c in s)
+    return re.sub(r"\s+", " ", re.sub(r"[^a-z0-9 ]", " ", s)).strip()
+
+
+def uni_info(u):
+    return UNIV.get(_uni_norm(u)) or {}
+
+
+def uni_logo_html(u, size=40, cls="uni-logo"):
+    """Üniversite logosu <img> (self-host /assets/logos/<id>.png). Yoksa boş döner."""
+    info = uni_info(u)
+    uid = info.get("id")
+    if not uid or not (ROOT / "assets" / "logos" / f"{uid}.png").exists():
+        return ""
+    return (f'<img class="{cls}" src="/assets/logos/{uid}.png" alt="{html_escape(u)} logosu" '
+            f'width="{size}" height="{size}" loading="lazy" decoding="async">')
+
+
+def nf_tr(n):
+    try:
+        return f"{int(n):,}".replace(",", ".")
+    except (TypeError, ValueError):
+        return "—"
+
+
+def tr_loc(s):
+    """Türkçe bulunma hâli eki (ünlü uyumu + ünsüz benzeşmesi): İstanbul'da, İzmir'de, Sinop'ta."""
+    s = (s or "").strip()
+    if not s:
+        return ""
+    vowels = [c for c in s.lower() if c in "aeıioöuü"]
+    back = vowels[-1] in "aıou" if vowels else True
+    hard = s[-1] in "fstkçşhpFSTKÇŞHP"
+    ek = ("ta" if hard else "da") if back else ("te" if hard else "de")
+    return f"{s}'{ek}"
+
+
+def tr_loc_ki(s):
+    return tr_loc(s) + "ki"
+
+
+def uni_analiz(u, info, recs):
+    """SinavVeri.com Üniversite Analizi — künye + program verisinden türetilmiş özgün metin.
+    Şablon değil: değerlere göre dallanan cümleler kurar."""
+    il = info.get("il") or (next((r.get("il") for r in recs if r.get("il")), ""))
+    tur = info.get("tur") or ""
+    kur = info.get("kurulus") or ""
+    ogr = info.get("ogrenci") or 0
+    aka = info.get("akademisyen") or 0
+    fak = len({r.get("fak") for r in recs if r.get("fak")})
+    nprog = len(recs)
+    pt = {}
+    for r in recs:
+        if r.get("p"):
+            pt[r["p"]] = pt.get(r["p"], 0) + 1
+    # En güçlü 3 bölüm (en düşük başarı sırası)
+    top = [r for r in recs if r.get("sira")]
+    top.sort(key=lambda r: r["sira"])
+    top_names = []
+    seen = set()
+    for r in top:
+        g = r.get("g") or r.get("b")
+        if g and g not in seen:
+            seen.add(g)
+            top_names.append(g)
+        if len(top_names) >= 3:
+            break
+
+    s = []
+    # 1. Kuruluş + konum + tür
+    p1 = f"<b>{html_escape(u.split(' (')[0].title() if u.isupper() else u)}</b>"
+    if kur:
+        yas = 2026 - int(kur)
+        konum = (f"{tr_loc(il)} kurulan bir {tur.lower()} üniversitesi olan " if il and tur else "kurulan ")
+        p1 = f"{kur} yılında {konum}<b>{html_escape(u)}</b>, {yas} yıllık akademik geçmişe sahiptir."
+    else:
+        p1 = f"<b>{html_escape(u)}</b>" + (f", {tr_loc(il)} yer alan bir {tur.lower()} üniversitesidir." if il and tur else " kurumudur.")
+    s.append(p1)
+
+    # 2. Öğrenci + akademisyen
+    if ogr and aka:
+        oran = round(ogr / aka)
+        s.append(f"Toplam <b>{nf_tr(ogr)} öğrenci</b> ve <b>{nf_tr(aka)} akademisyen</b> ile öğretim üyesi başına yaklaşık {oran} öğrenci düşmektedir"
+                 + (" — bu, görece bireysel bir eğitim ortamına işaret eder." if oran <= 18 else "." if oran <= 30 else " — kalabalık bir öğrenci profili söz konusudur."))
+    elif ogr:
+        s.append(f"Üniversitede toplam <b>{nf_tr(ogr)} öğrenci</b> öğrenim görmektedir.")
+
+    # 3. Program zenginliği + güçlü bölümler
+    p3 = f"YÖK Atlas 2025 verisine göre {nprog} programı"
+    if fak:
+        p3 += f" ve {fak} fakülte/birimi"
+    p3 += " bulunan üniversitenin"
+    if top_names:
+        p3 += f" giriş başarısı en yüksek bölümleri <b>{html_escape(', '.join(top_names))}</b> olarak öne çıkmaktadır."
+    else:
+        p3 += " bölümleri çeşitli puan türlerine yayılmaktadır."
+    s.append(p3)
+
+    # 4. Puan türü dağılımı (varsa)
+    if pt:
+        parts = [f"{PT_LABEL.get(k, k)} ({v})" for k, v in sorted(pt.items(), key=lambda kv: -kv[1])]
+        s.append(f"Program dağılımı puan türüne göre: {html_escape(', '.join(parts))}.")
+
+    return " ".join(s)
+
+
+def uni_kunye_html(u, recs):
+    """Üniversite künye kartı: logo + istatistik grid + analiz + kurumsal bilgiler + harita."""
+    info = uni_info(u)
+    if not info:
+        return ""
+    il = info.get("il") or (next((r.get("il") for r in recs if r.get("il")), ""))
+    fak = len({r.get("fak") for r in recs if r.get("fak")})
+    logo = uni_logo_html(u, size=72, cls="uni-logo-lg")
+    # İstatistik kutuları
+    stats = []
+    if info.get("ogrenci"):
+        stats.append(("👥", "Öğrenci", nf_tr(info["ogrenci"])))
+    if info.get("akademisyen"):
+        stats.append(("🎓", "Akademisyen", nf_tr(info["akademisyen"])))
+    if fak:
+        stats.append(("🏛️", "Fakülte/Birim", str(fak)))
+    stats.append(("📚", "Program", str(len(recs))))
+    if info.get("kurulus"):
+        stats.append(("📅", "Kuruluş", info["kurulus"]))
+    if info.get("tur"):
+        stats.append(("🏷️", "Tür", info["tur"]))
+    stat_html = "".join(
+        f'<div class="uk-stat"><span class="uk-ico">{i}</span><span class="uk-val">{html_escape(v)}</span><span class="uk-lbl">{html_escape(l)}</span></div>'
+        for i, l, v in stats)
+
+    # Kurumsal bilgiler satırları
+    rows = []
+    if info.get("website"):
+        w = info["website"].replace("http://", "").replace("https://", "").rstrip("/")
+        rows.append(("Web", f'<a href="{html_escape(info["website"])}" target="_blank" rel="noopener nofollow">{html_escape(w)}</a>'))
+    if info.get("rektor"):
+        rows.append(("Rektör", html_escape(info["rektor"])))
+    if info.get("telefon"):
+        rows.append(("Telefon", html_escape(info["telefon"])))
+    if info.get("bolge"):
+        rows.append(("Bölge", html_escape(info["bolge"])))
+    if info.get("lisans") or info.get("onlisans"):
+        det = []
+        for lbl, k in [("Lisans", "lisans"), ("Önlisans", "onlisans"), ("Yüksek lisans", "yukseklisans"), ("Doktora", "doktora")]:
+            if info.get(k):
+                det.append(f"{lbl}: {nf_tr(info[k])}")
+        if det:
+            rows.append(("Öğrenci kırılımı", html_escape(" · ".join(det))))
+    kurumsal = "".join(f'<div class="uk-row"><dt>{l}</dt><dd>{v}</dd></div>' for l, v in rows)
+
+    # Harita + adres
+    adres = info.get("adres") or ""
+    harita = ""
+    if adres or il:
+        q = (u.split(" (")[0] + " " + (il or "")).strip()
+        maps = "https://www.google.com/maps/search/?api=1&query=" + html_escape(q.replace(" ", "+"))
+        harita = (f'<div class="uk-map">'
+                  + (f'<div class="uk-adres">📍 {html_escape(adres)}</div>' if adres else "")
+                  + f'<a class="btn btn-ghost" href="{maps}" target="_blank" rel="noopener nofollow">🗺️ Haritada Aç</a>'
+                  + (f'<button type="button" class="btn btn-ghost uk-copy" data-adres="{html_escape(adres)}">📋 Adresi Kopyala</button>' if adres else "")
+                  + "</div>")
+
+    analiz = uni_analiz(u, info, recs)
+    return f"""
+<div class="uk-card">
+  <div class="uk-head">{logo}<div class="uk-stats">{stat_html}</div></div>
+  <div class="uk-analiz"><h2>📊 SinavVeri.com Üniversite Analizi</h2><p>{analiz}</p></div>
+  {f'<div class="uk-kurumsal"><h3>Kurumsal Bilgiler</h3><dl>{kurumsal}</dl></div>' if kurumsal else ''}
+  {harita}
+</div>"""
+
+
 TUR_LABEL = {"yks": ("YKS", "tag-yks"), "lgs": ("LGS", "tag-lgs"), "kpss": ("KPSS", "tag-kpss"), "other": ("Diğer", "tag-other")}
 AY_TR = ["", "Ocak", "Şubat", "Mart", "Nisan", "Mayıs", "Haziran", "Temmuz", "Ağustos", "Eylül", "Ekim", "Kasım", "Aralık"]
 
@@ -2473,6 +2661,8 @@ DETAIL_CMP = """
 DETAIL_TOOLS_JS = r"""<script nonce="__NONCE__">
 (function(){
   var SV=window.SV||{};
+  var _cp=document.querySelector('.uk-copy');
+  if(_cp)_cp.addEventListener('click',function(){var a=_cp.getAttribute('data-adres')||'';try{navigator.clipboard.writeText(a);_cp.textContent='✓ Kopyalandı';setTimeout(function(){_cp.textContent='📋 Adresi Kopyala';},1500);}catch(e){}});
   var tbl=document.querySelector('table.detail-table'); if(!tbl)return;
   var tb=tbl.querySelector('tbody'); if(!tb)return;
   var rows=Array.prototype.slice.call(tb.querySelectorAll(':scope>tr')).filter(function(r){return !r.classList.contains('pdet-row');});
@@ -2623,7 +2813,7 @@ def gen_bolum_pages(programs):
         with_p = [r for r in recs if r.get("tp")]
         rows = ""
         for r in recs:
-            rows += (f'<tr{_row_attrs(r)}><td><strong>' + (r.get("u") or "") + "</strong> " + _pdet_btn(r) + "</td>"
+            rows += (f'<tr{_row_attrs(r)}><td>' + uni_logo_html(r.get("u"), size=24, cls="uni-logo-sm") + "<strong>" + (r.get("u") or "") + "</strong> " + _pdet_btn(r) + "</td>"
                      "<td>" + (r.get("b") or "") + "</td>"
                      "<td>" + (r.get("il") or "—") + "</td>"
                      "<td>" + TUR_FULL.get(r.get("t"), "—") + "</td>"
@@ -2731,7 +2921,8 @@ def gen_universite_pages(programs):
                      '<td style="text-align:center"><input type="checkbox" class="dcmp" aria-label="Karşılaştır"></td></tr>')
         body = f"""
 <div class="crumb"><a href="/index.html">Ana Sayfa</a> / <a href="/universiteler.html">Üniversiteler</a> / {u}</div>
-<div class="page-title"><h1>{u} Taban Puanları 2025</h1><span class="sub">{il} · {tur} · {len(recs)} program · YÖK Atlas 2025</span></div>
+<div class="page-title uni-title">{uni_logo_html(u, size=48, cls="uni-logo-h1")}<div><h1>{u} Taban Puanları 2025</h1><span class="sub">{il} · {tur} · {len(recs)} program · YÖK Atlas 2025</span></div></div>
+{uni_kunye_html(u, recs)}
 {DETAIL_BAR}
 <div class="data-table-wrap">
 <table class="data-table detail-table" data-live="1">
@@ -2793,7 +2984,8 @@ def page_universiteler(u_by_slug, programs):
     items = sorted(u_by_slug.items(), key=lambda kv: kv[1].lower())
     cards = ""
     for s, u in items:
-        cards += f'<a class="tool-btn" href="/universite/{s}.html"><span class="tb-icon">🏛️</span><span class="tb-text"><b>{u}</b><span>{ilmap.get(u,"")} · {cnt.get(u,0)} program</span></span></a>'
+        ic = uni_logo_html(u, size=34, cls="uni-logo") or "🏛️"
+        cards += f'<a class="tool-btn" href="/universite/{s}.html"><span class="tb-icon">{ic}</span><span class="tb-text"><b>{u}</b><span>{ilmap.get(u,"")} · {cnt.get(u,0)} program</span></span></a>'
     body = f"""
 <div class="crumb"><a href="/index.html">Ana Sayfa</a> / Üniversiteler</div>
 <div class="page-title"><h1>Üniversitelere Göre Taban Puanları</h1><span class="sub">{len(items)} üniversite · YÖK Atlas 2025</span></div>
@@ -2814,6 +3006,197 @@ def page_universiteler(u_by_slug, programs):
 """
     return base("universiteler.html", "Üniversitelere Göre Taban Puanları 2025 | SınavVeri",
                 "Tüm üniversitelerin 2025 taban puanları ve bölümleri. 227 devlet ve vakıf üniversitesi YÖK Atlas verisiyle.",
+                body)
+
+
+# ───────────────────────── ŞEHİR (İL) ÜNİVERSİTE SAYFALARI ─────────────────────────
+def gen_sehir_pages(programs, u_by_slug):
+    """Her il için o ildeki üniversitelerin listesi (logo + program sayısı + tür)."""
+    from collections import defaultdict
+    slug_by_u = {u: s for s, u in u_by_slug.items()}
+    il_unis = defaultdict(set)
+    uni_prog = defaultdict(int)
+    uni_il = {}
+    uni_tur = {}
+    for r in programs:
+        u, il = r.get("u"), r.get("il")
+        if not (u and il):
+            continue
+        il_unis[il].add(u)
+        uni_prog[u] += 1
+        uni_il.setdefault(u, il)
+        if u not in uni_tur and r.get("t"):
+            _b = {"DKU": "D", "DU": "D"}
+            uni_tur[u] = TUR_FULL.get(_b.get(r["t"], r["t"]), "")
+    il_slugs = {}
+    items = sorted(il_unis.items(), key=lambda kv: tr_sort_key(kv[0]))
+    for il, uset in items:
+        s = slugify(il)
+        il_slugs[s] = il
+        unis = sorted(uset, key=lambda u: (-uni_prog[u], u.lower()))
+        dev = sum(1 for u in unis if uni_tur.get(u) == "Devlet")
+        vak = sum(1 for u in unis if uni_tur.get(u, "").startswith("Vakıf"))
+        cards = ""
+        for u in unis:
+            us = slug_by_u.get(u)
+            if not us:
+                continue
+            ic = uni_logo_html(u, size=34, cls="uni-logo") or "🏛️"
+            cards += (f'<a class="tool-btn" href="/universite/{us}.html"><span class="tb-icon">{ic}</span>'
+                      f'<span class="tb-text"><b>{u}</b><span>{uni_tur.get(u,"")} · {uni_prog[u]} program</span></span></a>')
+        body = f"""
+<div class="crumb"><a href="/index.html">Ana Sayfa</a> / <a href="/sehirler.html">Şehirler</a> / {il}</div>
+<div class="page-title"><h1>{il} Üniversiteleri 2025</h1><span class="sub">{len(unis)} üniversite · {dev} devlet · {vak} vakıf · YÖK Atlas 2025</span></div>
+<div class="info-box">{il} ilinde bulunan tüm üniversitelerin bölümleri, taban puanları ve başarı sıralamaları. Bir üniversiteye tıklayarak {tr_loc_ki(il)} programların 2025 taban puanlarını inceleyebilirsiniz.</div>
+<div class="tool-row">{cards}</div>
+<div class="notice"><b>Kaynak:</b> YÖK Atlas 2025. <a href="/universite-taban-puanlari.html?il={il}">{il} programlarını ara</a> · <a href="/sehirler.html">tüm şehirler</a>.</div>
+"""
+        html = base(f"sehir/{s}.html", f"{il} Üniversiteleri 2025 — Taban Puanları ve Bölümler | SınavVeri",
+                    f"{il} ilindeki {len(unis)} üniversitenin 2025 taban puanları, bölümleri ve başarı sıralamaları. Devlet ve vakıf üniversiteleri YÖK Atlas verisiyle.",
+                    body)
+        write(f"sehir/{s}.html", html)
+    return il_slugs
+
+
+def page_sehirler(il_slugs, programs):
+    from collections import defaultdict
+    cnt = defaultdict(set)
+    for r in programs:
+        if r.get("il") and r.get("u"):
+            cnt[r["il"]].add(r["u"])
+    items = sorted(il_slugs.items(), key=lambda kv: tr_sort_key(kv[1]))
+    cards = ""
+    for s, il in items:
+        cards += (f'<a class="tool-btn" href="/sehir/{s}.html"><span class="tb-icon">📍</span>'
+                  f'<span class="tb-text"><b>{il}</b><span>{len(cnt.get(il,[]))} üniversite</span></span></a>')
+    body = f"""
+<div class="crumb"><a href="/index.html">Ana Sayfa</a> / Şehirler</div>
+<div class="page-title"><h1>Şehirlere Göre Üniversiteler</h1><span class="sub">{len(items)} il · YÖK Atlas 2025</span></div>
+<input id="cSearch" type="text" placeholder="Şehir ara… (örn. ankara, izmir)" style="width:100%;max-width:480px;padding:10px 12px;border:1px solid var(--border);border-radius:9px;background:var(--bg-card-alt);color:var(--fg);font-family:inherit;font-size:14px;margin-bottom:18px">
+<div class="tool-row" id="cList">{cards}</div>
+<script nonce="__NONCE__">
+(function(){{
+  var q=document.getElementById('cSearch'),list=document.getElementById('cList');
+  var items=Array.prototype.slice.call(list.children);
+  q.addEventListener('input',function(){{var v=this.value.toLocaleLowerCase('tr').trim();
+    items.forEach(function(a){{a.style.display=a.textContent.toLocaleLowerCase('tr').indexOf(v)>=0?'':'none';}});}});
+}})();
+</script>
+"""
+    return base("sehirler.html", "Şehirlere Göre Üniversiteler 2025 — İl İl Taban Puanları | SınavVeri",
+                "Türkiye'deki 81 ilin üniversiteleri ve 2025 taban puanları. İstanbul, Ankara, İzmir ve tüm şehirlerdeki devlet ve vakıf üniversiteleri.",
+                body)
+
+
+# ───────────────────────── ÜCRET SAYFALARI (VAKIF) ─────────────────────────
+def page_universite_ucretleri(programs, u_by_slug):
+    """Vakıf üniversitelerinin yıllık öğrenim ücretleri (ücretli program aralığı) + burs."""
+    from collections import defaultdict
+    slug_by_u = {u: s for s, u in u_by_slug.items()}
+    uc = defaultdict(list)   # uni -> [ücretler]
+    burslu = defaultdict(bool)
+    uni_il = {}
+    for r in programs:
+        u = r.get("u")
+        if not u:
+            continue
+        t = r.get("t")
+        if t not in ("V", "DU"):  # vakıf + devlet ücretli
+            continue
+        uni_il.setdefault(u, r.get("il", ""))
+        if r.get("ucret"):
+            uc[u].append(r["ucret"])
+        if "Burslu" in (r.get("bs") or "") or (r.get("ucret") == 0):
+            burslu[u] = True
+    rows = ""
+    data_unis = sorted(uc.keys(), key=lambda u: (min(uc[u]) if uc[u] else 0))
+    for u in data_unis:
+        vals = uc[u]
+        if not vals:
+            continue
+        lo, hi = min(vals), max(vals)
+        us = slug_by_u.get(u)
+        name = f'<a href="/universite/{us}.html">{u}</a>' if us else u
+        ic = uni_logo_html(u, size=26, cls="uni-logo-sm")
+        rng = nf_tr(lo) + (f" – {nf_tr(hi)}" if hi != lo else "")
+        rows += (f'<tr><td>{ic}{name}</td><td>{html_escape(uni_il.get(u,""))}</td>'
+                 f'<td style="text-align:right">{rng} ₺</td>'
+                 f'<td style="text-align:center">{"✅" if burslu.get(u) else "—"}</td></tr>')
+    body = f"""
+<div class="crumb"><a href="/index.html">Ana Sayfa</a> / Üniversite Ücretleri</div>
+<div class="page-title"><h1>Vakıf Üniversitesi Ücretleri 2026</h1><span class="sub">{len(data_unis)} vakıf üniversitesi · yıllık öğrenim ücreti · YÖK Atlas</span></div>
+<div class="info-box">Vakıf üniversitelerinin 2026 yıllık öğrenim ücreti aralıkları (en düşük – en yüksek program ücreti) ve burslu (tam/kısmi) program imkânı. Ücretler programa göre değişir; kesin tutar için üniversite ile teyit ediniz.</div>
+<input id="ufS" type="text" placeholder="Üniversite veya şehir ara…" style="width:100%;max-width:460px;padding:9px 12px;border:1px solid var(--border);border-radius:9px;background:var(--bg-card-alt);color:var(--fg);font-family:inherit;font-size:14px;margin-bottom:14px">
+<div class="data-table-wrap"><table class="data-table" id="ufT">
+<thead><tr><th>Üniversite</th><th>Şehir</th><th style="text-align:right">Yıllık Ücret Aralığı</th><th style="text-align:center">Burs</th></tr></thead>
+<tbody>{rows}</tbody></table></div>
+<div class="notice"><b>Kaynak:</b> YÖK Atlas 2025 program ücretleri. <a href="/bolum-ucretleri.html">Bölüm bazında ücretler</a> · <a href="/universiteler.html">tüm üniversiteler</a>.</div>
+<script nonce="__NONCE__">
+(function(){{
+  var q=document.getElementById('ufS'),t=document.getElementById('ufT');
+  var rows=Array.prototype.slice.call(t.querySelectorAll('tbody tr'));
+  q.addEventListener('input',function(){{var v=this.value.toLocaleLowerCase('tr').trim();
+    rows.forEach(function(r){{r.style.display=r.textContent.toLocaleLowerCase('tr').indexOf(v)>=0?'':'none';}});}});
+  t.querySelectorAll('thead th').forEach(function(th,i){{th.style.cursor='pointer';th.addEventListener('click',function(){{
+    var asc=th.dataset.a!=='1';th.dataset.a=asc?'1':'';
+    rows.sort(function(a,b){{var x=a.children[i].textContent,y=b.children[i].textContent;
+      var nx=parseFloat(x.replace(/[^0-9]/g,'')),ny=parseFloat(y.replace(/[^0-9]/g,''));
+      if(!isNaN(nx)&&!isNaN(ny))return asc?nx-ny:ny-nx;return asc?x.localeCompare(y,'tr'):y.localeCompare(x,'tr');}});
+    var tb=t.querySelector('tbody');rows.forEach(function(r){{tb.appendChild(r);}});}});}});
+}})();
+</script>
+"""
+    return base("universite-ucretleri.html", "Vakıf Üniversitesi Ücretleri 2026 — Öğrenim Ücretleri ve Burs | SınavVeri",
+                "Türkiye'deki vakıf üniversitelerinin 2026 yıllık öğrenim ücretleri ve burs imkânları. Ücret aralıklarını şehir ve üniversiteye göre karşılaştır.",
+                body)
+
+
+def page_bolum_ucretleri(programs, g_by_slug):
+    """Bölüm gruplarına göre ücret özeti — her bölümün vakıf ücret aralığı."""
+    from collections import defaultdict
+    slug_by_g = {g: s for s, g in g_by_slug.items()}
+    uc = defaultdict(list)
+    for r in programs:
+        if r.get("g") and r.get("t") in ("V", "DU") and r.get("ucret"):
+            uc[r["g"]].append(r["ucret"])
+    rows = ""
+    for g in sorted(uc.keys(), key=lambda g: tr_sort_key(g)):
+        vals = uc[g]
+        if not vals:
+            continue
+        gs = slug_by_g.get(g)
+        name = f'<a href="/bolum/{gs}.html">{g}</a>' if gs else g
+        lo, hi = min(vals), max(vals)
+        med = sorted(vals)[len(vals) // 2]
+        rng = nf_tr(lo) + (f" – {nf_tr(hi)}" if hi != lo else "")
+        rows += (f'<tr><td>{name}</td><td style="text-align:center">{len(vals)}</td>'
+                 f'<td style="text-align:right">{rng} ₺</td><td style="text-align:right">{nf_tr(med)} ₺</td></tr>')
+    body = f"""
+<div class="crumb"><a href="/index.html">Ana Sayfa</a> / Bölüm Ücretleri</div>
+<div class="page-title"><h1>Bölüm Bazında Üniversite Ücretleri 2026</h1><span class="sub">Vakıf programlarının yıllık öğrenim ücreti · YÖK Atlas</span></div>
+<div class="info-box">Her bölüm grubunun vakıf üniversitelerindeki yıllık ücret aralığı ve medyan ücreti. Bölüme tıklayarak üniversite bazında ücret ve taban puanlarını görebilirsiniz.</div>
+<input id="bfS" type="text" placeholder="Bölüm ara… (örn. tıp, hukuk, bilgisayar)" style="width:100%;max-width:460px;padding:9px 12px;border:1px solid var(--border);border-radius:9px;background:var(--bg-card-alt);color:var(--fg);font-family:inherit;font-size:14px;margin-bottom:14px">
+<div class="data-table-wrap"><table class="data-table" id="bfT">
+<thead><tr><th>Bölüm</th><th style="text-align:center">Vakıf Prog.</th><th style="text-align:right">Ücret Aralığı</th><th style="text-align:right">Medyan</th></tr></thead>
+<tbody>{rows}</tbody></table></div>
+<div class="notice"><b>Kaynak:</b> YÖK Atlas 2025. <a href="/universite-ucretleri.html">Üniversite bazında ücretler</a>.</div>
+<script nonce="__NONCE__">
+(function(){{
+  var q=document.getElementById('bfS'),t=document.getElementById('bfT');
+  var rows=Array.prototype.slice.call(t.querySelectorAll('tbody tr'));
+  q.addEventListener('input',function(){{var v=this.value.toLocaleLowerCase('tr').trim();
+    rows.forEach(function(r){{r.style.display=r.textContent.toLocaleLowerCase('tr').indexOf(v)>=0?'':'none';}});}});
+  t.querySelectorAll('thead th').forEach(function(th,i){{th.style.cursor='pointer';th.addEventListener('click',function(){{
+    var asc=th.dataset.a!=='1';th.dataset.a=asc?'1':'';
+    rows.sort(function(a,b){{var x=a.children[i].textContent,y=b.children[i].textContent;
+      var nx=parseFloat(x.replace(/[^0-9]/g,'')),ny=parseFloat(y.replace(/[^0-9]/g,''));
+      if(!isNaN(nx)&&!isNaN(ny))return asc?nx-ny:ny-nx;return asc?x.localeCompare(y,'tr'):y.localeCompare(x,'tr');}});
+    var tb=t.querySelector('tbody');rows.forEach(function(r){{tb.appendChild(r);}});}});}});
+}})();
+</script>
+"""
+    return base("bolum-ucretleri.html", "Bölüm Bazında Üniversite Ücretleri 2026 — Vakıf Öğrenim Ücretleri | SınavVeri",
+                "Bölümlere göre vakıf üniversitesi yıllık öğrenim ücretleri 2026. Tıp, hukuk, mühendislik ve tüm bölümlerin ücret aralıkları ve medyanı.",
                 body)
 
 
@@ -3080,7 +3463,10 @@ def page_taban_hub():
         ("/dgs-taban-puanlari.html", "📈", "DGS Taban Puanları", "Dikey geçiş · 7.000+ üniversite programı · ÖSYM resmî 2025"),
         ("/kpss-atama-taban-puanlari.html", "🏛️", "KPSS Atama Taban Puanları", "Kadro bazında atama puanları · ÖSYM resmî 2025"),
         ("/bolumler.html", "📘", "Bölümlere Göre", "600+ bölüm grubu taban puanı"),
-        ("/universiteler.html", "🏫", "Üniversitelere Göre", "227 üniversite"),
+        ("/universiteler.html", "🏫", "Üniversitelere Göre", "227 üniversite · künye, analiz, logo"),
+        ("/sehirler.html", "📍", "Şehirlere Göre", "81 il · ildeki üniversiteler"),
+        ("/universite-ucretleri.html", "💰", "Vakıf Üniversite Ücretleri", "Yıllık öğrenim ücreti & burs"),
+        ("/bolum-ucretleri.html", "🧾", "Bölüm Ücretleri", "Bölüm bazında vakıf ücretleri"),
         ("/doluluk.html", "📊", "Doluluk Analizi", "Kontenjan & doluluk oranları 2025"),
     ]
     cards = "".join(
@@ -4148,6 +4534,15 @@ def main():
         slugs.append(f"universite/{s}.html")
     W("universiteler.html", page_universiteler(u_by_slug, programs))
     print(f"  → {len(u_by_slug)} üniversite sayfası")
+    print("  Şehir (il) üniversite sayfaları üretiliyor...")
+    sehir_slugs = gen_sehir_pages(programs, u_by_slug)
+    for s in sehir_slugs:
+        slugs.append(f"sehir/{s}.html")
+    W("sehirler.html", page_sehirler(sehir_slugs, programs))
+    print(f"  → {len(sehir_slugs)} şehir sayfası")
+    W("universite-ucretleri.html", page_universite_ucretleri(programs, u_by_slug))
+    W("bolum-ucretleri.html", page_bolum_ucretleri(programs, g_by_slug))
+    print("  → ücret sayfaları (üniversite + bölüm)")
 
     # LGS lise taban puanları
     lgs = load_lgs()

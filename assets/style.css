@@ -349,3 +349,28 @@ footer a[href*="trveri.com"]:hover { color: var(--accent-light) !important; }
 .ara-item { display: block; padding: 10px 14px; background: var(--bg-card); border: 1px solid var(--border); border-radius: 10px; margin-bottom: 7px; color: var(--fg); box-shadow: var(--shadow-sm); }
 .ara-item:hover { border-color: var(--accent-light); text-decoration: none; }
 .ara-item small { color: var(--fg-faded); }
+
+/* ── Üniversite logosu + künye kartı ── */
+.uni-logo { width: 34px; height: 34px; object-fit: contain; border-radius: 7px; background: #fff; padding: 2px; vertical-align: middle; }
+.uni-logo-h1 { width: 48px; height: 48px; object-fit: contain; border-radius: 9px; background: #fff; padding: 3px; box-shadow: var(--shadow-sm); flex: 0 0 auto; }
+.uni-logo-lg { width: 72px; height: 72px; object-fit: contain; border-radius: 12px; background: #fff; padding: 5px; box-shadow: var(--shadow-sm); flex: 0 0 auto; }
+.uni-logo-sm { width: 26px; height: 26px; object-fit: contain; border-radius: 5px; background: #fff; padding: 2px; vertical-align: middle; margin-right: 6px; }
+.uni-title { display: flex; align-items: center; gap: 14px; }
+.uk-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 14px; padding: 18px; margin-bottom: 18px; box-shadow: var(--shadow-sm); }
+.uk-head { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; margin-bottom: 14px; }
+.uk-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(96px, 1fr)); gap: 10px; flex: 1; min-width: 220px; }
+.uk-stat { display: flex; flex-direction: column; align-items: center; text-align: center; background: var(--bg-card-alt); border: 1px solid var(--border); border-radius: 10px; padding: 9px 6px; }
+.uk-ico { font-size: 17px; }
+.uk-val { font-size: 17px; font-weight: 800; color: var(--accent); margin-top: 2px; }
+.uk-lbl { font-size: 11px; color: var(--fg-faded); }
+.uk-analiz { border-top: 1px solid var(--border); padding-top: 12px; }
+.uk-analiz h2 { font-size: 16px; font-weight: 800; margin-bottom: 7px; }
+.uk-analiz p { font-size: 14px; line-height: 1.65; color: var(--fg); }
+.uk-kurumsal { margin-top: 12px; border-top: 1px solid var(--border); padding-top: 12px; }
+.uk-kurumsal h3 { font-size: 14px; font-weight: 800; color: var(--accent); margin-bottom: 7px; }
+.uk-kurumsal dl { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 6px 18px; }
+.uk-row { display: flex; gap: 8px; font-size: 13px; }
+.uk-row dt { color: var(--fg-faded); min-width: 110px; }
+.uk-row dd { color: var(--fg); font-weight: 600; }
+.uk-map { margin-top: 12px; border-top: 1px solid var(--border); padding-top: 12px; display: flex; flex-wrap: wrap; align-items: center; gap: 9px; }
+.uk-adres { flex: 1; min-width: 200px; font-size: 13px; color: var(--fg-faded); }

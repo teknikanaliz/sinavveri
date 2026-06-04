@@ -308,7 +308,7 @@
   };
 })();
 </script>
-<link rel="stylesheet" href="/assets/style.css?v=20260604h">
+<link rel="stylesheet" href="/assets/style.css?v=20260604i">
 <link rel="manifest" href="/manifest.json">
 <script nonce="__NONCE__" src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
 </head>
@@ -328,6 +328,7 @@
 <a href="/tercih-robotu.html">Tercih Robotu</a>
 <a href="/puan-hesaplama.html">Puan Hesaplama</a>
 <a href="/bolumler.html">Bölümler</a>
+<a href="/universiteler.html">Üniversiteler</a>
 <a href="/listeler.html">Listeler</a>
 <a href="/takvim.html">Takvim</a>
 <a href="/rehberler.html">Rehberler</a></nav>
@@ -355,7 +356,7 @@
 <div class="data-table-wrap">
 <table class="data-table detail-table" data-live="1">
 <thead><tr><th>Üniversite</th><th>Program</th><th>İl</th><th>Tür</th><th>Kont.</th><th>Doluluk</th><th>Taban 2025</th><th>Taban 2024</th><th>Taban 2023</th><th>Sıra 2025</th><th data-nosort title="Karşılaştır">Kıyas</th></tr></thead>
-<tbody><tr data-il="Ankara" data-tur="Devlet" data-dil="Türkçe" data-uni="ANKARA ÜNİVERSİTESİ"><td><strong>ANKARA ÜNİVERSİTESİ</strong> <button type="button" class="pdet" title="Program detayı" data-kosul="321" data-kadro="0,1,0,0,1" data-sure="2" data-demo="2023|8|34|13|13|8|4">ℹ️</button></td><td>Dijital Fabrika Teknolojileri</td><td>Ankara</td><td>Devlet</td><td>40</td><td><span class="tag tag-lgs">%102</span></td><td><strong>318,54</strong></td><td>309,99</td><td>300,71</td><td>649.146</td><td style="text-align:center"><input type="checkbox" class="dcmp" aria-label="Karşılaştır"></td></tr></tbody>
+<tbody><tr data-il="Ankara" data-tur="Devlet" data-dil="Türkçe" data-uni="ANKARA ÜNİVERSİTESİ"><td><img class="uni-logo-sm" src="/assets/logos/102738.png" alt="ANKARA ÜNİVERSİTESİ logosu" width="24" height="24" loading="lazy" decoding="async"><strong>ANKARA ÜNİVERSİTESİ</strong> <button type="button" class="pdet" title="Program detayı" data-kosul="321" data-kadro="0,1,0,0,1" data-sure="2" data-demo="2023|8|34|13|13|8|4">ℹ️</button></td><td>Dijital Fabrika Teknolojileri</td><td>Ankara</td><td>Devlet</td><td>40</td><td><span class="tag tag-lgs">%102</span></td><td><strong>318,54</strong></td><td>309,99</td><td>300,71</td><td>649.146</td><td style="text-align:center"><input type="checkbox" class="dcmp" aria-label="Karşılaştır"></td></tr></tbody>
 </table>
 </div>
 
@@ -370,6 +371,8 @@
 <script nonce="__NONCE__">
 (function(){
   var SV=window.SV||{};
+  var _cp=document.querySelector('.uk-copy');
+  if(_cp)_cp.addEventListener('click',function(){var a=_cp.getAttribute('data-adres')||'';try{navigator.clipboard.writeText(a);_cp.textContent='✓ Kopyalandı';setTimeout(function(){_cp.textContent='📋 Adresi Kopyala';},1500);}catch(e){}});
   var tbl=document.querySelector('table.detail-table'); if(!tbl)return;
   var tb=tbl.querySelector('tbody'); if(!tb)return;
   var rows=Array.prototype.slice.call(tb.querySelectorAll(':scope>tr')).filter(function(r){return !r.classList.contains('pdet-row');});

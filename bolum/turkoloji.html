@@ -300,7 +300,7 @@
   };
 })();
 </script>
-<link rel="stylesheet" href="/assets/style.css?v=20260604h">
+<link rel="stylesheet" href="/assets/style.css?v=20260604i">
 <link rel="manifest" href="/manifest.json">
 <script nonce="__NONCE__" src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
 </head>
@@ -320,6 +320,7 @@
 <a href="/tercih-robotu.html">Tercih Robotu</a>
 <a href="/puan-hesaplama.html">Puan Hesaplama</a>
 <a href="/bolumler.html">Bölümler</a>
+<a href="/universiteler.html">Üniversiteler</a>
 <a href="/listeler.html">Listeler</a>
 <a href="/takvim.html">Takvim</a>
 <a href="/rehberler.html">Rehberler</a></nav>
@@ -362,6 +363,8 @@
 <script nonce="__NONCE__">
 (function(){
   var SV=window.SV||{};
+  var _cp=document.querySelector('.uk-copy');
+  if(_cp)_cp.addEventListener('click',function(){var a=_cp.getAttribute('data-adres')||'';try{navigator.clipboard.writeText(a);_cp.textContent='✓ Kopyalandı';setTimeout(function(){_cp.textContent='📋 Adresi Kopyala';},1500);}catch(e){}});
   var tbl=document.querySelector('table.detail-table'); if(!tbl)return;
   var tb=tbl.querySelector('tbody'); if(!tb)return;
   var rows=Array.prototype.slice.call(tb.querySelectorAll(':scope>tr')).filter(function(r){return !r.classList.contains('pdet-row');});
