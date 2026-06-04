@@ -9,7 +9,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).parent
 SITE = "https://sinavveri.com"
-ASSET_VER = "20260604d"
+ASSET_VER = "20260604e"
 
 NAV = [
     ("/index.html", "Ana Sayfa"),
@@ -181,9 +181,9 @@ SV_HELPER_JS = r"""<script nonce="__NONCE__">
     }
     function printList(){
       var arr=store.list(); if(!arr.length)return;
-      var rows=arr.map(function(x,i){return '<tr><td>'+(i+1)+'</td><td><b>'+esc(x.name)+'</b>'+(x.sub?'<br><small>'+esc(x.sub)+'</small>':'')+'</td><td>'+esc(x.meta||'')+'</td></tr>';}).join('');
+      var rows=arr.map(function(x,i){return '<tr><td>'+(i+1)+'<\/td><td><b>'+esc(x.name)+'<\/b>'+(x.sub?'<br><small>'+esc(x.sub)+'<\/small>':'')+'<\/td><td>'+esc(x.meta||'')+'<\/td><\/tr>';}).join('');
       var w=window.open('','_blank'); if(!w)return;
-      w.document.write('<!doctype html><html lang=tr><head><meta charset=utf-8><title>Tercih Listem — SınavVeri.com</title><style>body{font-family:Arial,sans-serif;padding:24px;color:#15192b}h1{font-size:20px;color:#b45309}table{width:100%;border-collapse:collapse;margin-top:12px;font-size:13px}td,th{border:1px solid #ccc;padding:7px 10px;text-align:left}th{background:#f0f3fa}td:first-child{width:36px;text-align:center;font-weight:700}small{color:#666}.f{margin-top:16px;font-size:11px;color:#888}</style></head><body><h1>⭐ Tercih Listem</h1><table><thead><tr><th>#</th><th>Program / Üniversite</th><th>Bilgi</th></tr></thead><tbody>'+rows+'</tbody></table><div class=f>SınavVeri.com · '+arr.length+' tercih · Bu liste resmî tercih belgesi değildir; kesin tercih ÖSYM AİS üzerinden yapılır.</div></body></html>');
+      w.document.write('<!doctype html><html lang=tr><head><meta charset=utf-8><title>Tercih Listem — SınavVeri.com<\/title><style>body{font-family:Arial,sans-serif;padding:24px;color:#15192b}h1{font-size:20px;color:#b45309}table{width:100%;border-collapse:collapse;margin-top:12px;font-size:13px}td,th{border:1px solid #ccc;padding:7px 10px;text-align:left}th{background:#f0f3fa}td:first-child{width:36px;text-align:center;font-weight:700}small{color:#666}.f{margin-top:16px;font-size:11px;color:#888}<\/style><\/head><body><h1>⭐ Tercih Listem<\/h1><table><thead><tr><th>#<\/th><th>Program / Üniversite<\/th><th>Bilgi<\/th><\/tr><\/thead><tbody>'+rows+'<\/tbody><\/table><div class=f>SınavVeri.com · '+arr.length+' tercih · Bu liste resmî tercih belgesi değildir; kesin tercih ÖSYM AİS üzerinden yapılır.<\/div><\/body><\/html>');
       w.document.close(); setTimeout(function(){try{w.print();}catch(e){}},300);
     }
     function shareLink(t){
@@ -3705,6 +3705,129 @@ def page_ara():
                 body, extra_ld=[breadcrumb_ld([("Ana Sayfa", "index.html"), ("Arama", None)])])
 
 
+def page_listeler(programs):
+    """GEO/SEO: gerçek veriden türetilmiş sıralama listeleri + ItemList şeması (AI alıntı)."""
+    PTL = {"SAY": "Sayısal", "EA": "Eşit Ağırlık", "SÖZ": "Sözel", "DİL": "Dil"}
+    sections = ""
+    item_list = []
+    for pt in ("SAY", "EA", "SÖZ", "DİL"):
+        rows = sorted([r for r in programs if r.get("p") == pt and r.get("tp")], key=lambda r: -r["tp"])[:20]
+        if not rows:
+            continue
+        trs = ""
+        for i, r in enumerate(rows, 1):
+            trs += (f"<tr><td>{i}</td><td><strong>{r.get('b') or ''}</strong><br><small>{r.get('u') or ''}</small></td>"
+                    f"<td>{r.get('il') or '—'}</td><td><strong>{fmt_puan(r.get('tp'))}</strong></td><td>{fmt_sira(r.get('sira'))}</td></tr>")
+            if pt == "SAY" and i <= 10:
+                item_list.append({"@type": "ListItem", "position": i, "name": f"{r.get('b')} — {r.get('u')}"})
+        sections += (f'<div class="section"><h2>En Yüksek Taban — {PTL[pt]} (2025, ilk 20)</h2>'
+                     '<div class="data-table-wrap"><table class="data-table"><thead><tr><th data-nosort>#</th>'
+                     '<th>Program / Üniversite</th><th>İl</th><th>Taban</th><th>Sıra</th></tr></thead>'
+                     f'<tbody>{trs}</tbody></table></div></div>')
+    konts = sorted([r for r in programs if r.get("kont")], key=lambda r: -r["kont"])[:20]
+    if konts:
+        trs = "".join(f"<tr><td>{i}</td><td><strong>{r.get('b') or ''}</strong><br><small>{r.get('u') or ''}</small></td>"
+                      f"<td>{r.get('il') or '—'}</td><td><strong>{fmt_sira(r.get('kont'))}</strong></td><td>{fmt_puan(r.get('tp'))}</td></tr>"
+                      for i, r in enumerate(konts, 1))
+        sections += ('<div class="section"><h2>En Çok Kontenjanlı 20 Program (2025)</h2>'
+                     '<div class="data-table-wrap"><table class="data-table"><thead><tr><th data-nosort>#</th>'
+                     '<th>Program / Üniversite</th><th>İl</th><th>Kontenjan</th><th>Taban</th></tr></thead>'
+                     f'<tbody>{trs}</tbody></table></div></div>')
+    body = f"""
+<div class="crumb"><a href="/index.html">Ana Sayfa</a> / Listeler ve Sıralamalar</div>
+<div class="page-title"><h1>Üniversite Listeleri ve Sıralamalar 2025</h1><span class="sub">YÖK Atlas 2025 gerçek yerleştirme verisinden · en yüksek taban, en çok kontenjan</span></div>
+<div class="info-box">2025 yerleştirme verisine göre öne çıkan program listeleri. Tüm taban puanları için
+<a href="/universite-taban-puanlari.html">üniversite taban puanları</a>, puanına göre bölüm için
+<a href="/tercih-robotu.html">tercih robotu</a>.</div>
+{sections}
+<div class="notice"><b>Kaynak:</b> YÖK Atlas 2025 Tercih Kılavuzu yerleştirme verisi. Sıralamalar 2025 taban puanı / kontenjanına göredir.</div>
+"""
+    extra = [breadcrumb_ld([("Ana Sayfa", "index.html"), ("Listeler ve Sıralamalar", None)])]
+    if item_list:
+        extra.append({"@type": "ItemList", "name": "En Yüksek Taban Puanlı Sayısal Programlar 2025", "itemListElement": item_list})
+    return base("listeler.html", "Üniversite Listeleri ve Sıralamalar 2025 — En Yüksek Taban, En Çok Kontenjan | SınavVeri",
+                "2025 üniversite sıralamaları: en yüksek taban puanlı programlar (SAY/EA/SÖZ/DİL) ve en çok kontenjanlı bölümler. YÖK Atlas gerçek yerleştirme verisi.",
+                body, extra_ld=extra)
+
+
+def page_meslek_testi(g_by_slug):
+    """İlgi alanı testi → bölüm önerisi. İstemci-taraflı; backend yok. Öneriler bölüm sayfalarına linklenir."""
+    name2slug = {v: k for k, v in (g_by_slug or {}).items()}
+
+    def lnk(names):
+        out = []
+        for n in names:
+            sl = name2slug.get(n)
+            href = f"/bolum/{sl}.html" if sl else f"/ara.html?q={n.replace(' ', '+')}"
+            out.append({"n": n, "h": href})
+        return out
+    CATS = {
+        "muh": ("Mühendislik & Sayısal", lnk(["Bilgisayar Mühendisliği", "Elektrik-Elektronik Mühendisliği", "Makine Mühendisliği", "Endüstri Mühendisliği", "İnşaat Mühendisliği"])),
+        "sag": ("Sağlık", lnk(["Tıp", "Diş Hekimliği", "Eczacılık", "Hemşirelik", "Fizyoterapi ve Rehabilitasyon"])),
+        "sos": ("Sosyal & Hukuk/İşletme", lnk(["Hukuk", "İşletme", "Psikoloji", "İktisat", "Uluslararası İlişkiler"])),
+        "egt": ("Eğitim & Sözel", lnk(["Rehberlik ve Psikolojik Danışmanlık", "Türk Dili ve Edebiyatı", "Tarih", "Sınıf Öğretmenliği", "İngilizce Öğretmenliği"])),
+        "san": ("Sanat & Tasarım", lnk(["Mimarlık", "İç Mimarlık", "Grafik Tasarımı", "Endüstriyel Tasarım"])),
+        "bil": ("Bilişim & Veri", lnk(["Yazılım Mühendisliği", "Bilgisayar Mühendisliği", "İstatistik", "Yönetim Bilişim Sistemleri"])),
+    }
+    QS = [
+        ("En çok hangi dersten keyif alırsın?", [("Matematik / problem çözme", {"muh": 2, "bil": 2}), ("Biyoloji / sağlık", {"sag": 3}),
+            ("Edebiyat / tarih / felsefe", {"egt": 2, "sos": 1}), ("Resim / müzik / tasarım", {"san": 3}), ("Ekonomi / hukuk / toplum", {"sos": 3})]),
+        ("Nasıl çalışmaktan hoşlanırsın?", [("Bir şeyler tasarlayıp inşa etmek", {"muh": 2, "san": 1}), ("İnsanlara yardım/bakım", {"sag": 2, "egt": 1}),
+            ("Veri ve analizle uğraşmak", {"bil": 3, "sos": 1}), ("Yazmak / anlatmak / öğretmek", {"egt": 3}), ("Yaratıcı/görsel üretim", {"san": 3})]),
+        ("Geleceğte seni en çok ne motive eder?", [("Teknoloji geliştirmek", {"muh": 2, "bil": 2}), ("İnsan sağlığına katkı", {"sag": 3}),
+            ("Adalet/iş dünyası/liderlik", {"sos": 3}), ("Nesiller yetiştirmek", {"egt": 3}), ("Estetik/sanat üretmek", {"san": 3})]),
+        ("Hangisi sana daha yakın?", [("Mantık ve sistem kurmak", {"muh": 2, "bil": 1}), ("Empati ve iletişim", {"sag": 1, "egt": 2, "sos": 1}),
+            ("Sayılar ve istatistik", {"bil": 2, "sos": 1}), ("Hayal gücü ve tasarım", {"san": 3}), ("İkna ve müzakere", {"sos": 3})]),
+        ("Bir projede rolün ne olurdu?", [("Teknik çözümü kuran", {"muh": 2, "bil": 2}), ("İnsanlarla ilgilenen", {"sag": 2, "egt": 1}),
+            ("Stratejiyi/planı yapan", {"sos": 2, "bil": 1}), ("Görseli/tasarımı yapan", {"san": 3}), ("Eğiten/sunan", {"egt": 3})]),
+    ]
+    cfg = {"cats": {k: {"label": v[0], "items": v[1]} for k, v in CATS.items()},
+           "qs": [{"q": q, "opts": [{"t": t, "w": w} for t, w in opts]} for q, opts in QS]}
+    qhtml = ""
+    for qi, (q, opts) in enumerate(QS):
+        ohtml = "".join(
+            f'<label class="mt-opt"><input type="radio" name="q{qi}" value="{oi}"> {t}</label>'
+            for oi, (t, _w) in enumerate(opts))
+        qhtml += f'<div class="mt-q"><div class="mt-qt">{qi+1}. {q}</div>{ohtml}</div>'
+    js = '<script nonce="__NONCE__">var MT=' + json.dumps(cfg, ensure_ascii=False) + r""";
+(function(){
+  function el(i){return document.getElementById(i);}
+  el('mtBtn').addEventListener('click',function(){
+    var sc={}; Object.keys(MT.cats).forEach(function(k){sc[k]=0;});
+    var answered=0;
+    MT.qs.forEach(function(qq,qi){
+      var r=document.querySelector('input[name="q'+qi+'"]:checked'); if(!r)return; answered++;
+      var w=qq.opts[+r.value].w; Object.keys(w).forEach(function(k){sc[k]=(sc[k]||0)+w[k];});
+    });
+    if(answered<3){el('mtRes').innerHTML='<div class="notice">Daha isabetli öneri için en az 3 soruyu yanıtla.</div>';el('mtRes').style.display='block';return;}
+    var order=Object.keys(sc).sort(function(a,b){return sc[b]-sc[a];}).filter(function(k){return sc[k]>0;}).slice(0,2);
+    var h='<h2 style="font-size:18px;color:var(--accent);margin:6px 0 10px">Sana en uygun alanlar</h2>';
+    order.forEach(function(k){var c=MT.cats[k];
+      h+='<div class="calc-card" style="margin-bottom:12px"><h3 style="color:var(--accent-2);margin-bottom:8px">'+c.label+'</h3><div class="tool-row">';
+      c.items.forEach(function(it){h+='<a class="tool-btn" href="'+it.h+'"><span class="tb-icon">📘</span><span class="tb-text"><b>'+it.n+'</b><span>taban puanları →</span></span></a>';});
+      h+='</div></div>';
+    });
+    h+='<div class="notice">Bu test yalnızca <b>fikir vermek</b> içindir; kesin tercih ilgi, yetenek ve puanına bağlıdır. Önerilen bölümlerin gerçek taban puanlarını sayfalarından inceleyebilirsin.</div>';
+    el('mtRes').innerHTML=h; el('mtRes').style.display='block';
+    el('mtRes').scrollIntoView({behavior:'smooth',block:'start'});
+  });
+})();
+</script>"""
+    body = f"""
+<div class="crumb"><a href="/index.html">Ana Sayfa</a> / Bölüm Bulma Testi</div>
+<div class="page-title"><h1>Hangi Bölüm Bana Uygun? — İlgi Alanı Testi</h1><span class="sub">Kısa testi yanıtla, ilgine uygun bölüm önerileri al · ücretsiz</span></div>
+<div class="info-box">5 soruluk kısa bir ilgi testi. Sonunda sana en uygun <b>2 alan</b> ve örnek bölümler önerilir; her biri o bölümün taban puanları sayfasına götürür. (Backend yok — yanıtların hiçbir yere gönderilmez.)</div>
+<div class="calc-card">{qhtml}
+  <div style="margin-top:14px"><button type="button" class="btn btn-primary" id="mtBtn">Sonucu Göster</button></div>
+</div>
+<div id="mtRes" style="display:none;margin-top:18px"></div>
+{js}
+"""
+    return base("bolum-bulma-testi.html", "Hangi Bölüm Bana Uygun? İlgi Alanı Testi | SınavVeri",
+                "Ücretsiz bölüm bulma testi: 5 soruluk ilgi alanı testiyle sana uygun üniversite bölümlerini keşfet ve taban puanlarını gör.",
+                body, extra_ld=[breadcrumb_ld([("Ana Sayfa", "index.html"), ("Bölüm Bulma Testi", None)])])
+
+
 def write_arama(g_by_slug, u_by_slug, il_slugs):
     """Header global arama + /ara.html için birleşik hafif indeks."""
     items = []
@@ -3729,7 +3852,8 @@ def write_arama(g_by_slug, u_by_slug, il_slugs):
             ("YKS Puan Hesaplama", "yks-puan-hesaplama.html"), ("YKS Sıralama Hesaplama", "yks-siralama-hesaplama.html"),
             ("LGS Puan Hesaplama", "lgs-puan-hesaplama.html"),
             ("KPSS Puan Hesaplama", "kpss-puan-hesaplama.html"), ("DGS Puan Hesaplama", "dgs-puan-hesaplama.html"),
-            ("ALES Puan Hesaplama", "ales-puan-hesaplama.html"), ("Sınav Takvimi", "takvim.html")]
+            ("ALES Puan Hesaplama", "ales-puan-hesaplama.html"), ("Sınav Takvimi", "takvim.html"),
+            ("Listeler ve Sıralamalar", "listeler.html"), ("Bölüm Bulma Testi", "bolum-bulma-testi.html")]
     for ad, sl in arac:
         if (ROOT / sl).exists() or sl in ("universite-taban-puanlari.html",):
             items.append({"t": "Araç", "n": ad, "u": f"/{sl}"})
@@ -3812,6 +3936,8 @@ def main():
     for s in g_by_slug:
         slugs.append(f"bolum/{s}.html")
     W("bolumler.html", page_bolumler(g_by_slug, programs))
+    W("listeler.html", page_listeler(programs))
+    W("bolum-bulma-testi.html", page_meslek_testi(g_by_slug))
     print(f"  → {len(g_by_slug)} bölüm sayfası")
     print("  Üniversite sayfaları üretiliyor...")
     u_by_slug = gen_universite_pages(programs)

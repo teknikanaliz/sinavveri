@@ -261,9 +261,9 @@
     }
     function printList(){
       var arr=store.list(); if(!arr.length)return;
-      var rows=arr.map(function(x,i){return '<tr><td>'+(i+1)+'</td><td><b>'+esc(x.name)+'</b>'+(x.sub?'<br><small>'+esc(x.sub)+'</small>':'')+'</td><td>'+esc(x.meta||'')+'</td></tr>';}).join('');
+      var rows=arr.map(function(x,i){return '<tr><td>'+(i+1)+'<\/td><td><b>'+esc(x.name)+'<\/b>'+(x.sub?'<br><small>'+esc(x.sub)+'<\/small>':'')+'<\/td><td>'+esc(x.meta||'')+'<\/td><\/tr>';}).join('');
       var w=window.open('','_blank'); if(!w)return;
-      w.document.write('<!doctype html><html lang=tr><head><meta charset=utf-8><title>Tercih Listem — SınavVeri.com</title><style>body{font-family:Arial,sans-serif;padding:24px;color:#15192b}h1{font-size:20px;color:#b45309}table{width:100%;border-collapse:collapse;margin-top:12px;font-size:13px}td,th{border:1px solid #ccc;padding:7px 10px;text-align:left}th{background:#f0f3fa}td:first-child{width:36px;text-align:center;font-weight:700}small{color:#666}.f{margin-top:16px;font-size:11px;color:#888}</style></head><body><h1>⭐ Tercih Listem</h1><table><thead><tr><th>#</th><th>Program / Üniversite</th><th>Bilgi</th></tr></thead><tbody>'+rows+'</tbody></table><div class=f>SınavVeri.com · '+arr.length+' tercih · Bu liste resmî tercih belgesi değildir; kesin tercih ÖSYM AİS üzerinden yapılır.</div></body></html>');
+      w.document.write('<!doctype html><html lang=tr><head><meta charset=utf-8><title>Tercih Listem — SınavVeri.com<\/title><style>body{font-family:Arial,sans-serif;padding:24px;color:#15192b}h1{font-size:20px;color:#b45309}table{width:100%;border-collapse:collapse;margin-top:12px;font-size:13px}td,th{border:1px solid #ccc;padding:7px 10px;text-align:left}th{background:#f0f3fa}td:first-child{width:36px;text-align:center;font-weight:700}small{color:#666}.f{margin-top:16px;font-size:11px;color:#888}<\/style><\/head><body><h1>⭐ Tercih Listem<\/h1><table><thead><tr><th>#<\/th><th>Program / Üniversite<\/th><th>Bilgi<\/th><\/tr><\/thead><tbody>'+rows+'<\/tbody><\/table><div class=f>SınavVeri.com · '+arr.length+' tercih · Bu liste resmî tercih belgesi değildir; kesin tercih ÖSYM AİS üzerinden yapılır.<\/div><\/body><\/html>');
       w.document.close(); setTimeout(function(){try{w.print();}catch(e){}},300);
     }
     function shareLink(t){
@@ -304,7 +304,7 @@
   };
 })();
 </script>
-<link rel="stylesheet" href="/assets/style.css?v=20260604d">
+<link rel="stylesheet" href="/assets/style.css?v=20260604e">
 <link rel="manifest" href="/manifest.json">
 
 </head>

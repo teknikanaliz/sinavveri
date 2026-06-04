@@ -318,6 +318,14 @@ footer a[href*="trveri.com"]:hover { color: var(--accent-light) !important; }
   .data-table-wrap { overflow: visible; border: none; background: none; box-shadow: none; }
 }
 
+/* ── Meslek/ilgi testi ── */
+.mt-q { padding: 12px 0; border-bottom: 1px solid var(--border-soft); }
+.mt-q:last-child { border-bottom: none; }
+.mt-qt { font-weight: 700; color: var(--fg); margin-bottom: 8px; font-size: 14px; }
+.mt-opt { display: flex; align-items: center; gap: 8px; padding: 7px 10px; border-radius: 8px; cursor: pointer; font-size: 13.5px; color: var(--fg-muted); }
+.mt-opt:hover { background: var(--bg-table-hover); }
+.mt-opt input { accent-color: var(--accent); }
+
 /* ── Program detayı (ℹ️) ── */
 .pdet { background: none; border: none; cursor: pointer; font-size: 14px; padding: 0 2px; line-height: 1; opacity: .75; }
 .pdet:hover { opacity: 1; }
