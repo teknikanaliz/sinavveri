@@ -115,15 +115,27 @@ def trim(r):
             [2023, _f(r, "minPuan2"), _i(r, "basariSirasi2"), _i(r, "gk2")],
             [2022, _f(r, "minPuan3"), _i(r, "basariSirasi3"), _i(r, "gk3")],
         ],
+        # Program detay zenginliği (toplu API'den bedava):
+        "kosul": (r.get("kosul") or "").strip(),                  # "21,22,23" koşul kodları
+        "kadro": [_i(r, "prof"), _i(r, "doc"), _i(r, "dou"), _i(r, "arGor"), _i(r, "ogrGor")],  # Prof/Doçent/Dr.Öğr.Ü/Ar.Gör/Öğr.Gör
+        "akr": (r.get("akreditasyon") or "").strip() or None,     # akreditasyon kurumu
+        "sure": _i(r, "ogrenimSuresi"),                            # öğrenim süresi (yıl)
+        "ucret": _i(r, "ucret"),                                   # vakıf ücreti (TL)
     }
 
 
 def main():
     all_recs = []
+    kosul_map = {}  # koşul kodu → açıklama (tüm programlardan dedup)
     pt_key = {"SAY": "say", "EA": "ea", "SÖZ": "soz", "DİL": "dil", "TYT": "tyt"}
     for birim, pt in SCOPES:
         print(f"  Çekiliyor: birimTuru={birim} puanTuru={pt}")
         recs = fetch_scope(birim, pt)
+        for r in recs:
+            for d in (r.get("kosulList") or []):
+                for code, text in d.items():
+                    if code and text:
+                        kosul_map[str(code)] = text.strip()
         trimmed = [trim(r) for r in recs]
         (VERI / f"{pt_key[pt]}.json").write_text(
             json.dumps(trimmed, ensure_ascii=False, separators=(",", ":")), encoding="utf-8")
@@ -133,6 +145,9 @@ def main():
     (DATA / "programs_raw.json").write_text(
         json.dumps(all_recs, ensure_ascii=False, separators=(",", ":")), encoding="utf-8")
     print(f"\nTOPLAM: {len(all_recs)} program → data/programs_raw.json")
+    (DATA / "kosul_map.json").write_text(
+        json.dumps(kosul_map, ensure_ascii=False, separators=(",", ":")), encoding="utf-8")
+    print(f"  koşul kodu açıklaması: {len(kosul_map)} → data/kosul_map.json")
     # meta
     meta = {"kaynak": "YÖK Atlas 2025 Tercih Kılavuzu", "url": URL,
             "yil": 2025, "toplam": len(all_recs)}

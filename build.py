@@ -2259,6 +2259,24 @@ def _bdil_py(s):
     return s[:i] if i > 0 else s
 
 
+def _pdet_btn(r):
+    """Program detayı 'ℹ️' butonu: akademik kadro / akreditasyon / süre / ücret / koşul kodları
+    data-attribute olarak; istemci kosul_map ile açıklamayı çözer. Veri yoksa boş döner."""
+    kadro = r.get("kadro") or []
+    kosul = r.get("kosul") or ""
+    akr = r.get("akr") or ""
+    sure = r.get("sure")
+    ucret = r.get("ucret")
+    if not (kosul or any(kadro) or akr or sure):
+        return ""
+    kd = ",".join(str(x if x else 0) for x in (kadro + [0, 0, 0, 0, 0])[:5])
+    attrs = (f' data-kosul="{kosul}" data-kadro="{kd}"'
+             + (f' data-akr="{akr}"' if akr else "")
+             + (f' data-sure="{sure}"' if sure else "")
+             + (f' data-ucret="{ucret}"' if ucret else ""))
+    return f'<button type="button" class="pdet" title="Program detayı"{attrs}>ℹ️</button>'
+
+
 # Detay (bölüm/üniversite) statik tablolarına dil filtresi + karşılaştırma katmanı
 DETAIL_BAR = """
 <div class="calc-card" style="margin-bottom:14px;padding:13px 16px">
@@ -2316,6 +2334,33 @@ DETAIL_TOOLS_JS = r"""<script nonce="__NONCE__">
     refreshBar();if(document.getElementById('dCmpPanel').classList.contains('open'))buildPanel();});
   var b1=document.getElementById('dCmpBtn');if(b1)b1.addEventListener('click',function(){var p=document.getElementById('dCmpPanel');if(p.classList.contains('open'))p.classList.remove('open');else buildPanel();});
   var b2=document.getElementById('dCmpClear');if(b2)b2.addEventListener('click',function(){cmp={};order=[];document.getElementById('dCmpPanel').classList.remove('open');refreshBar();tb.querySelectorAll('.dcmp').forEach(function(c){c.checked=false;});});
+  // Program detayı (ℹ️): akademik kadro / akreditasyon / süre / ücret / koşullar
+  var KOSUL=null, KLAB=['Profesör','Doçent','Dr. Öğr. Üyesi','Araştırma Gör.','Öğretim Gör.'];
+  function esc(s){return (''+(s==null?'':s)).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+  function nf(n){return Number(n).toLocaleString('tr-TR');}
+  if(tb.querySelector('.pdet')){
+    fetch('/veri/kosul_map.json').then(function(r){return r.json();}).then(function(j){KOSUL=j;}).catch(function(){KOSUL={};});
+    tb.addEventListener('click',function(e){
+      var btn=e.target; if(!btn.classList||!btn.classList.contains('pdet'))return;
+      var tr=btn.closest('tr');
+      var nx=tr.nextElementSibling;
+      if(nx&&nx.classList.contains('pdet-row')){ nx.parentNode.removeChild(nx); return; }
+      var kadro=(btn.getAttribute('data-kadro')||'').split(',').map(function(x){return parseInt(x,10)||0;});
+      var parts=[];
+      var kp=[]; kadro.forEach(function(v,i){ if(v>0)kp.push(KLAB[i]+': '+v); });
+      if(kp.length)parts.push('<div><b>Akademik kadro:</b> '+kp.join(' · ')+'</div>');
+      var akr=btn.getAttribute('data-akr'); if(akr)parts.push('<div><b>Akreditasyon:</b> '+esc(akr)+'</div>');
+      var sure=btn.getAttribute('data-sure'); if(sure)parts.push('<div><b>Öğrenim süresi:</b> '+esc(sure)+' yıl</div>');
+      var uc=btn.getAttribute('data-ucret'); if(uc)parts.push('<div><b>Ücret:</b> '+nf(uc)+' ₺/yıl</div>');
+      var ks=(btn.getAttribute('data-kosul')||'').split(',').filter(Boolean);
+      if(ks.length&&KOSUL){ var li=ks.map(function(c){return KOSUL[c]?'<li>'+esc(KOSUL[c])+'</li>':'';}).filter(Boolean).join('');
+        if(li)parts.push('<div style="margin-top:6px"><b>Özel koşullar:</b><ul style="margin:4px 0 0 18px">'+li+'</ul></div>'); }
+      if(!parts.length)parts.push('<div style="color:var(--fg-faded)">Ek detay bulunmuyor.</div>');
+      var row=document.createElement('tr'); row.className='pdet-row';
+      row.innerHTML='<td colspan="'+ncol+'"><div class="pdet-box">'+parts.join('')+'</div></td>';
+      tr.parentNode.insertBefore(row,tr.nextSibling);
+    });
+  }
 })();
 </script>"""
 
@@ -2342,7 +2387,7 @@ def gen_bolum_pages(programs):
         rows = ""
         for r in recs:
             _dl = _bdil_py(r.get("dil"))
-            rows += (f'<tr data-dil="{_dl}"><td><strong>' + (r.get("u") or "") + "</strong></td>"
+            rows += (f'<tr data-dil="{_dl}"><td><strong>' + (r.get("u") or "") + "</strong> " + _pdet_btn(r) + "</td>"
                      "<td>" + (r.get("b") or "") + "</td>"
                      "<td>" + (r.get("il") or "—") + "</td>"
                      "<td>" + TUR_FULL.get(r.get("t"), "—") + "</td>"
@@ -2408,7 +2453,7 @@ def gen_universite_pages(programs):
         rows = ""
         for r in recs:
             _dl = _bdil_py(r.get("dil"))
-            rows += (f'<tr data-dil="{_dl}"><td><strong>' + (r.get("b") or "") + "</strong></td>"
+            rows += (f'<tr data-dil="{_dl}"><td><strong>' + (r.get("b") or "") + "</strong> " + _pdet_btn(r) + "</td>"
                      "<td>" + (r.get("g") or "—") + "</td>"
                      "<td>" + PT_LABEL.get(r.get("p"), r.get("p") or "—") + "</td>"
                      "<td>" + fmt_sira(r.get("kont")) + "</td>"
@@ -3663,6 +3708,10 @@ def main():
     print(f"  {len(programs)} program yüklendi (YÖK Atlas 2025)")
     write_veri(programs)
     write_puan_sira(programs)
+    _km = ROOT / "data" / "kosul_map.json"
+    if _km.exists():
+        (ROOT / "veri" / "kosul_map.json").write_text(_km.read_text(encoding="utf-8"), encoding="utf-8")
+        print("  [veri] kosul_map.json kopyalandı")
     W("doluluk.html", page_doluluk(programs))
     print("  Bölüm sayfaları üretiliyor...")
     g_by_slug = gen_bolum_pages(programs)

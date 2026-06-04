@@ -232,7 +232,7 @@
 <div class="data-table-wrap">
 <table class="data-table detail-table">
 <thead><tr><th>Üniversite</th><th>Program</th><th>İl</th><th>Tür</th><th>Kont.</th><th>Doluluk</th><th>Taban 2025</th><th>Taban 2024</th><th>Taban 2023</th><th>Sıra 2025</th><th data-nosort title="Karşılaştır">Kıyas</th></tr></thead>
-<tbody><tr data-dil="Türkçe"><td><strong>GİRNE AMERİKAN ÜNİVERSİTESİ (KKTC-GİRNE)</strong></td><td>Basın ve Yayın (Burslu)</td><td>Kıbrıs</td><td>KKTC</td><td>5</td><td><span class="tag tag-lgs">%100</span></td><td><strong>185,70</strong></td><td>227,43</td><td>221,53</td><td>1.137.692</td><td style="text-align:center"><input type="checkbox" class="dcmp" aria-label="Karşılaştır"></td></tr><tr data-dil="Türkçe"><td><strong>GİRNE AMERİKAN ÜNİVERSİTESİ (KKTC-GİRNE)</strong></td><td>Basın ve Yayın (%50 İndirimli)</td><td>Kıbrıs</td><td>KKTC</td><td>5</td><td>—</td><td><strong>—</strong></td><td>—</td><td>—</td><td>—</td><td style="text-align:center"><input type="checkbox" class="dcmp" aria-label="Karşılaştır"></td></tr></tbody>
+<tbody><tr data-dil="Türkçe"><td><strong>GİRNE AMERİKAN ÜNİVERSİTESİ (KKTC-GİRNE)</strong> <button type="button" class="pdet" title="Program detayı" data-kosul="19,21,64,18" data-kadro="1,0,4,1,1" data-sure="4" data-ucret="340950">ℹ️</button></td><td>Basın ve Yayın (Burslu)</td><td>Kıbrıs</td><td>KKTC</td><td>5</td><td><span class="tag tag-lgs">%100</span></td><td><strong>185,70</strong></td><td>227,43</td><td>221,53</td><td>1.137.692</td><td style="text-align:center"><input type="checkbox" class="dcmp" aria-label="Karşılaştır"></td></tr><tr data-dil="Türkçe"><td><strong>GİRNE AMERİKAN ÜNİVERSİTESİ (KKTC-GİRNE)</strong> <button type="button" class="pdet" title="Program detayı" data-kosul="19,21,64,18" data-kadro="0,0,0,0,0" data-sure="4" data-ucret="340950">ℹ️</button></td><td>Basın ve Yayın (%50 İndirimli)</td><td>Kıbrıs</td><td>KKTC</td><td>5</td><td>—</td><td><strong>—</strong></td><td>—</td><td>—</td><td>—</td><td style="text-align:center"><input type="checkbox" class="dcmp" aria-label="Karşılaştır"></td></tr></tbody>
 </table>
 </div>
 
@@ -280,6 +280,33 @@
     refreshBar();if(document.getElementById('dCmpPanel').classList.contains('open'))buildPanel();});
   var b1=document.getElementById('dCmpBtn');if(b1)b1.addEventListener('click',function(){var p=document.getElementById('dCmpPanel');if(p.classList.contains('open'))p.classList.remove('open');else buildPanel();});
   var b2=document.getElementById('dCmpClear');if(b2)b2.addEventListener('click',function(){cmp={};order=[];document.getElementById('dCmpPanel').classList.remove('open');refreshBar();tb.querySelectorAll('.dcmp').forEach(function(c){c.checked=false;});});
+  // Program detayı (ℹ️): akademik kadro / akreditasyon / süre / ücret / koşullar
+  var KOSUL=null, KLAB=['Profesör','Doçent','Dr. Öğr. Üyesi','Araştırma Gör.','Öğretim Gör.'];
+  function esc(s){return (''+(s==null?'':s)).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+  function nf(n){return Number(n).toLocaleString('tr-TR');}
+  if(tb.querySelector('.pdet')){
+    fetch('/veri/kosul_map.json').then(function(r){return r.json();}).then(function(j){KOSUL=j;}).catch(function(){KOSUL={};});
+    tb.addEventListener('click',function(e){
+      var btn=e.target; if(!btn.classList||!btn.classList.contains('pdet'))return;
+      var tr=btn.closest('tr');
+      var nx=tr.nextElementSibling;
+      if(nx&&nx.classList.contains('pdet-row')){ nx.parentNode.removeChild(nx); return; }
+      var kadro=(btn.getAttribute('data-kadro')||'').split(',').map(function(x){return parseInt(x,10)||0;});
+      var parts=[];
+      var kp=[]; kadro.forEach(function(v,i){ if(v>0)kp.push(KLAB[i]+': '+v); });
+      if(kp.length)parts.push('<div><b>Akademik kadro:</b> '+kp.join(' · ')+'</div>');
+      var akr=btn.getAttribute('data-akr'); if(akr)parts.push('<div><b>Akreditasyon:</b> '+esc(akr)+'</div>');
+      var sure=btn.getAttribute('data-sure'); if(sure)parts.push('<div><b>Öğrenim süresi:</b> '+esc(sure)+' yıl</div>');
+      var uc=btn.getAttribute('data-ucret'); if(uc)parts.push('<div><b>Ücret:</b> '+nf(uc)+' ₺/yıl</div>');
+      var ks=(btn.getAttribute('data-kosul')||'').split(',').filter(Boolean);
+      if(ks.length&&KOSUL){ var li=ks.map(function(c){return KOSUL[c]?'<li>'+esc(KOSUL[c])+'</li>':'';}).filter(Boolean).join('');
+        if(li)parts.push('<div style="margin-top:6px"><b>Özel koşullar:</b><ul style="margin:4px 0 0 18px">'+li+'</ul></div>'); }
+      if(!parts.length)parts.push('<div style="color:var(--fg-faded)">Ek detay bulunmuyor.</div>');
+      var row=document.createElement('tr'); row.className='pdet-row';
+      row.innerHTML='<td colspan="'+ncol+'"><div class="pdet-box">'+parts.join('')+'</div></td>';
+      tr.parentNode.insertBefore(row,tr.nextSibling);
+    });
+  }
 })();
 </script>
 <div class="notice"><b>Kaynak:</b> YÖK Atlas 2025 Tercih Kılavuzu (geçmiş: 2024/2023). Boş (—) değerler o yıl yerleşen/veri olmadığını gösterir.
