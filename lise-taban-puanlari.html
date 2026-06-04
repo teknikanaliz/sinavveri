@@ -265,7 +265,7 @@
   };
 })();
 </script>
-<link rel="stylesheet" href="/assets/style.css?v=20260604g">
+<link rel="stylesheet" href="/assets/style.css?v=20260604h">
 <link rel="manifest" href="/manifest.json">
 
 </head>
@@ -333,18 +333,22 @@ Resmî kayıt için <a href="https://www.meb.gov.tr" target="_blank" rel="noopen
   var pf=function(n){return n==null?'—':n.toLocaleString('tr-TR',{minimumFractionDigits:2,maximumFractionDigits:2});};
   function el(id){return document.getElementById(id);}
   if(SV.skel)SV.skel('tbody',9,7);
-  fetch('/veri/liseler.json').then(function(r){return r.json();}).then(function(j){data=j;fillIl();fillDil();applyQS();render();})
+  fetch('/veri/liseler.json').then(function(r){return r.json();}).then(function(j){data=j;repopulate();applyQS();repopulate();render();})
     .catch(function(){el('status').textContent='Veri yüklenemedi.';});
-  function fillIl(){
-    var set={};data.forEach(function(r){if(r[0])set[r[0]]=1;});
-    var ils=Object.keys(set).sort(function(a,b){return a.localeCompare(b,'tr');});
-    var sel=el('fIl');ils.forEach(function(i){var o=document.createElement('option');o.value=i;o.textContent=i;sel.appendChild(o);});
-  }
-  function fillDil(){
-    var sel=el('fDil');if(!sel)return;
-    var cnt={};data.forEach(function(r){if(r[10])cnt[r[10]]=(cnt[r[10]]||0)+1;});
-    var dils=Object.keys(cnt).sort(function(a,b){return cnt[b]-cnt[a]||a.localeCompare(b,'tr');});
-    dils.forEach(function(d){var o=document.createElement('option');o.value=d;o.textContent=d+' ('+cnt[d]+')';sel.appendChild(o);});
+  var FDIMS=[
+    {id:'fIl', ph:'Tüm iller', get:function(r){return r[0];}},
+    {id:'fTur', ph:'Tüm türler', get:function(r){return r[3];}, lab:function(v){return TUR[v]||v;}},
+    {id:'fDil', ph:'Tüm yabancı diller', get:function(r){return r[10];}}
+  ];
+  function passExc(r,exId){for(var i=0;i<FDIMS.length;i++){var f=FDIMS[i];if(f.id===exId)continue;var s=el(f.id);if(s&&s.value&&String(f.get(r))!==s.value)return false;}return true;}
+  function repopulate(){
+    FDIMS.forEach(function(f){var sel=el(f.id);if(!sel)return;var cur=sel.value;
+      var cnt={};data.forEach(function(r){if(!passExc(r,f.id))return;var v=f.get(r);if(v!=null&&v!=='')cnt[v]=(cnt[v]||0)+1;});
+      var ks=Object.keys(cnt).sort(function(a,b){return cnt[b]-cnt[a]||String(a).localeCompare(String(b),'tr');});
+      sel.innerHTML='<option value="">'+f.ph+'</option>';var hasCur=false;
+      ks.forEach(function(k){var o=document.createElement('option');o.value=k;o.textContent=(f.lab?f.lab(k):k)+' ('+cnt[k]+')';if(k===cur){o.selected=true;hasCur=true;}sel.appendChild(o);});
+      if(cur&&!hasCur){var o2=document.createElement('option');o2.value=cur;o2.textContent=(f.lab?f.lab(cur):cur)+' (0)';o2.selected=true;sel.appendChild(o2);}
+    });
   }
   function applyQS(){var qs=SV.qsGet?SV.qsGet():{};if(qs.q!=null)el('fQ').value=qs.q;if(qs.il!=null)el('fIl').value=qs.il;if(qs.tur!=null)el('fTur').value=qs.tur;if(qs.dil!=null&&el('fDil'))el('fDil').value=qs.dil;}
   function syncQS(){var o={};var q=el('fQ').value.trim();if(q)o.q=q;if(el('fIl').value)o.il=el('fIl').value;if(el('fTur').value)o.tur=el('fTur').value;if(el('fDil')&&el('fDil').value)o.dil=el('fDil').value;if(SV.qsSet)SV.qsSet(o);drawChips();}
@@ -357,7 +361,7 @@ Resmî kayıt için <a href="https://www.meb.gov.tr" target="_blank" rel="noopen
     SV.chips('chips',items,function(key){
       if(key==='__all__'){el('fQ').value='';el('fIl').value='';el('fTur').value='';if(el('fDil'))el('fDil').value='';}
       else if(key==='q')el('fQ').value='';else if(key==='il')el('fIl').value='';else if(key==='tur')el('fTur').value='';else if(key==='dil'&&el('fDil'))el('fDil').value='';
-      render(true);
+      repopulate();render(true);
     });
   }
   function filtered(){
@@ -398,7 +402,8 @@ Resmî kayıt için <a href="https://www.meb.gov.tr" target="_blank" rel="noopen
     el('moreWrap').style.display=(shown<rows.length)?'block':'none';
     el('moreInfo').textContent=shown+' / '+rows.length.toLocaleString('tr-TR');
   }
-  ['fQ','fIl','fTur','fDil'].forEach(function(id){var e=el(id);if(e)e.addEventListener('input',function(){render(true);});});
+  if(el('fQ'))el('fQ').addEventListener('input',function(){render(true);});
+  ['fIl','fTur','fDil'].forEach(function(id){var e=el(id);if(e)e.addEventListener('change',function(){repopulate();render(true);});});
   el('moreBtn').addEventListener('click',function(){render(false);});
   (function(){var ths=document.querySelectorAll('.data-table thead th');ths.forEach(function(th,i){
     th.style.cursor='pointer';th.title='Sıralamak için tıklayın';

@@ -271,7 +271,7 @@
   };
 })();
 </script>
-<link rel="stylesheet" href="/assets/style.css?v=20260604g">
+<link rel="stylesheet" href="/assets/style.css?v=20260604h">
 <link rel="manifest" href="/manifest.json">
 
 </head>
@@ -329,18 +329,24 @@ Yerleşen olmayan satırlarda değer boştur (—). Resmî bilgi için <a href="
   el('status').textContent='Veriler yükleniyor…';
   fetch(CFG.file).then(function(r){return r.json();}).then(function(j){data=j;initFilters();applyQS();render();})
     .catch(function(){el('status').textContent='Veri yüklenemedi.';});
-  function initFilters(){
+  function initFilters(){  // cascading: her dropdown diğer seçili dropdownlara göre yeniden dolar
     CFG.filters.forEach(function(f){
-      var set={};data.forEach(function(r){if(r[f[0]])set[r[f[0]]]=1;});
-      var vals=Object.keys(set).sort(function(a,b){return a.localeCompare(b,'tr');});
-      var sel=el('fil'+f[1]);if(!sel)return;
-      vals.forEach(function(v){var o=document.createElement('option');o.value=v;o.textContent=v;sel.appendChild(o);});
+      var sel=el('fil'+f[1]);if(!sel)return;var cur=sel.value;
+      var cnt={};data.forEach(function(r){
+        for(var k=0;k<CFG.filters.length;k++){var g=CFG.filters[k];if(g[1]===f[1])continue;var s=el('fil'+g[1]);if(s&&s.value&&String(r[g[0]])!==s.value)return;}
+        var v=r[f[0]];if(v)cnt[v]=(cnt[v]||0)+1;
+      });
+      var ks=Object.keys(cnt).sort(function(a,b){return cnt[b]-cnt[a]||String(a).localeCompare(String(b),'tr');});
+      sel.innerHTML='<option value="">'+(f[2]||'')+' (tümü)</option>';var hc=false;
+      ks.forEach(function(k){var o=document.createElement('option');o.value=k;o.textContent=k+' ('+cnt[k]+')';if(k===cur){o.selected=true;hc=true;}sel.appendChild(o);});
+      if(cur&&!hc){var o2=document.createElement('option');o2.value=cur;o2.textContent=cur+' (0)';o2.selected=true;sel.appendChild(o2);}
     });
   }
   function applyQS(){
     var qs=SV.qsGet?SV.qsGet():{};
     if(qs.q!=null)el('fQ').value=qs.q;
     CFG.filters.forEach(function(f){var s=el('fil'+f[1]);if(s&&qs['f'+f[1]]!=null)s.value=qs['f'+f[1]];});
+    initFilters();
   }
   function syncQS(){
     var o={}; var q=el('fQ').value.trim(); if(q)o.q=q;
@@ -356,7 +362,7 @@ Yerleşen olmayan satırlarda değer boştur (—). Resmî bilgi için <a href="
       if(key==='__all__'){el('fQ').value='';CFG.filters.forEach(function(f){var s=el('fil'+f[1]);if(s)s.value='';});}
       else if(key==='q'){el('fQ').value='';}
       else {CFG.filters.forEach(function(f){if('f'+f[1]===key){var s=el('fil'+f[1]);if(s)s.value='';}});}
-      render(true);
+      initFilters();render(true);
     });
   }
   function filtered(){
@@ -403,7 +409,7 @@ Yerleşen olmayan satırlarda değer boştur (—). Resmî bilgi için <a href="
     el('moreInfo').textContent=shown+' / '+rows.length.toLocaleString('tr-TR');
   }
   el('fQ').addEventListener('input',function(){render(true);});
-  CFG.filters.forEach(function(f){var s=el('fil'+f[1]);if(s)s.addEventListener('change',function(){render(true);});});
+  CFG.filters.forEach(function(f){var s=el('fil'+f[1]);if(s)s.addEventListener('change',function(){initFilters();render(true);});});
   el('moreBtn').addEventListener('click',function(){render(false);});
   (function(){
     var ths=document.querySelectorAll('.data-table thead th');

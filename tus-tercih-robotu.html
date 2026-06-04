@@ -271,7 +271,7 @@
   };
 })();
 </script>
-<link rel="stylesheet" href="/assets/style.css?v=20260604g">
+<link rel="stylesheet" href="/assets/style.css?v=20260604h">
 <link rel="manifest" href="/manifest.json">
 
 </head>
@@ -332,14 +332,19 @@ kontenjan ve tercih yoğunluğuna göre değişir. <b>Kaynak:</b> 2025 TUS 1. d�
   var pf=function(n){return n==null?'—':Number(n).toLocaleString('tr-TR',{minimumFractionDigits:2,maximumFractionDigits:2});};
   if(SV.skel)SV.skel('rbody',NCOL,6);
   el('rstatus').textContent='Veriler yükleniyor…';
-  fetch(CFG.file).then(function(r){return r.json();}).then(function(j){data=j;initFilters();el('rstatus').textContent='';applyQS();})
+  fetch(CFG.file).then(function(r){return r.json();}).then(function(j){data=j;initFilters();el('rstatus').textContent='';applyQS();initFilters();})
     .catch(function(){el('rstatus').textContent='Veri yüklenemedi.';});
-  function initFilters(){
+  function initFilters(){  // cascading: her filtre, diğer seçili filtrelere göre yeniden dolar
     CFG.filters.forEach(function(f,n){
-      var set={};data.forEach(function(r){if(r[f[0]]!=null&&r[f[0]]!=='')set[r[f[0]]]=1;});
-      var vals=Object.keys(set).sort(function(a,b){return a.localeCompare(b,'tr');});
-      var sel=el('rf'+n);if(!sel)return;
-      vals.forEach(function(v){var o=document.createElement('option');o.value=v;o.textContent=v;sel.appendChild(o);});
+      var sel=el('rf'+n);if(!sel)return;var cur=sel.value;
+      var cnt={};data.forEach(function(r){
+        for(var k=0;k<CFG.filters.length;k++){if(k===n)continue;var s=el('rf'+k);if(s&&s.value&&String(r[CFG.filters[k][0]])!==s.value)return;}
+        var v=r[f[0]];if(v!=null&&v!=='')cnt[v]=(cnt[v]||0)+1;
+      });
+      var ks=Object.keys(cnt).sort(function(a,b){return cnt[b]-cnt[a]||String(a).localeCompare(String(b),'tr');});
+      sel.innerHTML='<option value="">Tümü</option>';var hc=false;
+      ks.forEach(function(k){var o=document.createElement('option');o.value=k;o.textContent=k+' ('+cnt[k]+')';if(k===cur){o.selected=true;hc=true;}sel.appendChild(o);});
+      if(cur&&!hc){var o2=document.createElement('option');o2.value=cur;o2.textContent=cur+' (0)';o2.selected=true;sel.appendChild(o2);}
     });
   }
   function applyQS(){
@@ -361,7 +366,7 @@ kontenjan ve tercih yoğunluğuna göre değişir. <b>Kaynak:</b> 2025 TUS 1. d�
       if(key==='__all__'){el('rPuan').value='';CFG.filters.forEach(function(f,n){var s=el('rf'+n);if(s)s.value='';});}
       else if(key==='puan')el('rPuan').value='';
       else CFG.filters.forEach(function(f,n){if('f'+n===key){var s=el('rf'+n);if(s)s.value='';}});
-      run();
+      initFilters();run();
     });
   }
   var lastReach=[],userP=0,sortI=null,sortD=1;
@@ -412,9 +417,9 @@ kontenjan ve tercih yoğunluğuna göre değişir. <b>Kaynak:</b> 2025 TUS 1. d�
   el('rBtn').addEventListener('click',run);
   el('rPuan').addEventListener('keydown',function(e){if(e.key==='Enter')run();});
   el('rPuan').addEventListener('input',function(){if(el('rPuan').value.trim())run();});
-  // Filtre değişince otomatik yeniden hesapla (puan girilmişse)
+  // Filtre değişince cascade + otomatik yeniden hesapla (puan girilmişse)
   CFG.filters.forEach(function(f,n){var s=el('rf'+n);if(s)s.addEventListener('change',function(){
-    if(el('rPuan').value.trim())run(); else syncQS();
+    initFilters(); if(el('rPuan').value.trim())run(); else syncQS();
   });});
   (function(){
     var ths=document.querySelectorAll('.data-table thead th');
