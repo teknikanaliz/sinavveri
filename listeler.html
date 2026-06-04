@@ -190,14 +190,18 @@
     var a=curve[lo],b=curve[hi],d=(a[1]-b[1])||1,t=(a[1]-sira)/d;
     return Math.round((a[0]+(b[0]-a[0])*t)*100)/100;
   };
-  SV.spark = function(vals){
+  SV.spark = function(vals, invert){
+    // invert=true → küçük değer daha iyi (başarı sırası): iyileşme yeşil + grafikte yukarı
     var pts=[]; for(var i=0;i<vals.length;i++){ var v=vals[i]; if(v!=null && !isNaN(v)) pts.push({i:i,v:Number(v)}); }
     if(pts.length<2) return '';
     var w=42,h=14,pad=2,xs=vals.length-1||1;
     var vs=pts.map(function(p){return p.v;}); var mn=Math.min.apply(null,vs),mx=Math.max.apply(null,vs),rng=mx-mn||1;
-    var d=pts.map(function(p){var x=pad+(p.i/xs)*(w-2*pad);var y=h-pad-((p.v-mn)/rng)*(h-2*pad);return x.toFixed(1)+','+y.toFixed(1);}).join(' ');
-    var f=pts[0].v,l=pts[pts.length-1].v,col=l>f?'#16a34a':(l<f?'#dc2626':'#94a3b8');
-    return '<svg width="'+w+'" height="'+h+'" viewBox="0 0 '+w+' '+h+'" style="vertical-align:middle;margin-left:6px;flex:0 0 auto" aria-hidden="true"><polyline fill="none" stroke="'+col+'" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round" points="'+d+'"/></svg>';
+    var d=pts.map(function(p){var x=pad+(p.i/xs)*(w-2*pad);var fr=(p.v-mn)/rng;
+      var y=invert?(pad+fr*(h-2*pad)):(h-pad-fr*(h-2*pad));return x.toFixed(1)+','+y.toFixed(1);}).join(' ');
+    var f=pts[0].v,l=pts[pts.length-1].v,better=invert?(l<f):(l>f),worse=invert?(l>f):(l<f);
+    var col=better?'#16a34a':(worse?'#dc2626':'#94a3b8');
+    var ttl=invert?(l<f?'Başarı sırası iyileşiyor (2023→2025)':(l>f?'Başarı sırası geriliyor':'Sabit')):'';
+    return '<svg width="'+w+'" height="'+h+'" viewBox="0 0 '+w+' '+h+'" style="vertical-align:middle;margin-left:6px;flex:0 0 auto"'+(ttl?' aria-label="'+ttl+'"><title>'+ttl+'</title':' aria-hidden="true"')+'><polyline fill="none" stroke="'+col+'" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round" points="'+d+'"/></svg>';
   };
   SV.tokMatch = function(hay, q){
     hay = (hay || '').toLocaleLowerCase('tr');
@@ -317,7 +321,7 @@
   };
 })();
 </script>
-<link rel="stylesheet" href="/assets/style.css?v=20260604e">
+<link rel="stylesheet" href="/assets/style.css?v=20260604f">
 <link rel="manifest" href="/manifest.json">
 
 </head>

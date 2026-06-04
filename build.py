@@ -9,7 +9,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).parent
 SITE = "https://sinavveri.com"
-ASSET_VER = "20260604e"
+ASSET_VER = "20260604f"
 
 NAV = [
     ("/index.html", "Ana Sayfa"),
@@ -97,14 +97,18 @@ SV_HELPER_JS = r"""<script nonce="__NONCE__">
     var a=curve[lo],b=curve[hi],d=(a[1]-b[1])||1,t=(a[1]-sira)/d;
     return Math.round((a[0]+(b[0]-a[0])*t)*100)/100;
   };
-  SV.spark = function(vals){
+  SV.spark = function(vals, invert){
+    // invert=true → küçük değer daha iyi (başarı sırası): iyileşme yeşil + grafikte yukarı
     var pts=[]; for(var i=0;i<vals.length;i++){ var v=vals[i]; if(v!=null && !isNaN(v)) pts.push({i:i,v:Number(v)}); }
     if(pts.length<2) return '';
     var w=42,h=14,pad=2,xs=vals.length-1||1;
     var vs=pts.map(function(p){return p.v;}); var mn=Math.min.apply(null,vs),mx=Math.max.apply(null,vs),rng=mx-mn||1;
-    var d=pts.map(function(p){var x=pad+(p.i/xs)*(w-2*pad);var y=h-pad-((p.v-mn)/rng)*(h-2*pad);return x.toFixed(1)+','+y.toFixed(1);}).join(' ');
-    var f=pts[0].v,l=pts[pts.length-1].v,col=l>f?'#16a34a':(l<f?'#dc2626':'#94a3b8');
-    return '<svg width="'+w+'" height="'+h+'" viewBox="0 0 '+w+' '+h+'" style="vertical-align:middle;margin-left:6px;flex:0 0 auto" aria-hidden="true"><polyline fill="none" stroke="'+col+'" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round" points="'+d+'"/></svg>';
+    var d=pts.map(function(p){var x=pad+(p.i/xs)*(w-2*pad);var fr=(p.v-mn)/rng;
+      var y=invert?(pad+fr*(h-2*pad)):(h-pad-fr*(h-2*pad));return x.toFixed(1)+','+y.toFixed(1);}).join(' ');
+    var f=pts[0].v,l=pts[pts.length-1].v,better=invert?(l<f):(l>f),worse=invert?(l>f):(l<f);
+    var col=better?'#16a34a':(worse?'#dc2626':'#94a3b8');
+    var ttl=invert?(l<f?'Başarı sırası iyileşiyor (2023→2025)':(l>f?'Başarı sırası geriliyor':'Sabit')):'';
+    return '<svg width="'+w+'" height="'+h+'" viewBox="0 0 '+w+' '+h+'" style="vertical-align:middle;margin-left:6px;flex:0 0 auto"'+(ttl?' aria-label="'+ttl+'"><title>'+ttl+'</title':' aria-hidden="true"')+'><polyline fill="none" stroke="'+col+'" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round" points="'+d+'"/></svg>';
   };
   SV.tokMatch = function(hay, q){
     hay = (hay || '').toLocaleLowerCase('tr');
@@ -545,6 +549,13 @@ def hist_taban(r, year):
     for h in r.get("hist", []):
         if h[0] == year:
             return h[1]
+    return None
+
+
+def hist_sira(r, year):
+    for h in r.get("hist", []):
+        if h[0] == year:
+            return h[2]
     return None
 
 
@@ -1623,7 +1634,8 @@ def write_veri(programs):
         buckets[pt].append([r.get("k"), r.get("u"), r.get("b"), r.get("g"), r.get("il"),
                              r.get("t"), r.get("o"), r.get("dil"), r.get("bs"),
                              r.get("kont"), r.get("tp"), r.get("sira"), r.get("yer"),
-                             hist_taban(r, 2024), hist_taban(r, 2023)])
+                             hist_taban(r, 2024), hist_taban(r, 2023),
+                             hist_sira(r, 2024), hist_sira(r, 2023)])
     for pt, rows in buckets.items():
         rows.sort(key=lambda x: (x[11] is None, x[11] or 0))
         path = veri / f"{fname[pt]}.json"
@@ -1674,7 +1686,7 @@ def write_puan_sira(programs):
 # ───────────────────────── TABAN PUANLARI (interaktif arama) ─────────────────────────
 SEARCH_JS = r"""<script nonce="__NONCE__">
 (function(){
-  var IDX={k:0,u:1,b:2,g:3,il:4,t:5,o:6,dil:7,bs:8,kont:9,tp:10,sira:11,yer:12,t24:13,t23:14};
+  var IDX={k:0,u:1,b:2,g:3,il:4,t:5,o:6,dil:7,bs:8,kont:9,tp:10,sira:11,yer:12,t24:13,t23:14,s24:15,s23:16};
   var TUR={D:'Devlet',V:'Vakıf',K:'KKTC',DK:'Devlet (KKTC Kampüs)',DU:'Devlet (Ücretli)',DKU:'Devlet (KKTC Uyruklu)',Y:'Diğer','?':'—'};
   var PTL={say:'Sayısal',ea:'Eşit Ağırlık',soz:'Sözel',dil:'Dil',tyt:'TYT (Önlisans)'};
   var SV=window.SV||{};
@@ -1789,8 +1801,8 @@ SEARCH_JS = r"""<script nonce="__NONCE__">
         '<td>'+(r[IDX.il]||'—')+'</td>'+
         '<td><span class="tag tag-other">'+(TUR[r[IDX.t]]||'—')+'</span></td>'+
         '<td>'+kc+'</td>'+
-        '<td><strong>'+pf(r[IDX.tp])+'</strong>'+(SV.spark?SV.spark([r[IDX.t23],r[IDX.t24],r[IDX.tp]]):'')+'</td>'+
-        '<td>'+nf(r[IDX.sira])+'</td>'+
+        '<td><strong>'+pf(r[IDX.tp])+'</strong></td>'+
+        '<td>'+nf(r[IDX.sira])+(SV.spark?SV.spark([r[IDX.s23],r[IDX.s24],r[IDX.sira]],true):'')+'</td>'+
         '<td>'+doluluk(r)+'</td>'+
         '<td style="text-align:center"><input type="checkbox" class="cmp-cb" aria-label="Karşılaştır" data-k="'+k.replace(/"/g,'&quot;')+'"'+(cmp[k]?' checked':'')+'></td>';
       tb.appendChild(tr);
@@ -2032,6 +2044,8 @@ def page_tercih_robotu():
 <div class="crumb"><a href="/index.html">Ana Sayfa</a> / Tercih Robotu</div>
 <div class="page-title"><h1>2026 YKS Tercih Robotu</h1><span class="sub">Başarı sıranı gir, yerleşebileceğin programları gör · 2025 YÖK Atlas yerleştirme verisine göre</span></div>
 """ + robot_nav("tercih-robotu.html") + """
+<div class="fav-bar" id="favBar"><button type="button" class="fav-toggle" id="favBtn">⭐ Tercih Listem (0)</button></div>
+<div class="fav-panel" id="favPanel"></div>
 
 <div class="calc-card" style="margin-bottom:18px">
   <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;align-items:end">
@@ -2065,8 +2079,6 @@ def page_tercih_robotu():
 </table>
 </div>
 <div id="rhint" style="display:none;font-size:12px;color:var(--fg-faded);margin-top:10px;text-align:center"></div>
-<div class="fav-panel" id="favPanel"></div>
-<div class="fav-bar" id="favBar"><button type="button" class="fav-toggle" id="favBtn">⭐ Tercih Listem (0)</button></div>
 
 <div class="notice"><b>Nasıl çalışır?</b> Başarı sıran, bir programın 2025 taban başarı sırasından <b>daha iyi (küçük)</b> veya eşitse
 o programa yerleşebilirsin. "Şans" sütunu güvenlik payını gösterir: <b>Rahat</b> (geniş pay), <b>Olası</b>, <b>Sınırda</b>.
@@ -2242,6 +2254,8 @@ def puan_robot_page(slug, title, desc, h1, sub, veri_file, nb, ns, show, taban, 
 <div class="crumb"><a href="/index.html">Ana Sayfa</a> / <a href="/tercih-robotu.html">Tercih Robotu</a> / {h1}</div>
 <div class="page-title"><h1>{h1}</h1><span class="sub">{sub}</span></div>
 {robot_nav(slug)}
+<div class="fav-bar" id="favBar"><button type="button" class="fav-toggle" id="favBtn">⭐ Tercih Listem (0)</button></div>
+<div class="fav-panel" id="favPanel"></div>
 <div class="info-box">{intro}</div>
 <div class="calc-card" style="margin-bottom:18px">
   <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;align-items:end">
@@ -2257,8 +2271,6 @@ def puan_robot_page(slug, title, desc, h1, sub, veri_file, nb, ns, show, taban, 
 <table class="data-table" data-live="1"><thead><tr>{thead}</tr></thead><tbody id="rbody"></tbody></table>
 </div>
 <div id="rhint" style="display:none;font-size:12px;color:var(--fg-faded);margin-top:10px;text-align:center"></div>
-<div class="fav-panel" id="favPanel"></div>
-<div class="fav-bar" id="favBar"><button type="button" class="fav-toggle" id="favBtn">⭐ Tercih Listem (0)</button></div>
 <div class="notice"><b>Nasıl çalışır?</b> Puanın bir programın/kadronun taban puanından <b>yüksek veya eşitse</b> oraya yerleşebilirsin.
 "Şans" payı güvenliği gösterir: <b>Rahat</b> (geniş pay), <b>Olası</b>, <b>Sınırda</b>. Bu bir tahmindir; gelecek yıl taban puanları
 kontenjan ve tercih yoğunluğuna göre değişir. <b>Kaynak:</b> {kaynak} Resmî tercih için <a href="https://www.osym.gov.tr" target="_blank" rel="noopener">ÖSYM</a> esastır.</div>
