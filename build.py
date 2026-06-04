@@ -16,6 +16,8 @@ NAV = [
     ("/taban-puanlari.html", "Taban Puanları"),
     ("/tercih-robotu.html", "Tercih Robotu"),
     ("/puan-hesaplama.html", "Puan Hesaplama"),
+    ("/bolumler.html", "Bölümler"),
+    ("/listeler.html", "Listeler"),
     ("/takvim.html", "Takvim"),
     ("/rehberler.html", "Rehberler"),
 ]
@@ -701,6 +703,19 @@ def page_index():
   <div class="section-sub">Net ve puanını saniyeler içinde hesapla.</div>
   <div class="tool-row">
 {tool_html}
+  </div>
+</div>
+
+<div class="section">
+  <h2>Keşfet</h2>
+  <div class="section-sub">Bölüm/üniversite detayları, sıralamalar ve sana uygun bölümü bul.</div>
+  <div class="tool-row">
+    <a class="tool-btn" href="/bolumler.html"><span class="tb-icon">📚</span><span class="tb-text"><b>Bölümler</b><span>Bölüm bazlı taban + SSS + program detayı (ℹ️)</span></span></a>
+    <a class="tool-btn" href="/universiteler.html"><span class="tb-icon">🏛️</span><span class="tb-text"><b>Üniversiteler</b><span>Üniversite bazlı tüm programlar</span></span></a>
+    <a class="tool-btn" href="/listeler.html"><span class="tb-icon">📈</span><span class="tb-text"><b>Listeler & Sıralamalar</b><span>En yüksek taban, en çok kontenjan</span></span></a>
+    <a class="tool-btn" href="/bolum-bulma-testi.html"><span class="tb-icon">🧭</span><span class="tb-text"><b>Bölüm Bulma Testi</b><span>Hangi bölüm bana uygun?</span></span></a>
+    <a class="tool-btn" href="/yks-siralama-hesaplama.html"><span class="tb-icon">🎯</span><span class="tb-text"><b>Sıralama Hesaplama</b><span>Puan → tahmini sıra → bölümler</span></span></a>
+    <a class="tool-btn" href="/doluluk.html"><span class="tb-icon">📦</span><span class="tb-text"><b>Doluluk Analizi</b><span>Boş kalan / dolan kontenjanlar</span></span></a>
   </div>
 </div>
 
