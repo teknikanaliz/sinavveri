@@ -392,7 +392,7 @@ Bu bir tahmindir; 2026 taban sıraları kontenjan ve tercih yoğunluğuna göre 
     if(!lastReach.length){if(SV.empty)SV.empty('rbody',7,'Bu sıralama ve filtrelerle yerleşebileceğin program bulunamadı. Filtreyi gevşetmeyi deneyin.');el('rhint').style.display='none';return;}
     lastReach.slice(0,200).forEach(function(r){
       var ratio=r[IDX.sira]/lastSira;  // taban sıra / senin sıran (>1 = taban daha geride = güvenli)
-      var safe = ratio>=1.15 ? '<span class="tag tag-lgs">Rahat</span>' : (ratio>=1.0 ? '<span class="tag tag-kpss">Olası</span>' : '<span class="tag tag-other">Sınırda</span>');
+      var safe = ratio>=1.20 ? '<span class="tag tag-lgs">Rahat</span>' : (ratio>=1.0 ? '<span class="tag tag-kpss">Olası</span>' : '<span class="tag tag-other">Sınırda</span>');
       var k=rkey(r); byId[k]={id:k,name:r[IDX.b]||'',sub:r[IDX.u]||'',meta:'taban sıra '+nf(r[IDX.sira])};
       var on=fav&&fav.has(k);
       var tr=document.createElement('tr');
@@ -420,7 +420,7 @@ Bu bir tahmindir; 2026 taban sıraları kontenjan ve tercih yoğunluğuna göre 
         if(dilSel&&bdil(r[IDX.dil])!==dilSel)return false;
         if(uni&&r[IDX.u]!==uni)return false;
         if(bol&&r[IDX.g]!==bol)return false;
-        return r[IDX.sira]>=sira*0.85;  // erişebildiklerin + biraz üstündeki olası/sınırda programlar
+        return r[IDX.sira]>=sira*0.80;  // erişebildiklerin + biraz üstündeki olası/sınırda programlar (2023-25 oynaklığına göre kalibre)
       });
       sortReach();
       el('rstatus').innerHTML='<b>'+lastReach.length.toLocaleString('tr-TR')+'</b> program — şansın olan bölümler (Rahat/Olası/Sınırda · sıran: '+sira.toLocaleString('tr-TR')+')';
