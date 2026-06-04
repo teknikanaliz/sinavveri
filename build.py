@@ -9,7 +9,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).parent
 SITE = "https://sinavveri.com"
-ASSET_VER = "20260604f"
+ASSET_VER = "20260604g"
 
 NAV = [
     ("/index.html", "Ana Sayfa"),
@@ -2376,6 +2376,14 @@ def _bdil_py(s):
     return s[:i] if i > 0 else s
 
 
+def _row_attrs(r):
+    """Detay tablosu satırına filtre data-attribute'ları (il/tür/dil/üniversite)."""
+    def q(s):
+        return (s or "").replace('"', "&quot;")
+    return (f' data-il="{q(r.get("il"))}" data-tur="{q(TUR_FULL.get(r.get("t"), "—"))}"'
+            f' data-dil="{q(_bdil_py(r.get("dil")))}" data-uni="{q(r.get("u"))}"')
+
+
 def _pdet_btn(r):
     """Program detayı 'ℹ️' butonu: akademik kadro / akreditasyon / süre / ücret / koşul kodları
     data-attribute olarak; istemci kosul_map ile açıklamayı çözer. Veri yoksa boş döner."""
@@ -2395,14 +2403,24 @@ def _pdet_btn(r):
 
 
 # Detay (bölüm/üniversite) statik tablolarına dil filtresi + karşılaştırma katmanı
-DETAIL_BAR = """
+_DLBL = 'style="font-size:12px;color:var(--fg-faded);font-weight:700;display:block;margin-bottom:3px"'
+DETAIL_BAR = f"""
 <div class="calc-card" style="margin-bottom:14px;padding:13px 16px">
-  <div style="display:flex;gap:12px;flex-wrap:wrap;align-items:center">
-    <span id="dDilWrap"><label style="font-size:12px;color:var(--fg-faded);font-weight:700;margin-right:6px">Öğrenim dili</label>
-      <select id="dDil" class="btn btn-ghost" style="text-align:left"><option value="">Tümü</option></select></span>
-    <span id="dStatus" style="font-size:12px;color:var(--fg-faded)"></span>
+  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px">
+    <span id="dIlW"><label {_DLBL}>İl</label><select id="dIl" class="btn btn-ghost" style="text-align:left;width:100%"><option value="">Tüm iller</option></select></span>
+    <span id="dTurW"><label {_DLBL}>Tür</label><select id="dTur" class="btn btn-ghost" style="text-align:left;width:100%"><option value="">Tüm türler</option></select></span>
+    <span id="dDilW"><label {_DLBL}>Öğrenim dili</label><select id="dDil" class="btn btn-ghost" style="text-align:left;width:100%"><option value="">Tüm diller</option></select></span>
+    <span id="dUniW"><label {_DLBL}>Üniversite</label><select id="dUni" class="btn btn-ghost" style="text-align:left;width:100%"><option value="">Tüm üniversiteler</option></select></span>
   </div>
   <div class="filter-chips" id="dChips" style="display:none;margin-top:8px"></div>
+  <div id="dStatus" style="margin-top:8px;font-size:12px;color:var(--fg-faded)"></div>
+</div>"""
+
+DETAIL_PAGER = """
+<div id="dPager" style="display:none;justify-content:center;align-items:center;gap:14px;margin-top:14px">
+  <button type="button" class="btn btn-ghost" id="dPrev">← Geri</button>
+  <span id="dPageInfo" style="font-size:13px;color:var(--fg-faded);min-width:90px;text-align:center"></span>
+  <button type="button" class="btn btn-ghost" id="dNext">İleri →</button>
 </div>"""
 
 DETAIL_CMP = """
@@ -2414,23 +2432,52 @@ DETAIL_TOOLS_JS = r"""<script nonce="__NONCE__">
   var SV=window.SV||{};
   var tbl=document.querySelector('table.detail-table'); if(!tbl)return;
   var tb=tbl.querySelector('tbody'); if(!tb)return;
-  var rows=Array.prototype.slice.call(tb.querySelectorAll(':scope>tr'));
+  var rows=Array.prototype.slice.call(tb.querySelectorAll(':scope>tr')).filter(function(r){return !r.classList.contains('pdet-row');});
   var ths=Array.prototype.slice.call(tbl.querySelectorAll('thead th')).map(function(h){return h.textContent.trim();});
-  var ncol=ths.length;
-  var dilSel=document.getElementById('dDil');
-  function applyFilter(){
-    var d=dilSel?dilSel.value:'',shown=0;
-    rows.forEach(function(r){var ok=!d||r.getAttribute('data-dil')===d;r.style.display=ok?'':'none';if(ok)shown++;});
-    var st=document.getElementById('dStatus');if(st)st.textContent=shown.toLocaleString('tr-TR')+' / '+rows.length.toLocaleString('tr-TR')+' program';
-    if(SV.chips){var it=[];if(d)it.push({key:'dil',label:'Dil: '+d});SV.chips('dChips',it,function(){if(dilSel)dilSel.value='';applyFilter();});}
-  }
-  if(dilSel){
-    var cnt={};rows.forEach(function(r){var d=r.getAttribute('data-dil')||'';if(d)cnt[d]=(cnt[d]||0)+1;});
+  var ncol=ths.length, PAGE=50, page=0, filtered=rows;
+  var DIMS=[['dIl','data-il','İl'],['dTur','data-tur','Tür'],['dDil','data-dil','Dil'],['dUni','data-uni','Üni']];
+  function el(i){return document.getElementById(i);}
+  function num(s){s=(s||'').replace(/[^0-9,.\-]/g,'').replace(/\./g,'').replace(',','.');return s===''||s==='-'?NaN:parseFloat(s);}
+  function clearPdet(){Array.prototype.forEach.call(tb.querySelectorAll('.pdet-row'),function(x){x.parentNode.removeChild(x);});}
+  DIMS.forEach(function(dm){var sel=el(dm[0]);if(!sel)return;
+    var cnt={};rows.forEach(function(r){var v=r.getAttribute(dm[1]);if(v)cnt[v]=(cnt[v]||0)+1;});
     var ks=Object.keys(cnt).sort(function(a,b){return cnt[b]-cnt[a]||a.localeCompare(b,'tr');});
-    if(ks.length<2){var w=document.getElementById('dDilWrap');if(w)w.style.display='none';}
-    else{ks.forEach(function(k){var o=document.createElement('option');o.value=k;o.textContent=k+' ('+cnt[k]+')';dilSel.appendChild(o);});dilSel.addEventListener('change',applyFilter);}
-    applyFilter();
+    var wrap=el(dm[0]+'W');
+    if(ks.length<2){if(wrap)wrap.style.display='none';return;}
+    ks.forEach(function(k){var o=document.createElement('option');o.value=k;o.textContent=k+' ('+cnt[k]+')';sel.appendChild(o);});
+    sel.addEventListener('change',function(){page=0;render();});
+  });
+  function render(){
+    clearPdet();
+    filtered=rows.filter(function(r){for(var i=0;i<DIMS.length;i++){var s=el(DIMS[i][0]);if(s&&s.value&&r.getAttribute(DIMS[i][1])!==s.value)return false;}return true;});
+    var pages=Math.max(1,Math.ceil(filtered.length/PAGE));if(page>=pages)page=pages-1;if(page<0)page=0;
+    rows.forEach(function(r){r.style.display='none';});
+    filtered.slice(page*PAGE,(page+1)*PAGE).forEach(function(r){r.style.display='';});
+    var st=el('dStatus');if(st)st.textContent=filtered.length.toLocaleString('tr-TR')+' / '+rows.length.toLocaleString('tr-TR')+' program'+(filtered.length>PAGE?(' · sayfa '+(page+1)+'/'+pages):'');
+    var pg=el('dPager');if(pg)pg.style.display=filtered.length>PAGE?'flex':'none';
+    var pi=el('dPageInfo');if(pi)pi.textContent=(page+1)+' / '+pages;
+    if(SV.chips){var items=DIMS.filter(function(dm){var s=el(dm[0]);return s&&s.value;}).map(function(dm){return {key:dm[0],label:dm[2]+': '+el(dm[0]).value};});
+      SV.chips('dChips',items,function(key){if(key==='__all__'){DIMS.forEach(function(dm){var s=el(dm[0]);if(s)s.value='';});}else{var s=el(key);if(s)s.value='';}page=0;render();});}
   }
+  var pv=el('dPrev');if(pv)pv.addEventListener('click',function(){if(page>0){page--;render();try{tbl.scrollIntoView({block:'start'});}catch(e){}}});
+  var nx=el('dNext');if(nx)nx.addEventListener('click',function(){if(page<Math.ceil(filtered.length/PAGE)-1){page++;render();try{tbl.scrollIntoView({block:'start'});}catch(e){}}});
+  var sortI=null,sortD=1;
+  Array.prototype.forEach.call(tbl.querySelectorAll('thead th'),function(th,i){
+    if(th.hasAttribute('data-nosort'))return;
+    th.style.cursor='pointer';th.title='Sıralamak için tıklayın';
+    th.addEventListener('click',function(){
+      sortD=(sortI===i)?-sortD:1;sortI=i;
+      Array.prototype.forEach.call(tbl.querySelectorAll('thead th'),function(o){var a=o.querySelector('.s-arrow');if(a)a.remove();});
+      var ar=document.createElement('span');ar.className='s-arrow';ar.textContent=sortD>0?' ▲':' ▼';th.appendChild(ar);
+      rows.sort(function(a,b){var x=a.children[i],y=b.children[i];if(!x||!y)return 0;
+        var xt=x.textContent.trim(),yt=y.textContent.trim(),xn=num(xt),yn=num(yt);
+        if(!isNaN(xn)&&!isNaN(yn))return (xn-yn)*sortD;
+        if(isNaN(xn)&&isNaN(yn))return xt.localeCompare(yt,'tr')*sortD;
+        return isNaN(xn)?1:-1;});
+      clearPdet();rows.forEach(function(r){tb.appendChild(r);});page=0;render();
+    });
+  });
+  render();
   var cmp={},order=[];
   function refreshBar(){var bar=document.getElementById('dCmpBar');if(bar)bar.classList.toggle('show',order.length>0);var b=document.getElementById('dCmpBtn');if(b)b.textContent='Karşılaştır ('+order.length+')';}
   function buildPanel(){
@@ -2503,8 +2550,7 @@ def gen_bolum_pages(programs):
         with_p = [r for r in recs if r.get("tp")]
         rows = ""
         for r in recs:
-            _dl = _bdil_py(r.get("dil"))
-            rows += (f'<tr data-dil="{_dl}"><td><strong>' + (r.get("u") or "") + "</strong> " + _pdet_btn(r) + "</td>"
+            rows += (f'<tr{_row_attrs(r)}><td><strong>' + (r.get("u") or "") + "</strong> " + _pdet_btn(r) + "</td>"
                      "<td>" + (r.get("b") or "") + "</td>"
                      "<td>" + (r.get("il") or "—") + "</td>"
                      "<td>" + TUR_FULL.get(r.get("t"), "—") + "</td>"
@@ -2560,11 +2606,12 @@ def gen_bolum_pages(programs):
 {chart}
 {DETAIL_BAR}
 <div class="data-table-wrap">
-<table class="data-table detail-table">
+<table class="data-table detail-table" data-live="1">
 <thead><tr><th>Üniversite</th><th>Program</th><th>İl</th><th>Tür</th><th>Kont.</th><th>Doluluk</th><th>Taban 2025</th><th>Taban 2024</th><th>Taban 2023</th><th>Sıra 2025</th><th data-nosort title="Karşılaştır">Kıyas</th></tr></thead>
 <tbody>{rows}</tbody>
 </table>
 </div>
+{DETAIL_PAGER}
 {DETAIL_CMP}
 {DETAIL_TOOLS_JS}
 <div class="notice"><b>Kaynak:</b> YÖK Atlas 2025 Tercih Kılavuzu (geçmiş: 2024/2023). Boş (—) değerler o yıl yerleşen/veri olmadığını gösterir.
@@ -2600,8 +2647,7 @@ def gen_universite_pages(programs):
         tur = next((TUR_FULL.get(_base.get(r.get("t"), r.get("t"))) for r in recs if r.get("t")), "")
         rows = ""
         for r in recs:
-            _dl = _bdil_py(r.get("dil"))
-            rows += (f'<tr data-dil="{_dl}"><td><strong>' + (r.get("b") or "") + "</strong> " + _pdet_btn(r) + "</td>"
+            rows += (f'<tr{_row_attrs(r)}><td><strong>' + (r.get("b") or "") + "</strong> " + _pdet_btn(r) + "</td>"
                      "<td>" + (r.get("g") or "—") + "</td>"
                      "<td>" + PT_LABEL.get(r.get("p"), r.get("p") or "—") + "</td>"
                      "<td>" + fmt_sira(r.get("kont")) + "</td>"
@@ -2615,11 +2661,12 @@ def gen_universite_pages(programs):
 <div class="page-title"><h1>{u} Taban Puanları 2025</h1><span class="sub">{il} · {tur} · {len(recs)} program · YÖK Atlas 2025</span></div>
 {DETAIL_BAR}
 <div class="data-table-wrap">
-<table class="data-table detail-table">
+<table class="data-table detail-table" data-live="1">
 <thead><tr><th>Program</th><th>Bölüm Grubu</th><th>Puan Türü</th><th>Kont.</th><th>Doluluk</th><th>Taban 2025</th><th>Taban 2024</th><th>Başarı Sırası</th><th data-nosort title="Karşılaştır">Kıyas</th></tr></thead>
 <tbody>{rows}</tbody>
 </table>
 </div>
+{DETAIL_PAGER}
 {DETAIL_CMP}
 {DETAIL_TOOLS_JS}
 <div class="notice"><b>Kaynak:</b> YÖK Atlas 2025 (geçmiş: 2024). Doluluk = yerleşen ÷ kontenjan. Başarı sırasına göre sıralı.
@@ -3760,12 +3807,12 @@ def page_ara():
 
 
 def page_listeler(programs):
-    """GEO/SEO: gerçek veriden türetilmiş sıralama listeleri + ItemList şeması (AI alıntı)."""
+    """GEO/SEO: gerçek veriden türetilmiş sıralama listeleri (tab'lı) + ItemList şeması (AI alıntı)."""
     PTL = {"SAY": "Sayısal", "EA": "Eşit Ağırlık", "SÖZ": "Sözel", "DİL": "Dil"}
-    sections = ""
     item_list = []
+    tabs = []  # (id, label, table_html)
     for pt in ("SAY", "EA", "SÖZ", "DİL"):
-        rows = sorted([r for r in programs if r.get("p") == pt and r.get("tp")], key=lambda r: -r["tp"])[:20]
+        rows = sorted([r for r in programs if r.get("p") == pt and r.get("tp")], key=lambda r: -r["tp"])[:25]
         if not rows:
             continue
         trs = ""
@@ -3774,27 +3821,45 @@ def page_listeler(programs):
                     f"<td>{r.get('il') or '—'}</td><td><strong>{fmt_puan(r.get('tp'))}</strong></td><td>{fmt_sira(r.get('sira'))}</td></tr>")
             if pt == "SAY" and i <= 10:
                 item_list.append({"@type": "ListItem", "position": i, "name": f"{r.get('b')} — {r.get('u')}"})
-        sections += (f'<div class="section"><h2>En Yüksek Taban — {PTL[pt]} (2025, ilk 20)</h2>'
-                     '<div class="data-table-wrap"><table class="data-table"><thead><tr><th data-nosort>#</th>'
-                     '<th>Program / Üniversite</th><th>İl</th><th>Taban</th><th>Sıra</th></tr></thead>'
-                     f'<tbody>{trs}</tbody></table></div></div>')
-    konts = sorted([r for r in programs if r.get("kont")], key=lambda r: -r["kont"])[:20]
+        table = ('<div class="data-table-wrap"><table class="data-table"><thead><tr><th data-nosort>#</th>'
+                 '<th>Program / Üniversite</th><th>İl</th><th>Taban</th><th>Sıra</th></tr></thead>'
+                 f'<tbody>{trs}</tbody></table></div>')
+        tabs.append((pt.lower().replace("ö", "o").replace("i̇", "i"), f"En Yüksek Taban — {PTL[pt]}", table))
+    konts = sorted([r for r in programs if r.get("kont")], key=lambda r: -r["kont"])[:25]
     if konts:
         trs = "".join(f"<tr><td>{i}</td><td><strong>{r.get('b') or ''}</strong><br><small>{r.get('u') or ''}</small></td>"
                       f"<td>{r.get('il') or '—'}</td><td><strong>{fmt_sira(r.get('kont'))}</strong></td><td>{fmt_puan(r.get('tp'))}</td></tr>"
                       for i, r in enumerate(konts, 1))
-        sections += ('<div class="section"><h2>En Çok Kontenjanlı 20 Program (2025)</h2>'
+        tabs.append(("kont", "En Çok Kontenjan",
                      '<div class="data-table-wrap"><table class="data-table"><thead><tr><th data-nosort>#</th>'
                      '<th>Program / Üniversite</th><th>İl</th><th>Kontenjan</th><th>Taban</th></tr></thead>'
-                     f'<tbody>{trs}</tbody></table></div></div>')
+                     f'<tbody>{trs}</tbody></table></div>'))
+    SHORT = {"SAY": "Sayısal", "EA": "Eşit Ağırlık", "SÖZ": "Sözel", "DİL": "Dil"}
+    btns = "".join(
+        f'<button type="button" class="ltab-btn{" active" if n == 0 else ""}" data-tab="{tid}">{SHORT.get(tid.upper(), lbl.split("— ")[-1])}</button>'
+        for n, (tid, lbl, _t) in enumerate(tabs))
+    panels = "".join(
+        f'<div class="ltab-panel{" active" if n == 0 else ""}" id="lt-{tid}"><h2 style="font-size:17px;color:var(--accent);margin:4px 0 10px">{lbl} (2025, ilk 25)</h2>{table}</div>'
+        for n, (tid, lbl, table) in enumerate(tabs))
     body = f"""
 <div class="crumb"><a href="/index.html">Ana Sayfa</a> / Listeler ve Sıralamalar</div>
 <div class="page-title"><h1>Üniversite Listeleri ve Sıralamalar 2025</h1><span class="sub">YÖK Atlas 2025 gerçek yerleştirme verisinden · en yüksek taban, en çok kontenjan</span></div>
-<div class="info-box">2025 yerleştirme verisine göre öne çıkan program listeleri. Tüm taban puanları için
+<div class="info-box">Puan türüne göre sekmelerden öne çıkan programları gör. Tüm taban puanları için
 <a href="/universite-taban-puanlari.html">üniversite taban puanları</a>, puanına göre bölüm için
 <a href="/tercih-robotu.html">tercih robotu</a>.</div>
-{sections}
+<div class="ltabs">{btns}</div>
+{panels}
 <div class="notice"><b>Kaynak:</b> YÖK Atlas 2025 Tercih Kılavuzu yerleştirme verisi. Sıralamalar 2025 taban puanı / kontenjanına göredir.</div>
+<script nonce="__NONCE__">
+(function(){{
+  var btns=document.querySelectorAll('.ltab-btn');
+  btns.forEach(function(b){{b.addEventListener('click',function(){{
+    var id=b.getAttribute('data-tab');
+    btns.forEach(function(x){{x.classList.toggle('active',x===b);}});
+    document.querySelectorAll('.ltab-panel').forEach(function(p){{p.classList.toggle('active',p.id==='lt-'+id);}});
+  }});}});
+}})();
+</script>
 """
     extra = [breadcrumb_ld([("Ana Sayfa", "index.html"), ("Listeler ve Sıralamalar", None)])]
     if item_list:
