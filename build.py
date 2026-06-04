@@ -1973,8 +1973,8 @@ ROBOT_JS = r"""<script nonce="__NONCE__">
     var tb=el('rbody'); tb.innerHTML=''; byId={};
     if(!lastReach.length){if(SV.empty)SV.empty('rbody',7,'Bu sıralama ve filtrelerle yerleşebileceğin program bulunamadı. Filtreyi gevşetmeyi deneyin.');el('rhint').style.display='none';return;}
     lastReach.slice(0,200).forEach(function(r){
-      var margin=r[IDX.sira]-lastSira;
-      var safe = margin>lastSira*0.25 ? '<span class="tag tag-lgs">Rahat</span>' : (margin>lastSira*0.05 ? '<span class="tag tag-kpss">Olası</span>' : '<span class="tag tag-other">Sınırda</span>');
+      var ratio=r[IDX.sira]/lastSira;  // taban sıra / senin sıran (>1 = taban daha geride = güvenli)
+      var safe = ratio>=1.15 ? '<span class="tag tag-lgs">Rahat</span>' : (ratio>=1.0 ? '<span class="tag tag-kpss">Olası</span>' : '<span class="tag tag-other">Sınırda</span>');
       var k=rkey(r); byId[k]={id:k,name:r[IDX.b]||'',sub:r[IDX.u]||'',meta:'taban sıra '+nf(r[IDX.sira])};
       var on=fav&&fav.has(k);
       var tr=document.createElement('tr');
@@ -2002,10 +2002,10 @@ ROBOT_JS = r"""<script nonce="__NONCE__">
         if(dilSel&&bdil(r[IDX.dil])!==dilSel)return false;
         if(uni&&r[IDX.u]!==uni)return false;
         if(bol&&r[IDX.g]!==bol)return false;
-        return r[IDX.sira]>=sira;
+        return r[IDX.sira]>=sira*0.85;  // erişebildiklerin + biraz üstündeki olası/sınırda programlar
       });
       sortReach();
-      el('rstatus').innerHTML='<b>'+lastReach.length.toLocaleString('tr-TR')+'</b> programa yerleşebilirsin (sıran: '+sira.toLocaleString('tr-TR')+')';
+      el('rstatus').innerHTML='<b>'+lastReach.length.toLocaleString('tr-TR')+'</b> program — şansın olan bölümler (Rahat/Olası/Sınırda · sıran: '+sira.toLocaleString('tr-TR')+')';
       draw();
     });
   }
@@ -2080,9 +2080,9 @@ def page_tercih_robotu():
 </div>
 <div id="rhint" style="display:none;font-size:12px;color:var(--fg-faded);margin-top:10px;text-align:center"></div>
 
-<div class="notice"><b>Nasıl çalışır?</b> Başarı sıran, bir programın 2025 taban başarı sırasından <b>daha iyi (küçük)</b> veya eşitse
-o programa yerleşebilirsin. "Şans" sütunu güvenlik payını gösterir: <b>Rahat</b> (geniş pay), <b>Olası</b>, <b>Sınırda</b>.
-Bu bir tahmindir; 2026 taban puanları kontenjan ve tercih yoğunluğuna göre değişir. Resmî tercih için
+<div class="notice"><b>Nasıl çalışır?</b> Sıranı girdiğinde hem rahat yerleşeceğin hem de <b>şansın olan</b> programlar listelenir.
+"Şans": <b>Rahat</b> (taban sıran senden epey geride — güvenli), <b>Olası</b> (sıraya yakın), <b>Sınırda</b> (taban senden biraz daha iyi — riskli ama 2026'da değişebileceği için denenebilir).
+Bu bir tahmindir; 2026 taban sıraları kontenjan ve tercih yoğunluğuna göre değişir. Resmî tercih için
 <a href="https://www.osym.gov.tr" target="_blank" rel="noopener">ÖSYM</a> kılavuzu esastır.</div>
 """ + ROBOT_JS
     # rIl doldurma — robot da fillIl benzeri ister; basitçe SEARCH veri yüklenince doldurulmuyor.
@@ -2168,7 +2168,7 @@ PUAN_ROBOT_JS = r"""<script nonce="__NONCE__">
     if(!lastReach.length){if(SV.empty)SV.empty('rbody',NCOL,'Bu puan ve filtrelerle yerleşebileceğin sonuç bulunamadı. Puanı veya filtreleri gözden geçirin.');el('rhint').style.display='none';return;}
     lastReach.slice(0,200).forEach(function(r){
       var m=userP-r[CFG.taban];
-      var safe=m>=CFG.t1?'<span class="tag tag-lgs">Rahat</span>':(m>=CFG.t2?'<span class="tag tag-kpss">Olası</span>':'<span class="tag tag-other">Sınırda</span>');
+      var safe=m>=CFG.t1?'<span class="tag tag-lgs">Rahat</span>':(m>=0?'<span class="tag tag-kpss">Olası</span>':'<span class="tag tag-other">Sınırda</span>');
       var name='<td><strong>'+(r[CFG.nb]||'')+'</strong>'+(CFG.ns!=null?'<br><small>'+(r[CFG.ns]||'')+'</small>':'')+'</td>';
       var show='';CFG.show.forEach(function(c){show+='<td>'+(r[c[0]]==null||r[c[0]]===''?'—':r[c[0]])+'</td>';});
       var k=rkey(r);byId[k]={id:k,name:String(r[CFG.nb]||''),sub:(CFG.ns!=null?String(r[CFG.ns]||''):''),meta:'taban '+pf(r[CFG.taban])};
@@ -2188,10 +2188,10 @@ PUAN_ROBOT_JS = r"""<script nonce="__NONCE__">
     userP=p;
     lastReach=data.filter(function(r){
       for(var k=0;k<CFG.filters.length;k++){var s=el('rf'+k);if(s&&s.value&&String(r[CFG.filters[k][0]])!==s.value)return false;}
-      var t=r[CFG.taban];return t!=null&&t<=p;
+      var t=r[CFG.taban];return t!=null&&t<=p+CFG.t2;  // erişebildiklerin + biraz üstündeki sınırda olanlar
     });
     sortReach();
-    el('rstatus').innerHTML='<b>'+lastReach.length.toLocaleString('tr-TR')+'</b> '+CFG.noun+' yerleşebilirsin (puanın: '+pf(p)+')';
+    el('rstatus').innerHTML='<b>'+lastReach.length.toLocaleString('tr-TR')+'</b> '+CFG.noun+' şansın var (Rahat/Olası/Sınırda · puanın: '+pf(p)+')';
     draw();
   }
   el('rbody').addEventListener('click',function(e){

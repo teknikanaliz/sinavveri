@@ -331,9 +331,9 @@
 </div>
 <div id="rhint" style="display:none;font-size:12px;color:var(--fg-faded);margin-top:10px;text-align:center"></div>
 
-<div class="notice"><b>Nasıl çalışır?</b> Başarı sıran, bir programın 2025 taban başarı sırasından <b>daha iyi (küçük)</b> veya eşitse
-o programa yerleşebilirsin. "Şans" sütunu güvenlik payını gösterir: <b>Rahat</b> (geniş pay), <b>Olası</b>, <b>Sınırda</b>.
-Bu bir tahmindir; 2026 taban puanları kontenjan ve tercih yoğunluğuna göre değişir. Resmî tercih için
+<div class="notice"><b>Nasıl çalışır?</b> Sıranı girdiğinde hem rahat yerleşeceğin hem de <b>şansın olan</b> programlar listelenir.
+"Şans": <b>Rahat</b> (taban sıran senden epey geride — güvenli), <b>Olası</b> (sıraya yakın), <b>Sınırda</b> (taban senden biraz daha iyi — riskli ama 2026'da değişebileceği için denenebilir).
+Bu bir tahmindir; 2026 taban sıraları kontenjan ve tercih yoğunluğuna göre değişir. Resmî tercih için
 <a href="https://www.osym.gov.tr" target="_blank" rel="noopener">ÖSYM</a> kılavuzu esastır.</div>
 <script nonce="__NONCE__">
 (function(){
@@ -391,8 +391,8 @@ Bu bir tahmindir; 2026 taban puanları kontenjan ve tercih yoğunluğuna göre d
     var tb=el('rbody'); tb.innerHTML=''; byId={};
     if(!lastReach.length){if(SV.empty)SV.empty('rbody',7,'Bu sıralama ve filtrelerle yerleşebileceğin program bulunamadı. Filtreyi gevşetmeyi deneyin.');el('rhint').style.display='none';return;}
     lastReach.slice(0,200).forEach(function(r){
-      var margin=r[IDX.sira]-lastSira;
-      var safe = margin>lastSira*0.25 ? '<span class="tag tag-lgs">Rahat</span>' : (margin>lastSira*0.05 ? '<span class="tag tag-kpss">Olası</span>' : '<span class="tag tag-other">Sınırda</span>');
+      var ratio=r[IDX.sira]/lastSira;  // taban sıra / senin sıran (>1 = taban daha geride = güvenli)
+      var safe = ratio>=1.15 ? '<span class="tag tag-lgs">Rahat</span>' : (ratio>=1.0 ? '<span class="tag tag-kpss">Olası</span>' : '<span class="tag tag-other">Sınırda</span>');
       var k=rkey(r); byId[k]={id:k,name:r[IDX.b]||'',sub:r[IDX.u]||'',meta:'taban sıra '+nf(r[IDX.sira])};
       var on=fav&&fav.has(k);
       var tr=document.createElement('tr');
@@ -420,10 +420,10 @@ Bu bir tahmindir; 2026 taban puanları kontenjan ve tercih yoğunluğuna göre d
         if(dilSel&&bdil(r[IDX.dil])!==dilSel)return false;
         if(uni&&r[IDX.u]!==uni)return false;
         if(bol&&r[IDX.g]!==bol)return false;
-        return r[IDX.sira]>=sira;
+        return r[IDX.sira]>=sira*0.85;  // erişebildiklerin + biraz üstündeki olası/sınırda programlar
       });
       sortReach();
-      el('rstatus').innerHTML='<b>'+lastReach.length.toLocaleString('tr-TR')+'</b> programa yerleşebilirsin (sıran: '+sira.toLocaleString('tr-TR')+')';
+      el('rstatus').innerHTML='<b>'+lastReach.length.toLocaleString('tr-TR')+'</b> program — şansın olan bölümler (Rahat/Olası/Sınırda · sıran: '+sira.toLocaleString('tr-TR')+')';
       draw();
     });
   }

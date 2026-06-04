@@ -377,7 +377,7 @@ kontenjan ve tercih yoğunluğuna göre değişir. <b>Kaynak:</b> 2025 DUS resm�
     if(!lastReach.length){if(SV.empty)SV.empty('rbody',NCOL,'Bu puan ve filtrelerle yerleşebileceğin sonuç bulunamadı. Puanı veya filtreleri gözden geçirin.');el('rhint').style.display='none';return;}
     lastReach.slice(0,200).forEach(function(r){
       var m=userP-r[CFG.taban];
-      var safe=m>=CFG.t1?'<span class="tag tag-lgs">Rahat</span>':(m>=CFG.t2?'<span class="tag tag-kpss">Olası</span>':'<span class="tag tag-other">Sınırda</span>');
+      var safe=m>=CFG.t1?'<span class="tag tag-lgs">Rahat</span>':(m>=0?'<span class="tag tag-kpss">Olası</span>':'<span class="tag tag-other">Sınırda</span>');
       var name='<td><strong>'+(r[CFG.nb]||'')+'</strong>'+(CFG.ns!=null?'<br><small>'+(r[CFG.ns]||'')+'</small>':'')+'</td>';
       var show='';CFG.show.forEach(function(c){show+='<td>'+(r[c[0]]==null||r[c[0]]===''?'—':r[c[0]])+'</td>';});
       var k=rkey(r);byId[k]={id:k,name:String(r[CFG.nb]||''),sub:(CFG.ns!=null?String(r[CFG.ns]||''):''),meta:'taban '+pf(r[CFG.taban])};
@@ -397,10 +397,10 @@ kontenjan ve tercih yoğunluğuna göre değişir. <b>Kaynak:</b> 2025 DUS resm�
     userP=p;
     lastReach=data.filter(function(r){
       for(var k=0;k<CFG.filters.length;k++){var s=el('rf'+k);if(s&&s.value&&String(r[CFG.filters[k][0]])!==s.value)return false;}
-      var t=r[CFG.taban];return t!=null&&t<=p;
+      var t=r[CFG.taban];return t!=null&&t<=p+CFG.t2;  // erişebildiklerin + biraz üstündeki sınırda olanlar
     });
     sortReach();
-    el('rstatus').innerHTML='<b>'+lastReach.length.toLocaleString('tr-TR')+'</b> '+CFG.noun+' yerleşebilirsin (puanın: '+pf(p)+')';
+    el('rstatus').innerHTML='<b>'+lastReach.length.toLocaleString('tr-TR')+'</b> '+CFG.noun+' şansın var (Rahat/Olası/Sınırda · puanın: '+pf(p)+')';
     draw();
   }
   el('rbody').addEventListener('click',function(e){
