@@ -649,12 +649,21 @@ def uni_info(u):
 
 
 def uni_logo_html(u, size=40, cls="uni-logo"):
-    """Üniversite logosu <img> (self-host /assets/logos/<id>.png). Yoksa boş döner."""
+    """Üniversite logosu <img> (self-host). ID'li → <id>.png; ID'siz (KKTC/yurtdışı)
+    → isim-bazlı n_<normAd>.png fallback. Yoksa boş döner."""
     info = uni_info(u)
     uid = info.get("id")
-    if not uid or not (ROOT / "assets" / "logos" / f"{uid}.png").exists():
+    logos = ROOT / "assets" / "logos"
+    src = None
+    if uid and (logos / f"{uid}.png").exists():
+        src = f"/assets/logos/{uid}.png"
+    else:
+        nk = "n_" + _uni_norm(u).replace(" ", "-")
+        if (logos / f"{nk}.png").exists():
+            src = f"/assets/logos/{nk}.png"
+    if not src:
         return ""
-    return (f'<img class="{cls}" src="/assets/logos/{uid}.png" alt="{html_escape(u)} logosu" '
+    return (f'<img class="{cls}" src="{src}" alt="{html_escape(u)} logosu" '
             f'width="{size}" height="{size}" loading="lazy" decoding="async">')
 
 
