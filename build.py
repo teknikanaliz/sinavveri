@@ -528,8 +528,10 @@ def load_programs():
             if u.endswith(")") and "(" in u:
                 u = u[:u.rfind("(")].strip()  # sondaki (ŞEHİR) ekini at
             r["u"] = u + " (KIBRIS)"
-        elif r.get("t") == "D" and r.get("bs") == "Ücretli":
-            r["t"] = "DU"  # Devlet üniv. ücretli program (ör. İTÜ UOLP) — ad zaten "(Ücretli)" içerir
+        else:
+            _bs = r.get("bs") or ""
+            if r.get("t") == "D" and ("Ücretli" in _bs or "İndirimli" in _bs):
+                r["t"] = "DU"  # Devlet üniv. paralı program (Ücretli VEYA %X İndirimli — ör. UOLP)
     return _disambiguate_programs(progs)
 
 
