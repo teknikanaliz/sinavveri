@@ -405,6 +405,11 @@ kontenjan ve tercih yoğunluğuna göre değişir. <b>Kaynak:</b> MEB 2025 LGS y
   });
   el('rBtn').addEventListener('click',run);
   el('rPuan').addEventListener('keydown',function(e){if(e.key==='Enter')run();});
+  el('rPuan').addEventListener('input',function(){if(el('rPuan').value.trim())run();});
+  // Filtre değişince otomatik yeniden hesapla (puan girilmişse)
+  CFG.filters.forEach(function(f,n){var s=el('rf'+n);if(s)s.addEventListener('change',function(){
+    if(el('rPuan').value.trim())run(); else syncQS();
+  });});
   (function(){
     var ths=document.querySelectorAll('.data-table thead th');
     ths.forEach(function(th,i){

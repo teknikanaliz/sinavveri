@@ -302,7 +302,7 @@
   <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;align-items:end">
     <div><label style="font-size:12px;color:var(--fg-faded);font-weight:700">DGS Puanın</label>
       <input id="rPuan" type="text" inputmode="decimal" placeholder="örn. 290,5" style="width:100%;margin-top:4px;padding:9px 10px;border:1px solid var(--border);border-radius:8px;background:var(--bg-card-alt);color:var(--fg);font-family:inherit;font-size:14px"></div>
-    
+    <div><label style="font-size:12px;color:var(--fg-faded);font-weight:700">Bölüm</label><select id="rf0" class="btn btn-ghost" style="text-align:left;width:100%;margin-top:4px"><option value="">Tümü</option></select></div><div><label style="font-size:12px;color:var(--fg-faded);font-weight:700">Üniversite / Fakülte</label><select id="rf1" class="btn btn-ghost" style="text-align:left;width:100%;margin-top:4px"><option value="">Tümü</option></select></div>
     <button type="button" class="btn btn-primary" id="rBtn">Yerleşebileceklerimi Göster</button>
   </div>
   <div class="filter-chips" id="chips" style="display:none"></div>
@@ -319,7 +319,7 @@
 kontenjan ve tercih yoğunluğuna göre değişir. <b>Kaynak:</b> 2025 DGS resmî ÖSYM yerleştirme verisi. Resmî tercih için <a href="https://www.osym.gov.tr" target="_blank" rel="noopener">ÖSYM</a> esastır.</div>
 <script nonce="__NONCE__">
 (function(){
-  var CFG={"file": "/veri/dgs.json", "nb": 1, "ns": 0, "show": [], "taban": 3, "filters": [], "noun": "programa", "t1": 15, "t2": 4, "ns_key": "dgs"}, SV=window.SV||{}, NCOL=CFG.show.length+4;
+  var CFG={"file": "/veri/dgs.json", "nb": 1, "ns": 0, "show": [], "taban": 3, "filters": [[1, "Bölüm"], [0, "Üniversite / Fakülte"]], "noun": "programa", "t1": 15, "t2": 4, "ns_key": "dgs"}, SV=window.SV||{}, NCOL=CFG.show.length+4;
   var data=[],byId={};
   var fav=SV.initFav?SV.initFav({ns:CFG.ns_key||'robot',barId:'favBar',panelId:'favPanel',btnId:'favBtn'}):null;
   function el(id){return document.getElementById(id);}
@@ -405,6 +405,11 @@ kontenjan ve tercih yoğunluğuna göre değişir. <b>Kaynak:</b> 2025 DGS resm�
   });
   el('rBtn').addEventListener('click',run);
   el('rPuan').addEventListener('keydown',function(e){if(e.key==='Enter')run();});
+  el('rPuan').addEventListener('input',function(){if(el('rPuan').value.trim())run();});
+  // Filtre değişince otomatik yeniden hesapla (puan girilmişse)
+  CFG.filters.forEach(function(f,n){var s=el('rf'+n);if(s)s.addEventListener('change',function(){
+    if(el('rPuan').value.trim())run(); else syncQS();
+  });});
   (function(){
     var ths=document.querySelectorAll('.data-table thead th');
     ths.forEach(function(th,i){
