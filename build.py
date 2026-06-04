@@ -2948,7 +2948,10 @@ def page_kpss_atama(hubs=None):
         "Kadro veya kurum arayın; il, öğrenim düzeyi ve yerleştirme dönemine göre filtreleyin. "
         "<b>Kapsam:</b> 2025 yılının tüm KPSS yerleştirmeleri (2025/1–2025/5: Genel, Çevre Bak., Sağlık Bak.). "
         "<b>2024</b> sütunu aynı kurum+il+kadronun bir önceki yıl (aynı tür yerleştirme) tabanıdır; Trend değişimi gösterir. "
-        "KPSS atamaları tek-seferlik ilanlar olduğundan eşleşme kısmidir (Çevre Bak. için 2024 verisi yoktur).",
+        "KPSS atamaları tek-seferlik ilanlar olduğundan eşleşme kısmidir (Çevre Bak. için 2024 verisi yoktur). "
+        "<b>Aynı unvanlı birden çok kadro</b> farklı <b>nitelik (aranan şartlar)</b> içerir; ayırmak için kadro adının yanına "
+        "<b>(Kadro Kodu: …)</b> eklenir. Bir kadronun tüm niteliklerini görmek için bu kodu, ilgili dönemin "
+        "<a href='https://www.osym.gov.tr/TR,62/kpss.html' target='_blank' rel='noopener'>ÖSYM KPSS tercih kılavuzunda</a> aratın.",
         OSYM_KAYNAK, ph="Kadro / kurum ara…", hub_html=hub_links_html("kpss", hubs), spark=[8, 6])
 
 
