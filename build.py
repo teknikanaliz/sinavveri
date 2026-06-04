@@ -584,35 +584,38 @@ PLOTLY_CDN = '<script nonce="__NONCE__" src="https://cdn.plot.ly/plotly-2.27.0.m
 
 
 def trend_chart(group_recs, divid):
-    """Grup için 2022-2025 medyan + en yüksek taban trend grafiği (Plotly)."""
+    """Grup için 2022-2025 medyan + en iyi BAŞARI SIRASI trend grafiği (Plotly).
+    Puan değil sıra: puan çarpanları yıldan yıla değişir; başarı sırası asıl gösterge.
+    Y ekseni ters (autorange reversed) → yukarı = daha iyi (küçük) sıra."""
     years = [2022, 2023, 2024, 2025]
-    med, mx = [], []
+    med, best = [], []
     for yr in years:
         if yr == 2025:
-            vals = [r.get("tp") for r in group_recs if r.get("tp")]
+            vals = [r.get("sira") for r in group_recs if r.get("sira")]
         else:
-            vals = [hist_taban(r, yr) for r in group_recs]
+            vals = [hist_sira(r, yr) for r in group_recs]
             vals = [v for v in vals if v]
         med.append(median(vals))
-        mx.append(max(vals) if vals else None)
+        best.append(min(vals) if vals else None)
     if sum(1 for m in med if m) < 2:
         return ""  # yeterli geçmiş yok
     data = [
-        {"x": years, "y": med, "name": "Medyan taban", "mode": "lines+markers",
+        {"x": years, "y": med, "name": "Medyan başarı sırası", "mode": "lines+markers",
          "line": {"color": "#b45309", "width": 3}, "connectgaps": True},
-        {"x": years, "y": mx, "name": "En yüksek taban", "mode": "lines+markers",
+        {"x": years, "y": best, "name": "En iyi (en düşük) sıra", "mode": "lines+markers",
          "line": {"color": "#1e3a8a", "width": 2, "dash": "dot"}, "connectgaps": True},
     ]
     layout = {
-        "margin": {"l": 48, "r": 16, "t": 10, "b": 36}, "height": 300,
+        "margin": {"l": 62, "r": 16, "t": 10, "b": 36}, "height": 300,
         "xaxis": {"tickvals": years, "tickformat": "d", "gridcolor": "rgba(128,128,128,.15)"},
-        "yaxis": {"title": {"text": "Taban Puanı"}, "gridcolor": "rgba(128,128,128,.15)"},
+        "yaxis": {"title": {"text": "Başarı Sırası"}, "autorange": "reversed", "tickformat": ",d", "gridcolor": "rgba(128,128,128,.15)"},
         "legend": {"orientation": "h", "y": -0.18, "x": 0}, "paper_bgcolor": "rgba(0,0,0,0)",
         "plot_bgcolor": "rgba(0,0,0,0)", "font": {"family": "Segoe UI, Arial, sans-serif", "size": 12},
         "hovermode": "x unified",
     }
     cfg = {"displayModeBar": False, "responsive": True}
-    return (f'<div class="chart-card"><h3>Yıllara Göre Taban Puanı Trendi (2022–2025)</h3>'
+    return (f'<div class="chart-card"><h3>Yıllara Göre Başarı Sırası Trendi (2022–2025)</h3>'
+            f'<div style="font-size:11.5px;color:var(--fg-faded);margin:-2px 0 8px">Eksen ters: <b>yukarı = daha iyi (küçük) sıra</b>. Puan çarpanları yıldan yıla değiştiği için trend puanla değil sırayla gösterilir.</div>'
             f'<div id="{divid}" style="width:100%"></div></div>'
             f'<script nonce="__NONCE__">Plotly.newPlot("{divid}",'
             + json.dumps(data) + "," + json.dumps(layout) + "," + json.dumps(cfg) + ");</script>")
