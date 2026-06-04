@@ -88,6 +88,15 @@ SV_HELPER_JS = r"""<script nonce="__NONCE__">
     var a=curve[lo],b=curve[hi],t=(p-a[0])/((b[0]-a[0])||1);
     return Math.max(1, Math.round(a[1]+(b[1]-a[1])*t));
   };
+  SV.estPuan = function(curve, sira){
+    if(!curve || !curve.length || !(sira>0)) return null;
+    if(sira>=curve[0][1]) return curve[0][0];
+    if(sira<=curve[curve.length-1][1]) return curve[curve.length-1][0];
+    var lo=0,hi=curve.length-1;
+    while(hi-lo>1){ var m=(lo+hi)>>1; if(curve[m][1]>=sira)lo=m; else hi=m; }
+    var a=curve[lo],b=curve[hi],d=(a[1]-b[1])||1,t=(a[1]-sira)/d;
+    return Math.round((a[0]+(b[0]-a[0])*t)*100)/100;
+  };
   SV.spark = function(vals){
     var pts=[]; for(var i=0;i<vals.length;i++){ var v=vals[i]; if(v!=null && !isNaN(v)) pts.push({i:i,v:Number(v)}); }
     if(pts.length<2) return '';
@@ -888,7 +897,9 @@ def page_yks_siralama():
         <option value="soz">Sözel (SÖZ)</option><option value="dil">Dil (DİL)</option><option value="tyt">TYT (Önlisans)</option></select></div>
     <div><label style="font-size:12px;color:var(--fg-faded);font-weight:700">Yerleştirme Puanın</label>
       <input id="sPuan" type="text" inputmode="decimal" placeholder="örn. 480,50" style="width:100%;margin-top:4px;padding:9px 10px;border:1px solid var(--border);border-radius:8px;background:var(--bg-card-alt);color:var(--fg);font-family:inherit;font-size:15px"></div>
-    <button type="button" class="btn btn-primary" id="sBtn">Sıralamamı Hesapla</button>
+    <div><label style="font-size:12px;color:var(--fg-faded);font-weight:700">— veya — Sıralaman</label>
+      <input id="sSiraIn" type="text" inputmode="numeric" placeholder="örn. 45000" style="width:100%;margin-top:4px;padding:9px 10px;border:1px solid var(--border);border-radius:8px;background:var(--bg-card-alt);color:var(--fg);font-family:inherit;font-size:15px"></div>
+    <button type="button" class="btn btn-primary" id="sBtn">Hesapla</button>
   </div>
   <div id="sResult" style="margin-top:16px;display:none">
     <div class="res-est" style="background:var(--bg-soft);text-align:center;padding:16px">
@@ -928,22 +939,27 @@ sayısına göre değişebilir.</div>
   function pnum(s){s=(s||'').replace(/\./g,'').replace(',','.').replace(/[^0-9.]/g,'');return parseFloat(s);}
   function run(){
     if(!DATA){el('sNote').textContent='Veri yükleniyor, tekrar deneyin.';return;}
-    var pt=el('sPt').value, p=pnum(el('sPuan').value);
-    if(!(p>0)){el('sResult').style.display='none';return;}
-    var sira=SV.estSira?SV.estSira(DATA[pt]||[],p):null;
+    var pt=el('sPt').value, curve=DATA[pt]||[];
+    var p=pnum(el('sPuan').value), sIn=parseInt((el('sSiraIn').value||'').replace(/\D/g,''),10);
+    var sira=null, note='';
+    if(p>0){ sira=SV.estSira?SV.estSira(curve,p):null; note=PTL[pt]+' · puan '+p.toLocaleString('tr-TR')+' → tahmini sıra';
+      var top=curve.length?curve[curve.length-1][0]:0, low=curve.length?curve[0][0]:0;
+      if(p>=top)note='En yüksek puan aralığında — ilk sıralarda.'; else if(p<=low)note='Veri aralığının altında — sıralama daha geride olabilir.';
+    } else if(sIn>0){ sira=sIn; var ep=SV.estPuan?SV.estPuan(curve,sIn):null;
+      note=ep? (PTL[pt]+' · '+sIn.toLocaleString('tr-TR')+'. sıra ≈ '+ep.toLocaleString('tr-TR')+' puan'):(PTL[pt]+' · sıralamana göre');
+    } else { el('sResult').style.display='none'; return; }
     el('sResult').style.display='block';
     if(sira==null){el('sSira').textContent='—';el('sNote').textContent='Bu puan türü için veri yok.';el('sBolum').style.display='none';return;}
     el('sSira').textContent='~ '+sira.toLocaleString('tr-TR');
-    var curve=DATA[pt]||[];
-    var top=curve.length?curve[curve.length-1][0]:0, low=curve.length?curve[0][0]:0;
-    if(p>=top)el('sNote').textContent='En yüksek puan aralığında — ilk sıralarda.';
-    else if(p<=low)el('sNote').textContent='Veri aralığının altında — sıralama daha geride olabilir.';
-    else el('sNote').textContent=PTL[pt]+' · 2025 yerleştirme verisine göre tahmini';
+    el('sNote').textContent=note;
     el('sBolum').style.display='block';
     el('sBolum').setAttribute('href','/tercih-robotu.html?pt='+pt+'&sira='+sira);
   }
   el('sBtn').addEventListener('click',run);
   el('sPuan').addEventListener('keydown',function(e){if(e.key==='Enter')run();});
+  el('sSiraIn').addEventListener('keydown',function(e){if(e.key==='Enter')run();});
+  el('sPuan').addEventListener('input',function(){if(el('sPuan').value)el('sSiraIn').value='';});
+  el('sSiraIn').addEventListener('input',function(){if(el('sSiraIn').value)el('sPuan').value='';});
   el('sPt').addEventListener('change',function(){if(el('sPuan').value)run();});
   // net → kaba puan
   el('nBtn').addEventListener('click',function(){

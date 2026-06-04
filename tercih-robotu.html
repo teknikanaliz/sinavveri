@@ -125,6 +125,15 @@
     var a=curve[lo],b=curve[hi],t=(p-a[0])/((b[0]-a[0])||1);
     return Math.max(1, Math.round(a[1]+(b[1]-a[1])*t));
   };
+  SV.estPuan = function(curve, sira){
+    if(!curve || !curve.length || !(sira>0)) return null;
+    if(sira>=curve[0][1]) return curve[0][0];
+    if(sira<=curve[curve.length-1][1]) return curve[curve.length-1][0];
+    var lo=0,hi=curve.length-1;
+    while(hi-lo>1){ var m=(lo+hi)>>1; if(curve[m][1]>=sira)lo=m; else hi=m; }
+    var a=curve[lo],b=curve[hi],d=(a[1]-b[1])||1,t=(a[1]-sira)/d;
+    return Math.round((a[0]+(b[0]-a[0])*t)*100)/100;
+  };
   SV.spark = function(vals){
     var pts=[]; for(var i=0;i<vals.length;i++){ var v=vals[i]; if(v!=null && !isNaN(v)) pts.push({i:i,v:Number(v)}); }
     if(pts.length<2) return '';
