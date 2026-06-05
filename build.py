@@ -14,7 +14,7 @@ def html_escape(s):
 
 ROOT = Path(__file__).parent
 SITE = "https://sinavveri.com"
-ASSET_VER = "20260605l"
+ASSET_VER = "20260605m"
 
 # Kişiye Özel KPSS Tercih Raporu — hizmet yapılandırması
 # whatsapp: "905XXXXXXXXX" (boşsa WhatsApp butonu gizlenir) · email: sipariş e-postası
@@ -24,7 +24,7 @@ KPSS_RAPOR = {
     "whatsapp": "447576165476",
     "email": "teknikanaliz@gmail.com",
     # Embedded Checkout (sayfa-içi): backend /api/kpss/checkout + Stripe.js publishable key
-    "pk": "pk_test_51TZZptL9vmvDCXaiOwYrKSYgozRiuRQjmdSmhbEdTt4TERmGQXi1VukxwSo7xhtVaTm7sTdw8Am6cGBRgbj4euoX00bzN1CDtc",
+    "pk": "pk_live_51TZZptL9vmvDCXaicmic9YgJyMVAVmSLIbNtfd6vtPzJpmHS3zH5k869AqDGc6aCyQdbeTlAbQDkGbnop4ZdIqP700J6qnFiHa",
     "api": "/api/kpss/checkout",
     "stripe": "",  # eski Payment Link (embedded'a geçildi; boş = link butonu yok)
 }
