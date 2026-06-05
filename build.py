@@ -14,7 +14,17 @@ def html_escape(s):
 
 ROOT = Path(__file__).parent
 SITE = "https://sinavveri.com"
-ASSET_VER = "20260605a"
+ASSET_VER = "20260605b"
+
+# Kişiye Özel KPSS Tercih Raporu — hizmet yapılandırması
+# whatsapp: "905XXXXXXXXX" (boşsa WhatsApp butonu gizlenir) · email: sipariş e-postası
+# stripe: Stripe Payment Link URL (boşsa "sipariş sonrası ödeme linki iletilir" akışı)
+KPSS_RAPOR = {
+    "fiyat": "1.000",
+    "whatsapp": "",
+    "email": "teknikanaliz@gmail.com",
+    "stripe": "",
+}
 
 NAV = [
     ("/index.html", "Ana Sayfa"),
@@ -2713,7 +2723,11 @@ def page_kpss_robot():
         "/veri/kpss.json", 1, 0, [(2, "İl"), (3, "Düzey")], 6, [(2, "İl"), (3, "Düzey"), (4, "Dönem")],
         "kadroya", 4, 1,
         "KPSS puanını girin ve öğrenim düzeyinizi (Lisans/Önlisans/Ortaöğretim) seçin; o puanla atanabileceğin (taban ≤ puanın) kadroları listeler. "
-        "İl ve döneme göre de filtreleyebilirsin. KPSS hesaplama için <a href='/kpss-puan-hesaplama.html'>KPSS puan hesaplama</a>.",
+        "İl ve döneme göre de filtreleyebilirsin. KPSS hesaplama için <a href='/kpss-puan-hesaplama.html'>KPSS puan hesaplama</a>."
+        "<div style='margin-top:12px;padding:12px 14px;background:linear-gradient(90deg,#16361f,#1b2a3a);border:1px solid #2f9e44;border-radius:10px'>"
+        "<b>📄 Kişiye özel rapor ister misin?</b> Bu listeyi senin için <b>tercih sırasına dizip</b> taban trendi, doluluk ve şans analiziyle "
+        "<b>Kişiye Özel KPSS Tercih Raporu</b>'na dönüştürelim + rehber görüşmesi. "
+        "<a href='/kpss-tercih-raporu.html'><b>Detaylar ve örnek rapor →</b></a></div>",
         "ÖSYM 2025 KPSS resmî yerleştirme verisi (2025/1–2025/5).", "KPSS Puanın", "örn. 85,40")
 
 
@@ -3268,6 +3282,207 @@ def page_karsilastir():
                 body)
 
 
+# ───────────────────────── KİŞİYE ÖZEL KPSS TERCİH RAPORU (HİZMET) ─────────────────────────
+KPSS_RAPOR_FORM_JS = r"""<script nonce="__NONCE__">
+(function(){
+  var SV=window.SV||{};
+  var WA="__WA__", EMAIL="__EMAIL__";
+  function v(id){var e=document.getElementById(id);return e?e.value.trim():'';}
+  function build(){
+    var L=[];
+    L.push('— KİŞİYE ÖZEL KPSS TERCİH RAPORU TALEBİ —');
+    L.push('Ad Soyad: '+v('kr_ad'));
+    L.push('Telefon: '+v('kr_tel'));
+    L.push('E-posta: '+v('kr_eposta'));
+    L.push('Öğrenim Düzeyi: '+v('kr_duzey'));
+    L.push('KPSS Puan Türü: '+v('kr_pt'));
+    L.push('KPSS Puanı: '+v('kr_puan'));
+    L.push('Tercih Edilen İller: '+v('kr_il'));
+    L.push('Kurum/Kadro Tercihleri: '+v('kr_kurum'));
+    L.push('Branş / Alan / Bölüm: '+v('kr_brans'));
+    L.push('Eklemek istedikleriniz: '+v('kr_not'));
+    return L.join('\n');
+  }
+  function valid(){
+    var req=['kr_ad','kr_tel','kr_duzey','kr_puan'];
+    for(var i=0;i<req.length;i++){ if(!v(req[i])){ var e=document.getElementById(req[i]); if(e){e.focus();}
+      document.getElementById('kr_status').textContent='Lütfen ad, telefon, öğrenim düzeyi ve KPSS puanını girin.'; return false; } }
+    document.getElementById('kr_status').textContent='';
+    return true;
+  }
+  var wb=document.getElementById('kr_wa');
+  if(wb){ if(WA){ wb.addEventListener('click',function(){ if(!valid())return;
+      window.open('https://wa.me/'+WA+'?text='+encodeURIComponent(build()),'_blank'); }); }
+    else { wb.style.display='none'; } }
+  var eb=document.getElementById('kr_email');
+  if(eb){ eb.addEventListener('click',function(){ if(!valid())return;
+      var s='Kişiye Özel KPSS Tercih Raporu Talebi';
+      window.location.href='mailto:'+EMAIL+'?subject='+encodeURIComponent(s)+'&body='+encodeURIComponent(build()); }); }
+  var cb=document.getElementById('kr_copy');
+  if(cb){ cb.addEventListener('click',function(){ if(!valid())return; SV.copy(build(),cb); }); }
+})();
+</script>"""
+
+
+def page_kpss_rapor():
+    wa = KPSS_RAPOR.get("whatsapp", "")
+    email = KPSS_RAPOR.get("email", "")
+    fiyat = KPSS_RAPOR.get("fiyat", "1.000")
+    stripe = KPSS_RAPOR.get("stripe", "")
+    js = (KPSS_RAPOR_FORM_JS.replace("__WA__", wa).replace("__EMAIL__", email))
+
+    # Ödeme bölümü: Stripe linki varsa "Öde" butonu, yoksa sipariş-sonrası ödeme akışı
+    if stripe:
+        odeme = (f'<a class="btn btn-primary" href="{stripe}" target="_blank" rel="noopener" style="font-size:16px;padding:12px 26px">'
+                 f'💳 Güvenli Öde — {fiyat} TL</a>'
+                 '<p style="font-size:12px;color:var(--fg-faded);margin-top:8px">Ödeme Stripe altyapısıyla güvenle alınır (kredi/banka kartı).</p>')
+    else:
+        odeme = ('<p style="font-size:14px;color:var(--fg);line-height:1.6">Talebinizi gönderdikten sonra '
+                 'size <b>güvenli ödeme bağlantısı</b> (kredi/banka kartı) iletilir. Ödeme onaylanınca raporunuz '
+                 '<b>1-2 iş günü</b> içinde hazırlanıp e-posta ile gönderilir ve rehber görüşmesi planlanır.</p>')
+
+    yes = '<span style="color:#2f9e44;font-weight:800">✓</span>'
+    no = '<span style="color:#e03131">✕</span>'
+    karsilastirma = f"""
+<div class="data-table-wrap"><table class="data-table">
+<thead><tr><th>Özellik</th><th style="text-align:center">SınavVeri Raporu</th><th style="text-align:center">Tipik Hizmetler</th></tr></thead>
+<tbody>
+<tr><td>Puanına göre sıralı kadro listesi</td><td style="text-align:center">{yes}</td><td style="text-align:center">{yes}</td></tr>
+<tr><td>Atama taban puanı <b>+ son yıllar trendi</b> (başarı sırası bazlı)</td><td style="text-align:center">{yes}</td><td style="text-align:center">{no}</td></tr>
+<tr><td><b>Doluluk / yerleşen</b> analizi (kadro garanti mi, riskli mi)</td><td style="text-align:center">{yes}</td><td style="text-align:center">{no}</td></tr>
+<tr><td><b>Şans bandı</b>: Rahat / Olası / Sınırda (veri-temelli)</td><td style="text-align:center">{yes}</td><td style="text-align:center">{no}</td></tr>
+<tr><td>Kadro kodu + <b>nitelik kodu</b> uyum kontrolü</td><td style="text-align:center">{yes}</td><td style="text-align:center">~</td></tr>
+<tr><td>Görsel PDF rapor + rehber yorumu</td><td style="text-align:center">{yes}</td><td style="text-align:center">{yes}</td></tr>
+<tr><td>Rehber hocayla görüşme</td><td style="text-align:center">{yes}</td><td style="text-align:center">{yes}</td></tr>
+<tr><td>Hizmet bedeli</td><td style="text-align:center"><b>{fiyat} TL</b></td><td style="text-align:center">2.000 TL+</td></tr>
+</tbody></table></div>"""
+
+    body = f"""
+<div class="crumb"><a href="/index.html">Ana Sayfa</a> / Kişiye Özel KPSS Tercih Raporu</div>
+<div class="page-title"><h1>Kişiye Özel KPSS Tercih Raporu</h1><span class="sub">Tek tercih dönemi · veri-temelli sıralı liste + rehber görüşmesi · {fiyat} TL</span></div>
+
+<div class="info-box" style="font-size:15px;line-height:1.7">
+KPSS puanına ve kriterlerine göre <b>sana özel, sıralı bir atama tercih listesi</b> hazırlıyoruz: hangi kadroya
+hangi sırada yazmalısın, hangileri <b>garanti</b>, hangileri <b>riskli</b>, taban puanları yıllara göre nasıl
+değişmiş — hepsi gerçek YÖK/ÖSYM verisiyle. Üstüne <b>rehber hocayla birebir görüşme</b>.
+<a href="/kpss-tercih-raporu-ornek.html"><b>📄 Örnek raporu incele →</b></a>
+</div>
+
+<h2 style="margin:26px 0 12px">Rapor neler içerir?</h2>
+<div class="tool-row">
+  <div class="tool-btn" style="cursor:default"><span class="tb-icon">🎯</span><span class="tb-text"><b>Kişiye özel sıralı liste</b><span>Puanın + il/kurum/branş tercihlerine göre optimum tercih sırası</span></span></div>
+  <div class="tool-btn" style="cursor:default"><span class="tb-icon">📈</span><span class="tb-text"><b>Taban puanı & başarı sırası trendi</b><span>Son yılların gerçek verisiyle "yükseliyor mu, dalgalı mı"</span></span></div>
+  <div class="tool-btn" style="cursor:default"><span class="tb-icon">📊</span><span class="tb-text"><b>Doluluk / yerleşen analizi</b><span>Her kadro her dönem doluyor mu — garanti/risk değerlendirmesi</span></span></div>
+  <div class="tool-btn" style="cursor:default"><span class="tb-icon">🟢</span><span class="tb-text"><b>Şans bandı</b><span>Rahat / Olası / Sınırda — veri-temelli olasılık etiketi</span></span></div>
+  <div class="tool-btn" style="cursor:default"><span class="tb-icon">🔑</span><span class="tb-text"><b>Nitelik & kadro kodu kontrolü</b><span>Yanlış/uyumsuz tercih riskini sıfırlama</span></span></div>
+  <div class="tool-btn" style="cursor:default"><span class="tb-icon">👨‍🏫</span><span class="tb-text"><b>Rehber görüşmesi + PDF</b><span>Uzman yorumu, görsel PDF rapor, birebir danışma</span></span></div>
+</div>
+
+<h2 style="margin:28px 0 12px">Neden SınavVeri raporu?</h2>
+{karsilastirma}
+
+<h2 style="margin:28px 0 12px">Nasıl çalışır? (3 adım)</h2>
+<div class="tool-row">
+  <div class="tool-btn" style="cursor:default"><span class="tb-icon">1️⃣</span><span class="tb-text"><b>Bilgilerini gönder</b><span>Aşağıdaki formu doldur (puan + tercih kriterleri)</span></span></div>
+  <div class="tool-btn" style="cursor:default"><span class="tb-icon">2️⃣</span><span class="tb-text"><b>Ödeme & hazırlık</b><span>Güvenli ödeme sonrası raporun 1-2 iş gününde hazırlanır</span></span></div>
+  <div class="tool-btn" style="cursor:default"><span class="tb-icon">3️⃣</span><span class="tb-text"><b>Rapor + görüşme</b><span>PDF raporun e-posta ile gelir, rehber hocayla görüşürsün</span></span></div>
+</div>
+
+<h2 style="margin:28px 0 12px" id="basvuru">Başvuru Formu</h2>
+<div class="calc-card">
+  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px">
+    <div><label class="kr-l">Ad Soyad *</label><input id="kr_ad" type="text" class="kr-i" placeholder="Adınız Soyadınız"></div>
+    <div><label class="kr-l">Telefon *</label><input id="kr_tel" type="tel" class="kr-i" placeholder="05XX XXX XX XX"></div>
+    <div><label class="kr-l">E-posta</label><input id="kr_eposta" type="email" class="kr-i" placeholder="ornek@eposta.com"></div>
+    <div><label class="kr-l">Öğrenim Düzeyi *</label>
+      <select id="kr_duzey" class="kr-i"><option value="">Seçiniz</option><option>Ortaöğretim (Lise)</option><option>Önlisans</option><option>Lisans</option></select></div>
+    <div><label class="kr-l">KPSS Puan Türü</label><input id="kr_pt" type="text" class="kr-i" placeholder="örn. P3, P93, P94, Ortaöğretim/Önlisans KPSSP"></div>
+    <div><label class="kr-l">KPSS Puanı *</label><input id="kr_puan" type="text" inputmode="decimal" class="kr-i" placeholder="örn. 78,540"></div>
+    <div><label class="kr-l">Tercih Edilen İller</label><input id="kr_il" type="text" class="kr-i" placeholder="örn. Ankara, İstanbul, İzmir"></div>
+    <div><label class="kr-l">Kurum / Kadro Tercihleri</label><input id="kr_kurum" type="text" class="kr-i" placeholder="örn. Adalet Bak., belediye, üniversite"></div>
+    <div><label class="kr-l">Branş / Alan / Bölüm</label><input id="kr_brans" type="text" class="kr-i" placeholder="örn. Büro Personeli, Mühendis, VHKİ"></div>
+  </div>
+  <div style="margin-top:12px"><label class="kr-l">Eklemek istedikleriniz</label>
+    <textarea id="kr_not" class="kr-i" style="min-height:64px;resize:vertical" placeholder="Önceliklerin, özel durumun, sorular…"></textarea></div>
+  <div id="kr_status" style="margin-top:10px;font-size:13px;color:#e03131;font-weight:700"></div>
+  <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:14px">
+    <button type="button" class="btn btn-primary" id="kr_wa" style="background:#25d366;border-color:#25d366">📲 WhatsApp ile Gönder</button>
+    <button type="button" class="btn btn-primary" id="kr_email">✉️ E-posta ile Gönder</button>
+    <button type="button" class="btn btn-ghost" id="kr_copy">📋 Bilgileri Kopyala</button>
+  </div>
+  <p style="font-size:12px;color:var(--fg-faded);margin-top:10px">Bilgileriniz yalnızca raporunuzu hazırlamak için kullanılır; üçüncü kişilerle paylaşılmaz.</p>
+</div>
+
+<h2 style="margin:28px 0 12px">Ödeme</h2>
+<div class="calc-card">{odeme}</div>
+
+<div class="notice" style="margin-top:20px"><b>Not:</b> Bu hizmet kişisel danışmanlık ve veri-temelli analiz sunar; kesin yerleştirme garantisi vermez.
+Resmî tercih işlemi <a href="https://www.osym.gov.tr" target="_blank" rel="noopener">ÖSYM</a> üzerinden yapılır.
+Önce ücretsiz <a href="/kpss-tercih-robotu.html">KPSS tercih robotumuzu</a> deneyebilirsiniz.</div>
+{js}
+"""
+    return base("kpss-tercih-raporu.html",
+                f"Kişiye Özel KPSS Tercih Raporu {fiyat} TL — Veri Temelli Atama Tercih Listesi | SınavVeri",
+                f"KPSS puanına göre kişiye özel, sıralı atama tercih listesi-raporu: taban puanı trendi, doluluk analizi, şans bandı ve rehber görüşmesi. {fiyat} TL.",
+                body)
+
+
+def page_kpss_rapor_ornek():
+    chip = lambda t, c: f'<span style="display:inline-block;background:{c};color:#fff;font-size:11px;font-weight:800;padding:2px 9px;border-radius:999px">{t}</span>'
+    rahat, olasi, sinir = chip("RAHAT", "#2f9e44"), chip("OLASI", "#f59e0b"), chip("SINIRDA", "#e8590c")
+    # Örnek (temsilî) veri — gerçek YÖK/ÖSYM 2025 değer aralıklarıyla tutarlı
+    rows = [
+        ("Çevre, Şehircilik ve İklim Değişikliği Bakanlığı", "Tekniker (301245112)", "Ankara", 4, "70/70 (%100)", "72,4", "71,1 ↑", "70,2 ↑", rahat),
+        ("Sağlık Bakanlığı", "Sağlık Teknikeri (301188204)", "İstanbul", 12, "12/12 (%100)", "74,8", "73,9 ↑", "72,0 ↑", olasi),
+        ("Karayolları Genel Müdürlüğü", "Tekniker (301250431)", "İzmir", 3, "3/3 (%100)", "75,6", "74,2 ↑", "73,8 ~", sinir),
+        ("Bir Belediye (Ankara)", "Büro Personeli (301301077)", "Ankara", 5, "5/5 (%100)", "71,2", "69,8 ↑", "68,1 ↑", rahat),
+        ("Bir Üniversite", "Tekniker (301277905)", "Ankara", 2, "2/2 (%100)", "76,1", "75,0 ↑", "—", sinir),
+    ]
+    tr = ""
+    for kurum, kadro, il, kont, dol, t25, t24, t23, band in rows:
+        tr += (f"<tr><td><b>{kurum}</b><br><small style='color:var(--fg-faded)'>{kadro}</small></td>"
+               f"<td>{il}</td><td style='text-align:center'>{kont}</td><td style='text-align:center'>{dol}</td>"
+               f"<td style='text-align:right'><b>{t25}</b></td><td style='text-align:right'>{t24}</td><td style='text-align:right'>{t23}</td>"
+               f"<td style='text-align:center'>{band}</td></tr>")
+    body = f"""
+<div class="crumb"><a href="/index.html">Ana Sayfa</a> / <a href="/kpss-tercih-raporu.html">Kişiye Özel KPSS Tercih Raporu</a> / Örnek</div>
+<div class="page-title"><h1>Örnek Rapor — Kişiye Özel KPSS Tercih Raporu</h1><span class="sub">Temsilî örnektir · gerçek raporunuz kendi puan ve kriterlerinize göre hazırlanır</span></div>
+
+<div class="uk-card">
+  <div class="uk-analiz"><h2 style="margin-top:0">👤 Aday Profili (örnek)</h2>
+  <p><b>Öğrenim:</b> Önlisans · <b>KPSS Puan Türü:</b> KPSSP93 · <b>Puan:</b> 73,540 ·
+  <b>Tercih illeri:</b> Ankara, İstanbul, İzmir · <b>Alan:</b> Tekniker / Büro Personeli · <b>Dönem:</b> 2025/1</p></div>
+</div>
+
+<h2 style="margin:24px 0 10px">🎯 Sana Önerilen Tercih Sırası</h2>
+<div class="info-box">Aşağıdaki liste puanına en uygun kadrolardan, <b>tercih sırası</b> mantığıyla dizilmiştir: üstte yüksek-şans/yüksek-değer kadrolar.
+Şans bandı son 3 yılın taban puanı oynaklığına göre hesaplanır.</div>
+<div class="data-table-wrap"><table class="data-table">
+<thead><tr><th>Kurum / Kadro</th><th>İl</th><th style="text-align:center">Kont.</th><th style="text-align:center">Doluluk</th><th style="text-align:right">Taban 2025</th><th style="text-align:right">2024</th><th style="text-align:right">2023</th><th style="text-align:center">Şans</th></tr></thead>
+<tbody>{tr}</tbody></table></div>
+
+<h2 style="margin:24px 0 10px">🧭 Rehber Yorumu</h2>
+<div class="uk-card"><div class="uk-analiz" style="border:0;padding:0">
+<p>Puanın (73,540), Önlisans düzeyinde <b>Tekniker</b> ve <b>Büro Personeli</b> kadrolarının çoğunda <b>Rahat–Olası</b> banttadır.
+1. ve 4. sıradaki kadrolar son 3 yıldır taban puanını <b>istikrarlı koruyor</b> ve her dönem doluyor; güvenli tercih olarak <b>listenin başına</b> alınmıştır.</p>
+<p>3. ve 5. sıradaki kadrolar yüksek puanlı/az kontenjanlı; taban <b>yükseliş eğiliminde</b> olduğundan <b>Sınırda</b> işaretlendi —
+bunları üst sıralara yazmak yerleşme şansını riske atabilir, <b>orta sıralarda</b> değerlendirilmesi önerilir.</p>
+<p><b>Strateji:</b> Garanti kadroları (Rahat) listenin <b>sonuna doğru değil</b>, dengeli biçimde yerleştir; yüksek-değer/sınırda kadroları
+üst-orta sıralara koy. Böylece hem yüksek bir kadroyu kovalar hem de boşta kalma riskini düşürürsün.
+Detaylı sıralama ve alternatifler birebir görüşmede netleştirilir.</p>
+</div></div>
+
+<div style="text-align:center;margin:28px 0">
+  <a class="btn btn-primary" href="/kpss-tercih-raporu.html#basvuru" style="font-size:16px;padding:13px 30px">Kendi Raporumu İste →</a>
+</div>
+<div class="notice"><b>Kaynak:</b> YÖK Atlas / ÖSYM. Bu sayfa temsilî bir örnektir; sayılar gerçek bir adaya ait değildir.</div>
+"""
+    return base("kpss-tercih-raporu-ornek.html",
+                "Örnek KPSS Tercih Raporu — Kişiye Özel Atama Tercih Listesi | SınavVeri",
+                "Kişiye özel KPSS tercih raporu örneği: sıralı kadro listesi, taban puanı trendi, doluluk ve şans bandı analizi, rehber yorumu.",
+                body)
+
+
 # ───────────────────────── ŞEHİR (İL) ÜNİVERSİTE SAYFALARI ─────────────────────────
 def gen_sehir_pages(programs, u_by_slug):
     """Her il için o ildeki üniversitelerin listesi (logo + program sayısı + tür)."""
@@ -3725,6 +3940,7 @@ def page_taban_hub():
         ("/universiteler.html", "🏫", "Üniversitelere Göre", "227 üniversite · künye, analiz, logo"),
         ("/sehirler.html", "📍", "Şehirlere Göre", "81 il · ildeki üniversiteler"),
         ("/karsilastir.html", "⚖️", "Karşılaştır", "2-4 programı yan yana kıyasla"),
+        ("/kpss-tercih-raporu.html", "📄", "Kişiye Özel KPSS Tercih Raporu", "Veri-temelli sıralı liste + rehber görüşmesi"),
         ("/universite-ucretleri.html", "💰", "Vakıf Üniversite Ücretleri", "Yıllık öğrenim ücreti & burs"),
         ("/bolum-ucretleri.html", "🧾", "Bölüm Ücretleri", "Bölüm bazında vakıf ücretleri"),
         ("/doluluk.html", "📊", "Doluluk Analizi", "Kontenjan & doluluk oranları 2025"),
@@ -4805,6 +5021,9 @@ def main():
     print("  → ücret sayfaları (üniversite + bölüm)")
     W("karsilastir.html", page_karsilastir())
     print("  → karşılaştırma sayfası")
+    W("kpss-tercih-raporu.html", page_kpss_rapor())
+    W("kpss-tercih-raporu-ornek.html", page_kpss_rapor_ornek())
+    print("  → Kişiye Özel KPSS Tercih Raporu (satış + örnek)")
 
     # LGS lise taban puanları
     lgs = load_lgs()

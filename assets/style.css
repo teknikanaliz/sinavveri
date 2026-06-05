@@ -406,3 +406,8 @@ footer a[href*="trveri.com"]:hover { color: var(--accent-light) !important; }
 .kc-h span { font-size: 11px; color: var(--fg-faded); }
 .kc-x { margin-top: 4px; background: none; border: none; color: #e03131; font-size: 11px; cursor: pointer; }
 .kc-actions { display: flex; gap: 9px; margin-top: 12px; flex-wrap: wrap; }
+
+/* ── Kişiye Özel KPSS Tercih Raporu — form ── */
+.kr-l { display: block; font-size: 12px; color: var(--fg-faded); font-weight: 700; margin-bottom: 4px; }
+.kr-i { width: 100%; padding: 9px 11px; border: 1px solid var(--border); border-radius: 8px; background: var(--bg-card-alt); color: var(--fg); font-family: inherit; font-size: 14px; box-sizing: border-box; }
+.kr-i:focus { outline: none; border-color: var(--accent); }
