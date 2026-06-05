@@ -14,7 +14,7 @@ def html_escape(s):
 
 ROOT = Path(__file__).parent
 SITE = "https://sinavveri.com"
-ASSET_VER = "20260605g"
+ASSET_VER = "20260605h"
 
 # Kişiye Özel KPSS Tercih Raporu — hizmet yapılandırması
 # whatsapp: "905XXXXXXXXX" (boşsa WhatsApp butonu gizlenir) · email: sipariş e-postası
@@ -3377,9 +3377,9 @@ def page_kpss_rapor():
 
     # Ödeme bölümü: Stripe linki varsa "Öde" butonu, yoksa sipariş-sonrası ödeme akışı
     if stripe:
-        odeme = (f'<a class="btn btn-primary" href="{stripe}" target="_blank" rel="noopener" style="font-size:16px;padding:12px 26px">'
+        odeme = (f'<a class="btn btn-primary" href="{stripe}" rel="noopener" style="font-size:16px;padding:12px 26px">'
                  f'💳 Güvenli Öde — {fiyat} TL</a>'
-                 '<p style="font-size:12px;color:var(--fg-faded);margin-top:8px">Ödeme Stripe altyapısıyla güvenle alınır (kredi/banka kartı).</p>')
+                 '<p style="font-size:12px;color:var(--fg-faded);margin-top:8px">Ödeme Stripe altyapısıyla güvenle alınır (kredi/banka kartı). Ödeme sonrası otomatik olarak siteye geri dönersiniz.</p>')
     else:
         odeme = ('<p style="font-size:14px;color:var(--fg);line-height:1.6">Talebinizi gönderdikten sonra '
                  'size <b>güvenli ödeme bağlantısı</b> (kredi/banka kartı) iletilir. Ödeme onaylanınca raporunuz '
@@ -3524,6 +3524,35 @@ Detaylı sıralama ve alternatifler birebir görüşmede netleştirilir.</p>
     return base("kpss-tercih-raporu-ornek.html",
                 "Örnek KPSS Tercih Raporu — Kişiye Özel Atama Tercih Listesi | SınavVeri",
                 "Kişiye özel KPSS tercih raporu örneği: sıralı kadro listesi, taban puanı trendi, doluluk ve şans bandı analizi, rehber yorumu.",
+                body)
+
+
+def page_kpss_rapor_tesekkurler():
+    wa = KPSS_RAPOR.get("whatsapp", "")
+    wa_html = (f' veya <a href="https://wa.me/{wa}" target="_blank" rel="noopener">WhatsApp</a>' if wa else "")
+    body = f"""
+<div class="crumb"><a href="/index.html">Ana Sayfa</a> / <a href="/kpss-tercih-raporu.html">Kişiye Özel KPSS Tercih Raporu</a> / Teşekkürler</div>
+<div class="page-title"><h1>✅ Ödemen alındı, teşekkürler!</h1><span class="sub">Kişiye Özel KPSS Tercih Raporu talebin oluşturuldu</span></div>
+<div class="uk-card"><div class="uk-analiz" style="border:0;padding:0">
+<p style="font-size:15px;line-height:1.7">Ödemen başarıyla alındı. Uzman KPSS rehberimiz; puanın, öğrenim düzeyin ve tercihlerine göre
+<b>kişiye özel, sıralı tercih raporunu</b> hazırlamaya başlıyor.</p>
+<p style="font-size:15px;line-height:1.7"><b>Sırada ne var?</b></p>
+<ul style="font-size:14px;line-height:1.8;margin:0 0 8px 18px">
+<li>Raporun <b>1-2 iş günü</b> içinde hazırlanır.</li>
+<li>Sana <b>e-posta</b>{wa_html} ile ulaşıp eksik bilgileri (tercih kriterlerin) netleştiririz.</li>
+<li>Görsel PDF raporun + rehber görüşmesi planlanır.</li>
+</ul>
+<p style="font-size:14px;color:var(--fg-faded)">Henüz başvuru formunu doldurmadıysan, hızlı olması için
+<a href="/kpss-tercih-raporu.html#basvuru">başvuru bilgilerini buradan</a> iletebilirsin.</p>
+</div></div>
+<div style="text-align:center;margin:24px 0">
+  <a class="btn btn-ghost" href="/kpss-tercih-robotu.html">← KPSS Tercih Robotuna dön</a>
+  <a class="btn btn-primary" href="/index.html">Ana Sayfa</a>
+</div>
+"""
+    return base("kpss-tercih-raporu-tesekkurler.html",
+                "Teşekkürler — Kişiye Özel KPSS Tercih Raporu | SınavVeri",
+                "Ödemeniz alındı. Kişiye Özel KPSS Tercih Raporunuz 1-2 iş günü içinde hazırlanacak.",
                 body)
 
 
@@ -5067,7 +5096,8 @@ def main():
     print("  → karşılaştırma sayfası")
     W("kpss-tercih-raporu.html", page_kpss_rapor())
     W("kpss-tercih-raporu-ornek.html", page_kpss_rapor_ornek())
-    print("  → Kişiye Özel KPSS Tercih Raporu (satış + örnek)")
+    W("kpss-tercih-raporu-tesekkurler.html", page_kpss_rapor_tesekkurler())
+    print("  → Kişiye Özel KPSS Tercih Raporu (satış + örnek + teşekkür)")
 
     # LGS lise taban puanları
     lgs = load_lgs()
