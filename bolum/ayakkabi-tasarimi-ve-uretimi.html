@@ -308,7 +308,7 @@
   };
 })();
 </script>
-<link rel="stylesheet" href="/assets/style.css?v=20260604i">
+<link rel="stylesheet" href="/assets/style.css?v=20260605a">
 <link rel="manifest" href="/manifest.json">
 <script nonce="__NONCE__" src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
 </head>
@@ -356,7 +356,7 @@
 <div class="data-table-wrap">
 <table class="data-table detail-table" data-live="1">
 <thead><tr><th>Üniversite</th><th>Program</th><th>İl</th><th>Tür</th><th>Kont.</th><th>Doluluk</th><th>Taban 2025</th><th>Taban 2024</th><th>Taban 2023</th><th>Sıra 2025</th><th data-nosort title="Karşılaştır">Kıyas</th></tr></thead>
-<tbody><tr data-il="Konya" data-tur="Devlet" data-dil="Türkçe" data-uni="SELÇUK ÜNİVERSİTESİ (KONYA)"><td><img class="uni-logo-sm" src="/assets/logos/123902.png" alt="SELÇUK ÜNİVERSİTESİ (KONYA) logosu" width="24" height="24" loading="lazy" decoding="async"><strong>SELÇUK ÜNİVERSİTESİ (KONYA)</strong> <button type="button" class="pdet" title="Program detayı" data-kosul="154" data-kadro="1,0,2,1,1" data-sure="4" data-demo="2023|10|11|5|8|2|6">ℹ️</button></td><td>Ayakkabı Tasarımı ve Üretimi</td><td>Konya</td><td>Devlet</td><td>25</td><td><span class="tag tag-lgs">%104</span></td><td><strong>236,47</strong></td><td>240,35</td><td>238,12</td><td>965.867</td><td style="text-align:center"><input type="checkbox" class="dcmp" aria-label="Karşılaştır"></td></tr></tbody>
+<tbody><tr data-il="Konya" data-tur="Devlet" data-dil="Türkçe" data-uni="SELÇUK ÜNİVERSİTESİ (KONYA)"><td><img class="uni-logo-sm" src="/assets/logos/123902.png" alt="SELÇUK ÜNİVERSİTESİ (KONYA) logosu" width="24" height="24" loading="lazy" decoding="async"><strong>SELÇUK ÜNİVERSİTESİ (KONYA)</strong> <button type="button" class="pdet" title="Program detayı" data-kosul="154" data-kadro="1,0,2,1,1" data-sure="4" data-hist="2025:236.468:965867:26;2024:240.347:959035:25;2023:238.123:1035208:20;2022:237.635:1038355:20" data-demo="2023|10|11|5|8|2|6">ℹ️</button></td><td>Ayakkabı Tasarımı ve Üretimi</td><td>Konya</td><td>Devlet</td><td>25</td><td><span class="tag tag-lgs">%104</span></td><td><strong>236,47</strong></td><td>240,35</td><td>238,12</td><td>965.867</td><td style="text-align:center"><input type="checkbox" class="dcmp" aria-label="Karşılaştır"></td></tr></tbody>
 </table>
 </div>
 
@@ -462,6 +462,15 @@
       if(nx&&nx.classList.contains('pdet-row')){ nx.parentNode.removeChild(nx); return; }
       var kadro=(btn.getAttribute('data-kadro')||'').split(',').map(function(x){return parseInt(x,10)||0;});
       var parts=[];
+      var hraw=(btn.getAttribute('data-hist')||'').split(';').filter(Boolean);
+      if(hraw.length){
+        function pf(v){return v===''||v==null?'—':Number(v).toLocaleString('tr-TR',{minimumFractionDigits:2,maximumFractionDigits:2});}
+        function nf2(v){return v===''||v==null?'—':Number(v).toLocaleString('tr-TR');}
+        var hr=hraw.map(function(c){var p=c.split(':');
+          return '<tr><td><b>'+esc(p[0])+'</b></td><td>'+pf(p[1])+'</td><td>'+nf2(p[2])+'</td><td>'+nf2(p[3])+'</td></tr>';}).join('');
+        parts.push('<div><b>Yıllara göre (taban / başarı sırası / yerleşen):</b>'
+          +'<table class="pdet-hist"><thead><tr><th>Yıl</th><th>Taban</th><th>Başarı Sırası</th><th>Yerleşen</th></tr></thead><tbody>'+hr+'</tbody></table></div>');
+      }
       var kp=[]; kadro.forEach(function(v,i){ if(v>0)kp.push(KLAB[i]+': '+v); });
       if(kp.length)parts.push('<div><b>Akademik kadro:</b> '+kp.join(' · ')+'</div>');
       var akr=btn.getAttribute('data-akr'); if(akr)parts.push('<div><b>Akreditasyon:</b> '+esc(akr)+'</div>');

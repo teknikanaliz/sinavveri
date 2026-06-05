@@ -300,7 +300,7 @@
   };
 })();
 </script>
-<link rel="stylesheet" href="/assets/style.css?v=20260604i">
+<link rel="stylesheet" href="/assets/style.css?v=20260605a">
 <link rel="manifest" href="/manifest.json">
 
 </head>
@@ -454,6 +454,15 @@
       if(nx&&nx.classList.contains('pdet-row')){ nx.parentNode.removeChild(nx); return; }
       var kadro=(btn.getAttribute('data-kadro')||'').split(',').map(function(x){return parseInt(x,10)||0;});
       var parts=[];
+      var hraw=(btn.getAttribute('data-hist')||'').split(';').filter(Boolean);
+      if(hraw.length){
+        function pf(v){return v===''||v==null?'—':Number(v).toLocaleString('tr-TR',{minimumFractionDigits:2,maximumFractionDigits:2});}
+        function nf2(v){return v===''||v==null?'—':Number(v).toLocaleString('tr-TR');}
+        var hr=hraw.map(function(c){var p=c.split(':');
+          return '<tr><td><b>'+esc(p[0])+'</b></td><td>'+pf(p[1])+'</td><td>'+nf2(p[2])+'</td><td>'+nf2(p[3])+'</td></tr>';}).join('');
+        parts.push('<div><b>Yıllara göre (taban / başarı sırası / yerleşen):</b>'
+          +'<table class="pdet-hist"><thead><tr><th>Yıl</th><th>Taban</th><th>Başarı Sırası</th><th>Yerleşen</th></tr></thead><tbody>'+hr+'</tbody></table></div>');
+      }
       var kp=[]; kadro.forEach(function(v,i){ if(v>0)kp.push(KLAB[i]+': '+v); });
       if(kp.length)parts.push('<div><b>Akademik kadro:</b> '+kp.join(' · ')+'</div>');
       var akr=btn.getAttribute('data-akr'); if(akr)parts.push('<div><b>Akreditasyon:</b> '+esc(akr)+'</div>');

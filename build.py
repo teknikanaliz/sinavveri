@@ -14,7 +14,7 @@ def html_escape(s):
 
 ROOT = Path(__file__).parent
 SITE = "https://sinavveri.com"
-ASSET_VER = "20260604i"
+ASSET_VER = "20260605a"
 
 NAV = [
     ("/index.html", "Ana Sayfa"),
@@ -312,8 +312,9 @@ def breadcrumb_ld(items):
     return {"@type": "BreadcrumbList", "itemListElement": el}
 
 
-def base(slug, title, desc, body, *, extra_head="", extra_ld=None):
+def base(slug, title, desc, body, *, extra_head="", extra_ld=None, og_image=None):
     canonical = SITE + "/" + (slug if slug != "index.html" else "")
+    og_url = SITE + (og_image if og_image else "/assets/og.png")
     nav_parts = []
     for href, label in NAV:
         cls = ' class="active"' if href.lstrip("/") == slug else ''
@@ -336,14 +337,14 @@ def base(slug, title, desc, body, *, extra_head="", extra_ld=None):
 <meta property="og:url" content="{canonical}">
 <meta property="og:title" content="{title}">
 <meta property="og:description" content="{desc}">
-<meta property="og:image" content="{SITE}/assets/og.png">
+<meta property="og:image" content="{og_url}">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
 <meta property="og:locale" content="tr_TR">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="{title}">
 <meta name="twitter:description" content="{desc}">
-<meta name="twitter:image" content="{SITE}/assets/og.png">
+<meta name="twitter:image" content="{og_url}">
 <script nonce="__NONCE__" type="application/ld+json">{ld}</script>
 <script nonce="__NONCE__">
   (function(){{ try {{ if (localStorage.getItem('sinavveri-theme') === 'dark') document.documentElement.setAttribute('data-theme','dark'); }} catch(e){{}} }})();
@@ -690,6 +691,110 @@ def tr_loc_ki(s):
     return tr_loc(s) + "ki"
 
 
+_OG_FONT = {}
+
+
+def _font(size, bold=False):
+    key = (size, bold)
+    if key not in _OG_FONT:
+        from PIL import ImageFont
+        p = ("/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf" if bold
+             else "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf")
+        try:
+            _OG_FONT[key] = ImageFont.truetype(p, size)
+        except Exception:
+            _OG_FONT[key] = ImageFont.load_default()
+    return _OG_FONT[key]
+
+
+def gen_uni_og(slug, u, info, recs):
+    """Üniversiteye özel 1200×630 OG sosyal paylaşım görseli üretir (idempotent).
+    Marka + logo + ad + il/tür/kuruluş + öğrenci/akademisyen/program istatistikleri."""
+    try:
+        from PIL import Image, ImageDraw
+    except Exception:
+        return None
+    ogdir = ROOT / "assets" / "og" / "uni"
+    ogdir.mkdir(parents=True, exist_ok=True)
+    dest = ogdir / f"{slug}.png"
+    if dest.exists() and dest.stat().st_size > 1000:
+        return f"/assets/og/uni/{slug}.png"
+
+    W, H = 1200, 630
+    img = Image.new("RGB", (W, H), (21, 25, 43))  # koyu lacivert zemin
+    d = ImageDraw.Draw(img)
+    d.rectangle([0, 0, 14, H], fill=(245, 158, 11))           # sol turuncu şerit
+    d.rectangle([0, H - 70, W, H], fill=(17, 20, 35))         # alt bar
+
+    # Logo (varsa, beyaz yuvarlak zemin)
+    x0 = 70
+    uid = info.get("id")
+    lp = None
+    if uid and (ROOT / "assets" / "logos" / f"{uid}.png").exists():
+        lp = ROOT / "assets" / "logos" / f"{uid}.png"
+    else:
+        nk = "n_" + _uni_norm(u).replace(" ", "-")
+        if (ROOT / "assets" / "logos" / f"{nk}.png").exists():
+            lp = ROOT / "assets" / "logos" / f"{nk}.png"
+    if lp:
+        try:
+            logo = Image.open(lp).convert("RGBA").resize((150, 150))
+            d.rounded_rectangle([x0, 70, x0 + 174, 70 + 174], radius=20, fill=(255, 255, 255))
+            img.paste(logo, (x0 + 12, 82), logo)
+        except Exception:
+            lp = None
+    tx = (x0 + 200) if lp else x0
+
+    # Üniversite adı (sığması için kelime sar, max 2 satır)
+    name = u.split(" (")[0]
+    fn = _font(54, True)
+    words = name.split(" ")
+    lines, cur = [], ""
+    for w in words:
+        t = (cur + " " + w).strip()
+        if d.textlength(t, font=fn) <= (W - tx - 60):
+            cur = t
+        else:
+            if cur:
+                lines.append(cur)
+            cur = w
+    if cur:
+        lines.append(cur)
+    if len(lines) > 2:
+        lines = lines[:2]
+        lines[1] = lines[1][:30] + "…"
+    ty = 90 if len(lines) == 2 else 120
+    for ln in lines:
+        d.text((tx, ty), ln, font=fn, fill=(255, 255, 255))
+        ty += 64
+
+    # Alt başlık: il · tür · kuruluş
+    sub_parts = [p for p in [info.get("il"), info.get("tur"), (info.get("kurulus") + " kuruluş") if info.get("kurulus") else ""] if p]
+    if sub_parts:
+        d.text((tx, ty + 6), "  ·  ".join(sub_parts), font=_font(30), fill=(245, 158, 11))
+
+    # İstatistik kutuları
+    stats = []
+    if info.get("ogrenci"):
+        stats.append(("ÖĞRENCİ", nf_tr(info["ogrenci"])))
+    if info.get("akademisyen"):
+        stats.append(("AKADEMİSYEN", nf_tr(info["akademisyen"])))
+    stats.append(("PROGRAM", str(len(recs))))
+    bw, bx, by = 320, 70, 380
+    for lbl, val in stats[:3]:
+        d.rounded_rectangle([bx, by, bx + bw - 20, by + 110], radius=16, fill=(31, 37, 58))
+        d.text((bx + 24, by + 20), val, font=_font(46, True), fill=(255, 255, 255))
+        d.text((bx + 24, by + 76), lbl, font=_font(22), fill=(150, 160, 185))
+        bx += bw
+
+    # Alt bar metni
+    d.text((70, H - 52), "SınavVeri.com", font=_font(30, True), fill=(245, 158, 11))
+    d.text((W - 430, H - 50), "2025 Taban Puanları · YÖK Atlas", font=_font(26), fill=(200, 208, 225))
+
+    img.save(dest, "PNG")
+    return f"/assets/og/uni/{slug}.png"
+
+
 def uni_analiz(u, info, recs):
     """SinavVeri.com Üniversite Analizi — künye + program verisinden türetilmiş özgün metin.
     Şablon değil: değerlere göre dallanan cümleler kurar."""
@@ -802,15 +907,20 @@ def uni_kunye_html(u, recs):
 
     # Harita + adres
     adres = info.get("adres") or ""
+    uname = u.split(" (")[0]
+    vid = "https://www.youtube.com/results?search_query=" + html_escape((uname + " tanıtım filmi").replace(" ", "+"))
     harita = ""
     if adres or il:
-        q = (u.split(" (")[0] + " " + (il or "")).strip()
+        q = (uname + " " + (il or "")).strip()
         maps = "https://www.google.com/maps/search/?api=1&query=" + html_escape(q.replace(" ", "+"))
         harita = (f'<div class="uk-map">'
                   + (f'<div class="uk-adres">📍 {html_escape(adres)}</div>' if adres else "")
                   + f'<a class="btn btn-ghost" href="{maps}" target="_blank" rel="noopener nofollow">🗺️ Haritada Aç</a>'
+                  + f'<a class="btn btn-ghost" href="{vid}" target="_blank" rel="noopener nofollow">🎬 Tanıtım Videosu</a>'
                   + (f'<button type="button" class="btn btn-ghost uk-copy" data-adres="{html_escape(adres)}">📋 Adresi Kopyala</button>' if adres else "")
                   + "</div>")
+    else:
+        harita = (f'<div class="uk-map"><a class="btn btn-ghost" href="{vid}" target="_blank" rel="noopener nofollow">🎬 Tanıtım Videosu</a></div>')
 
     analiz = uni_analiz(u, info, recs)
     return f"""
@@ -819,6 +929,22 @@ def uni_kunye_html(u, recs):
   <div class="uk-analiz"><h2>📊 SinavVeri.com Üniversite Analizi</h2><p>{analiz}</p></div>
   {f'<div class="uk-kurumsal"><h3>Kurumsal Bilgiler</h3><dl>{kurumsal}</dl></div>' if kurumsal else ''}
   {harita}
+  {uni_yorum_html(u)}
+</div>"""
+
+
+def uni_yorum_html(u):
+    """Yorumlar & değerlendirmeler — şimdilik PASİF (yakında). Backend bağlanınca aktifleşecek
+    şekilde DOM hazır: .uk-rev[data-uni], form alanları disabled + 'yakında' rozeti."""
+    uname = html_escape(u.split(" (")[0])
+    return f"""<div class="uk-rev" data-uni="{html_escape(u)}">
+  <div class="uk-rev-head"><h3>💬 Öğrenci Yorumları & Değerlendirmeleri</h3><span class="uk-soon">Yakında</span></div>
+  <p class="uk-rev-note">{uname} hakkında öğrenci deneyimleri ve puanlamaları <b>çok yakında</b> burada olacak. Kampüs, eğitim kalitesi, sosyal yaşam ve barınma hakkında gerçek öğrenci görüşleri ekleyebileceksiniz.</p>
+  <form class="uk-rev-form" onsubmit="return false" aria-disabled="true">
+    <div class="uk-rev-stars" title="Puanlama yakında aktifleşecek">★★★★★</div>
+    <textarea placeholder="Deneyimini paylaş (yakında açılacak)…" disabled></textarea>
+    <button type="button" class="btn btn-primary" disabled>Gönder</button>
+  </form>
 </div>"""
 
 
@@ -2628,13 +2754,23 @@ def _pdet_btn(r):
     sure = r.get("sure")
     ucret = r.get("ucret")
     demo = DEMOGRAFI.get(str(r.get("k"))) if r.get("k") is not None else None
-    if not (kosul or any(kadro) or akr or sure or demo):
+    hist = r.get("hist") or []
+    has_hist = (r.get("tp") or r.get("sira")) or any((h[1] or h[2]) for h in hist)
+    if not (kosul or any(kadro) or akr or sure or demo or has_hist):
         return ""
     kd = ",".join(str(x if x else 0) for x in (kadro + [0, 0, 0, 0, 0])[:5])
     attrs = (f' data-kosul="{kosul}" data-kadro="{kd}"'
              + (f' data-akr="{akr}"' if akr else "")
              + (f' data-sure="{sure}"' if sure else "")
              + (f' data-ucret="{ucret}"' if ucret else ""))
+    if has_hist:
+        # yıl:taban:sıra:yerleşen (2025 cari + hist 2024/2023/2022)
+        def _v(x):
+            return "" if x in (None, "") else (f"{x:.3f}".rstrip("0").rstrip(".") if isinstance(x, float) else str(x))
+        cells = [f"2025:{_v(r.get('tp'))}:{_v(r.get('sira'))}:{_v(r.get('yer'))}"]
+        for h in hist:
+            cells.append(f"{h[0]}:{_v(h[1])}:{_v(h[2])}:{_v(h[3])}")
+        attrs += f' data-hist="{";".join(cells)}"'
     if demo:
         # y|kız|erkek|liseli|mezun|üni-iken|üni-mezunu  (yerleşen profili, YÖK Atlas arşivi)
         dv = "|".join(str(demo.get(x, 0)) for x in ("y", "k", "e", "ls", "mz", "ub", "um"))
@@ -2761,6 +2897,15 @@ DETAIL_TOOLS_JS = r"""<script nonce="__NONCE__">
       if(nx&&nx.classList.contains('pdet-row')){ nx.parentNode.removeChild(nx); return; }
       var kadro=(btn.getAttribute('data-kadro')||'').split(',').map(function(x){return parseInt(x,10)||0;});
       var parts=[];
+      var hraw=(btn.getAttribute('data-hist')||'').split(';').filter(Boolean);
+      if(hraw.length){
+        function pf(v){return v===''||v==null?'—':Number(v).toLocaleString('tr-TR',{minimumFractionDigits:2,maximumFractionDigits:2});}
+        function nf2(v){return v===''||v==null?'—':Number(v).toLocaleString('tr-TR');}
+        var hr=hraw.map(function(c){var p=c.split(':');
+          return '<tr><td><b>'+esc(p[0])+'</b></td><td>'+pf(p[1])+'</td><td>'+nf2(p[2])+'</td><td>'+nf2(p[3])+'</td></tr>';}).join('');
+        parts.push('<div><b>Yıllara göre (taban / başarı sırası / yerleşen):</b>'
+          +'<table class="pdet-hist"><thead><tr><th>Yıl</th><th>Taban</th><th>Başarı Sırası</th><th>Yerleşen</th></tr></thead><tbody>'+hr+'</tbody></table></div>');
+      }
       var kp=[]; kadro.forEach(function(v,i){ if(v>0)kp.push(KLAB[i]+': '+v); });
       if(kp.length)parts.push('<div><b>Akademik kadro:</b> '+kp.join(' · ')+'</div>');
       var akr=btn.getAttribute('data-akr'); if(akr)parts.push('<div><b>Akreditasyon:</b> '+esc(akr)+'</div>');
@@ -2945,9 +3090,10 @@ def gen_universite_pages(programs):
 <div class="notice"><b>Kaynak:</b> YÖK Atlas 2025 (geçmiş: 2024). Doluluk = yerleşen ÷ kontenjan. Başarı sırasına göre sıralı.
 <a href="/taban-puanlari.html">Tüm taban puanları</a> · <a href="/tercih-robotu.html">tercih robotu</a> · <a href="/doluluk.html">doluluk analizi</a>.</div>
 """
+        og = gen_uni_og(s, u, uni_info(u), recs)
         html = base(f"universite/{s}.html", f"{u} Taban Puanları 2025 — Tüm Bölümler | SınavVeri",
                     f"{u} 2025 taban puanları ve başarı sıralamaları. {len(recs)} programın taban puanı, kontenjan ve sıralaması YÖK Atlas verisiyle.",
-                    body)
+                    body, og_image=og)
         write(f"universite/{s}.html", html)
     return u_by_slug
 
@@ -3015,6 +3161,110 @@ def page_universiteler(u_by_slug, programs):
 """
     return base("universiteler.html", "Üniversitelere Göre Taban Puanları 2025 | SınavVeri",
                 "Tüm üniversitelerin 2025 taban puanları ve bölümleri. 227 devlet ve vakıf üniversitesi YÖK Atlas verisiyle.",
+                body)
+
+
+KARSILASTIR_JS = r"""<script nonce="__NONCE__">
+(function(){
+  var SV=window.SV||{};
+  var TUR={D:'Devlet',V:'Vakıf',K:'KKTC',DK:'Devlet (KKTC Kampüs)',DU:'Devlet (Ücretli)',DKU:'Devlet (KKTC Uyruklu)',Y:'Diğer'};
+  var PT={SAY:'Sayısal',EA:'Eşit Ağırlık','SÖZ':'Sözel','DİL':'Dil',TYT:'TYT'};
+  var IDX={k:0,u:1,b:2,g:3,il:4,t:5,o:6,dil:7,bs:8,kont:9,tp:10,sira:11,yer:12,t24:13,t23:14,s24:15,s23:16};
+  var cache={}, data=[], sel=[], curPT='say';
+  function el(i){return document.getElementById(i);}
+  function nf(n){return n==null||n===''?'—':Number(n).toLocaleString('tr-TR');}
+  function pf(n){return n==null||n===''?'—':Number(n).toLocaleString('tr-TR',{minimumFractionDigits:2,maximumFractionDigits:2});}
+  function esc(s){return (''+(s==null?'':s)).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+  function load(pt,cb){ if(cache[pt]){data=cache[pt];cb&&cb();return;}
+    fetch('/veri/'+pt+'.json').then(function(r){return r.json();}).then(function(j){cache[pt]=j;data=j;cb&&cb();})
+      .catch(function(){el('kStatus').textContent='Veri yüklenemedi.';}); }
+  function doluluk(r){var k=r[IDX.kont],y=r[IDX.yer];if(!k)return '—';var o=Math.round(100*(y||0)/k);return (y||0)+'/'+k+' (%'+o+')';}
+  function row(label,vals,bold){
+    var tds=vals.map(function(v){return '<td'+(bold?' style="font-weight:800"':'')+'>'+v+'</td>';}).join('');
+    return '<tr><th>'+label+'</th>'+tds+'</tr>';
+  }
+  function render(){
+    var wrap=el('kResult');
+    if(!sel.length){wrap.innerHTML='<div class="info-box">Karşılaştırmak için yukarıdan en az 2 program ekleyin. Eklediğiniz programlar yan yana kıyaslanır; bağlantıyı paylaşabilirsiniz.</div>';syncQS();return;}
+    var heads=sel.map(function(r){return '<th><div class="kc-h"><b>'+esc(r[IDX.u])+'</b><span>'+esc(r[IDX.b])+'</span>'
+      +'<button type="button" class="kc-x" data-rm="'+esc(r[IDX.k])+'">× çıkar</button></div></th>';}).join('');
+    var h='<div class="kc-wrap"><table class="kc-table"><thead><tr><th></th>'+heads+'</tr></thead><tbody>';
+    h+=row('İl',sel.map(function(r){return esc(r[IDX.il]);}));
+    h+=row('Tür',sel.map(function(r){return TUR[r[IDX.t]]||r[IDX.t]||'—';}));
+    h+=row('Puan Türü',sel.map(function(){return PT[curPT.toUpperCase()]||curPT.toUpperCase();}));
+    h+=row('Öğrenim Türü',sel.map(function(r){return esc(r[IDX.o]||'—');}));
+    h+=row('Öğrenim Dili',sel.map(function(r){return esc(r[IDX.dil]||'—');}));
+    h+=row('Burs',sel.map(function(r){return esc(r[IDX.bs]||'—');}));
+    h+=row('Taban 2025',sel.map(function(r){return pf(r[IDX.tp]);}),true);
+    h+=row('Başarı Sırası 2025',sel.map(function(r){return nf(r[IDX.sira]);}),true);
+    h+=row('Taban 2024',sel.map(function(r){return pf(r[IDX.t24]);}));
+    h+=row('Başarı Sırası 2024',sel.map(function(r){return nf(r[IDX.s24]);}));
+    h+=row('Taban 2023',sel.map(function(r){return pf(r[IDX.t23]);}));
+    h+=row('Başarı Sırası 2023',sel.map(function(r){return nf(r[IDX.s23]);}));
+    h+=row('Kontenjan',sel.map(function(r){return nf(r[IDX.kont]);}));
+    h+=row('Doluluk (yerleşen)',sel.map(function(r){return doluluk(r);}));
+    h+='</tbody></table></div>';
+    h+='<div class="kc-actions"><button type="button" class="btn btn-ghost" id="kShare">🔗 Karşılaştırmayı Paylaş</button>'
+      +'<button type="button" class="fchip-clear" id="kClear">Temizle</button></div>';
+    wrap.innerHTML=h;
+    syncQS();
+  }
+  function add(k){ if(sel.length>=4){el('kStatus').textContent='En fazla 4 program karşılaştırabilirsiniz.';return;}
+    if(sel.some(function(r){return String(r[IDX.k])===String(k);}))return;
+    var rec=data.filter(function(r){return String(r[IDX.k])===String(k);})[0];
+    if(rec){sel.push(rec);render();} }
+  function syncQS(){ try{ var p=sel.map(function(r){return r[IDX.k];}).join(','); var u=location.pathname+'?pt='+curPT+(p?'&p='+p:''); history.replaceState(null,'',u);}catch(e){} }
+  // autocomplete
+  var sb=el('kSearch'), sug=el('kSug');
+  function suggest(){ var q=(sb.value||'').toLocaleLowerCase('tr').trim(); if(q.length<2){sug.style.display='none';return;}
+    var hits=[],i; for(i=0;i<data.length&&hits.length<12;i++){ var r=data[i]; var hay=((r[IDX.u]||'')+' '+(r[IDX.b]||'')).toLocaleLowerCase('tr');
+      if(hay.indexOf(q)>=0)hits.push(r); }
+    if(!hits.length){sug.style.display='none';return;}
+    sug.innerHTML=hits.map(function(r){return '<div class="kc-sug" data-k="'+esc(r[IDX.k])+'"><b>'+esc(r[IDX.b])+'</b> — '+esc(r[IDX.u])+' <small>'+pf(r[IDX.tp])+'</small></div>';}).join('');
+    sug.style.display='block';
+  }
+  sb.addEventListener('input',suggest);
+  sug.addEventListener('click',function(e){var d=e.target.closest('.kc-sug');if(!d)return;add(d.getAttribute('data-k'));sb.value='';sug.style.display='none';});
+  document.addEventListener('click',function(e){if(!sug.contains(e.target)&&e.target!==sb)sug.style.display='none';});
+  el('kResult').addEventListener('click',function(e){
+    var rm=e.target.getAttribute&&e.target.getAttribute('data-rm');
+    if(rm){sel=sel.filter(function(r){return String(r[IDX.k])!==String(rm);});render();return;}
+    if(e.target.id==='kClear'){sel=[];render();return;}
+    if(e.target.id==='kShare'){ try{SV.copy(location.href,e.target);}catch(e2){} }
+  });
+  var ptSel=el('kPT');
+  ptSel.addEventListener('change',function(){curPT=ptSel.value;sel=[];el('kStatus').textContent='';load(curPT,render);});
+  // init from QS
+  (function(){ var qs=SV.qsGet?SV.qsGet():{}; if(qs.pt&&PT[qs.pt.toUpperCase()]){curPT=qs.pt;ptSel.value=qs.pt;}
+    load(curPT,function(){ if(qs.p){qs.p.split(',').forEach(function(k){add(k);});} render(); }); })();
+})();
+</script>"""
+
+
+def page_karsilastir():
+    opts = "".join(f'<option value="{c.lower()}">{PT_LABEL.get(c2, c)}</option>'
+                   for c, c2 in [("say", "SAY"), ("ea", "EA"), ("soz", "SÖZ"), ("dil", "DİL"), ("tyt", "TYT")])
+    body = f"""
+<div class="crumb"><a href="/index.html">Ana Sayfa</a> / Karşılaştır</div>
+<div class="page-title"><h1>Bölüm & Üniversite Karşılaştırma</h1><span class="sub">2-4 programı yan yana kıyasla · paylaşılabilir bağlantı</span></div>
+<div class="info-box">İki ile dört programı taban puanı, başarı sırası (2023-2025), kontenjan, doluluk, öğrenim dili ve türüne göre yan yana karşılaştırın. Önce puan türünü seçin, sonra program arayıp ekleyin. Oluşan bağlantıyı paylaşabilirsiniz.</div>
+<div class="calc-card" style="margin-bottom:16px">
+  <div style="display:grid;grid-template-columns:160px 1fr;gap:10px;align-items:end">
+    <div><label style="font-size:12px;color:var(--fg-faded);font-weight:700">Puan Türü</label>
+      <select id="kPT" class="btn btn-ghost" style="text-align:left;width:100%;margin-top:4px">{opts}</select></div>
+    <div style="position:relative"><label style="font-size:12px;color:var(--fg-faded);font-weight:700">Program Ekle</label>
+      <input id="kSearch" type="text" autocomplete="off" placeholder="Üniversite veya bölüm ara… (örn. boğaziçi bilgisayar)" style="width:100%;margin-top:4px;padding:9px 10px;border:1px solid var(--border);border-radius:8px;background:var(--bg-card-alt);color:var(--fg);font-family:inherit;font-size:14px">
+      <div id="kSug" class="kc-sugbox" style="display:none"></div>
+    </div>
+  </div>
+  <div id="kStatus" style="margin-top:10px;font-size:13px;color:var(--accent);font-weight:700"></div>
+</div>
+<div id="kResult"></div>
+<div class="notice"><b>Kaynak:</b> YÖK Atlas 2025 (geçmiş: 2024, 2023). Karşılaştırma tahmini değerlendirme amaçlıdır; resmî tercih için <a href="https://www.osym.gov.tr" target="_blank" rel="noopener">ÖSYM</a> esastır.</div>
+{KARSILASTIR_JS}
+"""
+    return base("karsilastir.html", "Bölüm ve Üniversite Karşılaştırma 2025 — Taban Puanı Kıyasla | SınavVeri",
+                "Üniversite bölümlerini taban puanı, başarı sırası, kontenjan ve dolulukla yan yana karşılaştırın. 2-4 programı kıyaslayın, bağlantıyı paylaşın.",
                 body)
 
 
@@ -3474,6 +3724,7 @@ def page_taban_hub():
         ("/bolumler.html", "📘", "Bölümlere Göre", "600+ bölüm grubu taban puanı"),
         ("/universiteler.html", "🏫", "Üniversitelere Göre", "227 üniversite · künye, analiz, logo"),
         ("/sehirler.html", "📍", "Şehirlere Göre", "81 il · ildeki üniversiteler"),
+        ("/karsilastir.html", "⚖️", "Karşılaştır", "2-4 programı yan yana kıyasla"),
         ("/universite-ucretleri.html", "💰", "Vakıf Üniversite Ücretleri", "Yıllık öğrenim ücreti & burs"),
         ("/bolum-ucretleri.html", "🧾", "Bölüm Ücretleri", "Bölüm bazında vakıf ücretleri"),
         ("/doluluk.html", "📊", "Doluluk Analizi", "Kontenjan & doluluk oranları 2025"),
@@ -4552,6 +4803,8 @@ def main():
     W("universite-ucretleri.html", page_universite_ucretleri(programs, u_by_slug))
     W("bolum-ucretleri.html", page_bolum_ucretleri(programs, g_by_slug))
     print("  → ücret sayfaları (üniversite + bölüm)")
+    W("karsilastir.html", page_karsilastir())
+    print("  → karşılaştırma sayfası")
 
     # LGS lise taban puanları
     lgs = load_lgs()

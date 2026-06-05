@@ -308,7 +308,7 @@
   };
 })();
 </script>
-<link rel="stylesheet" href="/assets/style.css?v=20260604i">
+<link rel="stylesheet" href="/assets/style.css?v=20260605a">
 <link rel="manifest" href="/manifest.json">
 <script nonce="__NONCE__" src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
 </head>
@@ -356,7 +356,7 @@
 <div class="data-table-wrap">
 <table class="data-table detail-table" data-live="1">
 <thead><tr><th>Üniversite</th><th>Program</th><th>İl</th><th>Tür</th><th>Kont.</th><th>Doluluk</th><th>Taban 2025</th><th>Taban 2024</th><th>Taban 2023</th><th>Sıra 2025</th><th data-nosort title="Karşılaştır">Kıyas</th></tr></thead>
-<tbody><tr data-il="Ankara" data-tur="Devlet" data-dil="Ermenice" data-uni="ANKARA ÜNİVERSİTESİ"><td><img class="uni-logo-sm" src="/assets/logos/102738.png" alt="ANKARA ÜNİVERSİTESİ logosu" width="24" height="24" loading="lazy" decoding="async"><strong>ANKARA ÜNİVERSİTESİ</strong> <button type="button" class="pdet" title="Program detayı" data-kosul="22,24,170,159" data-kadro="1,0,2,7,1" data-sure="4" data-demo="2023|10|12|7|1|5|9">ℹ️</button></td><td>Ermeni Dili ve Kültürü (Ermenice)</td><td>Ankara</td><td>Devlet</td><td>25</td><td><span class="tag tag-lgs">%104</span></td><td><strong>248,67</strong></td><td>256,30</td><td>269,33</td><td>95.554</td><td style="text-align:center"><input type="checkbox" class="dcmp" aria-label="Karşılaştır"></td></tr><tr data-il="Kayseri" data-tur="Devlet" data-dil="Türkçe" data-uni="ERCİYES ÜNİVERSİTESİ (KAYSERİ)"><td><img class="uni-logo-sm" src="/assets/logos/109868.png" alt="ERCİYES ÜNİVERSİTESİ (KAYSERİ) logosu" width="24" height="24" loading="lazy" decoding="async"><strong>ERCİYES ÜNİVERSİTESİ (KAYSERİ)</strong> <button type="button" class="pdet" title="Program detayı" data-kosul="" data-kadro="5,4,5,10,13" data-sure="4" data-demo="2023|14|12|3|13|5|4">ℹ️</button></td><td>Ermeni Dili ve Kültürü</td><td>Kayseri</td><td>Devlet</td><td>30</td><td><span class="tag tag-lgs">%103</span></td><td><strong>161,56</strong></td><td>179,49</td><td>155,31</td><td>139.755</td><td style="text-align:center"><input type="checkbox" class="dcmp" aria-label="Karşılaştır"></td></tr></tbody>
+<tbody><tr data-il="Ankara" data-tur="Devlet" data-dil="Ermenice" data-uni="ANKARA ÜNİVERSİTESİ"><td><img class="uni-logo-sm" src="/assets/logos/102738.png" alt="ANKARA ÜNİVERSİTESİ logosu" width="24" height="24" loading="lazy" decoding="async"><strong>ANKARA ÜNİVERSİTESİ</strong> <button type="button" class="pdet" title="Program detayı" data-kosul="22,24,170,159" data-kadro="1,0,2,7,1" data-sure="4" data-hist="2025:248.673:95554:26;2024:256.3:99511:25;2023:269.331:91515:20;2022:194.06:113307:20" data-demo="2023|10|12|7|1|5|9">ℹ️</button></td><td>Ermeni Dili ve Kültürü (Ermenice)</td><td>Ankara</td><td>Devlet</td><td>25</td><td><span class="tag tag-lgs">%104</span></td><td><strong>248,67</strong></td><td>256,30</td><td>269,33</td><td>95.554</td><td style="text-align:center"><input type="checkbox" class="dcmp" aria-label="Karşılaştır"></td></tr><tr data-il="Kayseri" data-tur="Devlet" data-dil="Türkçe" data-uni="ERCİYES ÜNİVERSİTESİ (KAYSERİ)"><td><img class="uni-logo-sm" src="/assets/logos/109868.png" alt="ERCİYES ÜNİVERSİTESİ (KAYSERİ) logosu" width="24" height="24" loading="lazy" decoding="async"><strong>ERCİYES ÜNİVERSİTESİ (KAYSERİ)</strong> <button type="button" class="pdet" title="Program detayı" data-kosul="" data-kadro="5,4,5,10,13" data-sure="4" data-hist="2025:161.559:139755:31;2024:179.491:149115:30;2023:155.31:153330:25;2022:::20" data-demo="2023|14|12|3|13|5|4">ℹ️</button></td><td>Ermeni Dili ve Kültürü</td><td>Kayseri</td><td>Devlet</td><td>30</td><td><span class="tag tag-lgs">%103</span></td><td><strong>161,56</strong></td><td>179,49</td><td>155,31</td><td>139.755</td><td style="text-align:center"><input type="checkbox" class="dcmp" aria-label="Karşılaştır"></td></tr></tbody>
 </table>
 </div>
 
@@ -462,6 +462,15 @@
       if(nx&&nx.classList.contains('pdet-row')){ nx.parentNode.removeChild(nx); return; }
       var kadro=(btn.getAttribute('data-kadro')||'').split(',').map(function(x){return parseInt(x,10)||0;});
       var parts=[];
+      var hraw=(btn.getAttribute('data-hist')||'').split(';').filter(Boolean);
+      if(hraw.length){
+        function pf(v){return v===''||v==null?'—':Number(v).toLocaleString('tr-TR',{minimumFractionDigits:2,maximumFractionDigits:2});}
+        function nf2(v){return v===''||v==null?'—':Number(v).toLocaleString('tr-TR');}
+        var hr=hraw.map(function(c){var p=c.split(':');
+          return '<tr><td><b>'+esc(p[0])+'</b></td><td>'+pf(p[1])+'</td><td>'+nf2(p[2])+'</td><td>'+nf2(p[3])+'</td></tr>';}).join('');
+        parts.push('<div><b>Yıllara göre (taban / başarı sırası / yerleşen):</b>'
+          +'<table class="pdet-hist"><thead><tr><th>Yıl</th><th>Taban</th><th>Başarı Sırası</th><th>Yerleşen</th></tr></thead><tbody>'+hr+'</tbody></table></div>');
+      }
       var kp=[]; kadro.forEach(function(v,i){ if(v>0)kp.push(KLAB[i]+': '+v); });
       if(kp.length)parts.push('<div><b>Akademik kadro:</b> '+kp.join(' · ')+'</div>');
       var akr=btn.getAttribute('data-akr'); if(akr)parts.push('<div><b>Akreditasyon:</b> '+esc(akr)+'</div>');

@@ -374,3 +374,35 @@ footer a[href*="trveri.com"]:hover { color: var(--accent-light) !important; }
 .uk-row dd { color: var(--fg); font-weight: 600; }
 .uk-map { margin-top: 12px; border-top: 1px solid var(--border); padding-top: 12px; display: flex; flex-wrap: wrap; align-items: center; gap: 9px; }
 .uk-adres { flex: 1; min-width: 200px; font-size: 13px; color: var(--fg-faded); }
+
+/* ── #9 pdet 4-yıllık geçmiş tablosu ── */
+.pdet-hist { width: 100%; border-collapse: collapse; margin: 6px 0 2px; font-size: 12px; }
+.pdet-hist th, .pdet-hist td { border: 1px solid var(--border); padding: 4px 8px; text-align: right; }
+.pdet-hist th { background: var(--bg-card-alt); color: var(--fg-faded); font-weight: 700; text-align: right; }
+.pdet-hist td:first-child, .pdet-hist th:first-child { text-align: left; }
+
+/* ── #6/#7 pasif yorum bölümü ── */
+.uk-rev { margin-top: 12px; border-top: 1px solid var(--border); padding-top: 12px; }
+.uk-rev-head { display: flex; align-items: center; gap: 10px; }
+.uk-rev-head h3 { font-size: 14px; font-weight: 800; color: var(--accent); margin: 0; }
+.uk-soon { font-size: 11px; font-weight: 800; background: #f59e0b; color: #1a1d2e; padding: 2px 9px; border-radius: 999px; }
+.uk-rev-note { font-size: 13px; color: var(--fg-faded); margin: 7px 0 9px; line-height: 1.55; }
+.uk-rev-form { display: flex; flex-direction: column; gap: 8px; opacity: .55; pointer-events: none; }
+.uk-rev-stars { font-size: 20px; color: #f59e0b; letter-spacing: 3px; }
+.uk-rev-form textarea { min-height: 60px; padding: 9px 10px; border: 1px dashed var(--border); border-radius: 8px; background: var(--bg-card-alt); color: var(--fg); font-family: inherit; font-size: 13px; resize: none; }
+.uk-rev-form button { align-self: flex-start; }
+
+/* ── #12 karşılaştırma sayfası ── */
+.kc-sugbox { position: absolute; z-index: 30; left: 0; right: 0; top: 100%; margin-top: 4px; background: var(--bg-card); border: 1px solid var(--border); border-radius: 10px; box-shadow: var(--shadow-md, 0 6px 24px rgba(0,0,0,.18)); max-height: 320px; overflow: auto; }
+.kc-sug { padding: 9px 12px; font-size: 13px; cursor: pointer; border-bottom: 1px solid var(--border); }
+.kc-sug:hover { background: var(--bg-card-alt); }
+.kc-sug small { color: var(--accent); font-weight: 700; margin-left: 6px; }
+.kc-wrap { overflow-x: auto; }
+.kc-table { width: 100%; border-collapse: collapse; min-width: 520px; font-size: 13px; }
+.kc-table th, .kc-table td { border: 1px solid var(--border); padding: 9px 11px; text-align: center; }
+.kc-table tbody th { text-align: left; background: var(--bg-card-alt); color: var(--fg-faded); font-weight: 700; white-space: nowrap; }
+.kc-h { display: flex; flex-direction: column; gap: 2px; }
+.kc-h b { font-size: 13px; }
+.kc-h span { font-size: 11px; color: var(--fg-faded); }
+.kc-x { margin-top: 4px; background: none; border: none; color: #e03131; font-size: 11px; cursor: pointer; }
+.kc-actions { display: flex; gap: 9px; margin-top: 12px; flex-wrap: wrap; }

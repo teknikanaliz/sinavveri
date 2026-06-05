@@ -308,7 +308,7 @@
   };
 })();
 </script>
-<link rel="stylesheet" href="/assets/style.css?v=20260604i">
+<link rel="stylesheet" href="/assets/style.css?v=20260605a">
 <link rel="manifest" href="/manifest.json">
 <script nonce="__NONCE__" src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
 </head>
@@ -356,7 +356,7 @@
 <div class="data-table-wrap">
 <table class="data-table detail-table" data-live="1">
 <thead><tr><th>Üniversite</th><th>Program</th><th>İl</th><th>Tür</th><th>Kont.</th><th>Doluluk</th><th>Taban 2025</th><th>Taban 2024</th><th>Taban 2023</th><th>Sıra 2025</th><th data-nosort title="Karşılaştır">Kıyas</th></tr></thead>
-<tbody><tr data-il="Ankara" data-tur="Vakıf" data-dil="İngilizce" data-uni="TED ÜNİVERSİTESİ (ANKARA)"><td><img class="uni-logo-sm" src="/assets/logos/163892.png" alt="TED ÜNİVERSİTESİ (ANKARA) logosu" width="24" height="24" loading="lazy" decoding="async"><strong>TED ÜNİVERSİTESİ (ANKARA)</strong> <button type="button" class="pdet" title="Program detayı" data-kosul="21,22,23,24,64,267,18" data-kadro="14,2,10,7,1" data-sure="4" data-ucret="920000" data-demo="2023|76|52|66|55|7|0">ℹ️</button></td><td>İktisadi ve İdari Bilimler Programları (İngilizce) (Burslu)</td><td>Ankara</td><td>Vakıf</td><td>19</td><td><span class="tag tag-lgs">%100</span></td><td><strong>409,53</strong></td><td>400,76</td><td>397,60</td><td>20.633</td><td style="text-align:center"><input type="checkbox" class="dcmp" aria-label="Karşılaştır"></td></tr><tr data-il="Ankara" data-tur="Vakıf" data-dil="İngilizce" data-uni="TED ÜNİVERSİTESİ (ANKARA)"><td><img class="uni-logo-sm" src="/assets/logos/163892.png" alt="TED ÜNİVERSİTESİ (ANKARA) logosu" width="24" height="24" loading="lazy" decoding="async"><strong>TED ÜNİVERSİTESİ (ANKARA)</strong> <button type="button" class="pdet" title="Program detayı" data-kosul="21,22,23,24,64,267,18" data-kadro="0,0,0,0,0" data-sure="4" data-ucret="920000" data-demo="2023|76|52|66|55|7|0">ℹ️</button></td><td>İktisadi ve İdari Bilimler Programları (İngilizce) (%50 İndirimli)</td><td>Ankara</td><td>Vakıf</td><td>120</td><td><span class="tag tag-lgs">%100</span></td><td><strong>282,21</strong></td><td>277,85</td><td>279,69</td><td>481.797</td><td style="text-align:center"><input type="checkbox" class="dcmp" aria-label="Karşılaştır"></td></tr></tbody>
+<tbody><tr data-il="Ankara" data-tur="Vakıf" data-dil="İngilizce" data-uni="TED ÜNİVERSİTESİ (ANKARA)"><td><img class="uni-logo-sm" src="/assets/logos/163892.png" alt="TED ÜNİVERSİTESİ (ANKARA) logosu" width="24" height="24" loading="lazy" decoding="async"><strong>TED ÜNİVERSİTESİ (ANKARA)</strong> <button type="button" class="pdet" title="Program detayı" data-kosul="21,22,23,24,64,267,18" data-kadro="14,2,10,7,1" data-sure="4" data-ucret="920000" data-hist="2025:409.528:20633:19;2024:400.765:33608:19;2023:397.6:48936:17;2022:388.1:80187:18" data-demo="2023|76|52|66|55|7|0">ℹ️</button></td><td>İktisadi ve İdari Bilimler Programları (İngilizce) (Burslu)</td><td>Ankara</td><td>Vakıf</td><td>19</td><td><span class="tag tag-lgs">%100</span></td><td><strong>409,53</strong></td><td>400,76</td><td>397,60</td><td>20.633</td><td style="text-align:center"><input type="checkbox" class="dcmp" aria-label="Karşılaştır"></td></tr><tr data-il="Ankara" data-tur="Vakıf" data-dil="İngilizce" data-uni="TED ÜNİVERSİTESİ (ANKARA)"><td><img class="uni-logo-sm" src="/assets/logos/163892.png" alt="TED ÜNİVERSİTESİ (ANKARA) logosu" width="24" height="24" loading="lazy" decoding="async"><strong>TED ÜNİVERSİTESİ (ANKARA)</strong> <button type="button" class="pdet" title="Program detayı" data-kosul="21,22,23,24,64,267,18" data-kadro="0,0,0,0,0" data-sure="4" data-ucret="920000" data-hist="2025:282.213:481797:120;2024:277.851:525617:120;2023:279.685:575106:110;2022:289.012:488500:102" data-demo="2023|76|52|66|55|7|0">ℹ️</button></td><td>İktisadi ve İdari Bilimler Programları (İngilizce) (%50 İndirimli)</td><td>Ankara</td><td>Vakıf</td><td>120</td><td><span class="tag tag-lgs">%100</span></td><td><strong>282,21</strong></td><td>277,85</td><td>279,69</td><td>481.797</td><td style="text-align:center"><input type="checkbox" class="dcmp" aria-label="Karşılaştır"></td></tr></tbody>
 </table>
 </div>
 
@@ -462,6 +462,15 @@
       if(nx&&nx.classList.contains('pdet-row')){ nx.parentNode.removeChild(nx); return; }
       var kadro=(btn.getAttribute('data-kadro')||'').split(',').map(function(x){return parseInt(x,10)||0;});
       var parts=[];
+      var hraw=(btn.getAttribute('data-hist')||'').split(';').filter(Boolean);
+      if(hraw.length){
+        function pf(v){return v===''||v==null?'—':Number(v).toLocaleString('tr-TR',{minimumFractionDigits:2,maximumFractionDigits:2});}
+        function nf2(v){return v===''||v==null?'—':Number(v).toLocaleString('tr-TR');}
+        var hr=hraw.map(function(c){var p=c.split(':');
+          return '<tr><td><b>'+esc(p[0])+'</b></td><td>'+pf(p[1])+'</td><td>'+nf2(p[2])+'</td><td>'+nf2(p[3])+'</td></tr>';}).join('');
+        parts.push('<div><b>Yıllara göre (taban / başarı sırası / yerleşen):</b>'
+          +'<table class="pdet-hist"><thead><tr><th>Yıl</th><th>Taban</th><th>Başarı Sırası</th><th>Yerleşen</th></tr></thead><tbody>'+hr+'</tbody></table></div>');
+      }
       var kp=[]; kadro.forEach(function(v,i){ if(v>0)kp.push(KLAB[i]+': '+v); });
       if(kp.length)parts.push('<div><b>Akademik kadro:</b> '+kp.join(' · ')+'</div>');
       var akr=btn.getAttribute('data-akr'); if(akr)parts.push('<div><b>Akreditasyon:</b> '+esc(akr)+'</div>');
