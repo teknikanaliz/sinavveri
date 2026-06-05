@@ -14,7 +14,7 @@ def html_escape(s):
 
 ROOT = Path(__file__).parent
 SITE = "https://sinavveri.com"
-ASSET_VER = "20260605d"
+ASSET_VER = "20260605e"
 
 # Kişiye Özel KPSS Tercih Raporu — hizmet yapılandırması
 # whatsapp: "905XXXXXXXXX" (boşsa WhatsApp butonu gizlenir) · email: sipariş e-postası
@@ -955,12 +955,12 @@ def uni_kunye_html(u, recs):
         panels.append(("🗺️ Haritada Aç",
                        (f'<div class="uk-adres">📍 {html_escape(adres)} '
                         f'<button type="button" class="uk-copy" data-adres="{html_escape(adres)}">📋 Kopyala</button></div>' if adres else "")
-                       + f'<iframe class="uk-embed" loading="lazy" referrerpolicy="no-referrer-when-downgrade" src="{map_embed}" title="{html_escape(uname)} harita"></iframe>'))
+                       + f'<iframe class="uk-embed" loading="lazy" referrerpolicy="no-referrer-when-downgrade" data-src="{map_embed}" title="{html_escape(uname)} harita"></iframe>'))
     if vd and vd.get("id"):
         panels.append(("🎬 Tanıtım Videosu",
                        f'<div class="uk-vtitle">{html_escape(vd.get("t",""))}{(" · " + html_escape(vd.get("ch",""))) if vd.get("ch") else ""}</div>'
                        f'<iframe class="uk-embed" loading="lazy" allowfullscreen referrerpolicy="strict-origin-when-cross-origin" '
-                       f'src="https://www.youtube-nocookie.com/embed/{html_escape(vd["id"])}" title="{html_escape(uname)} tanıtım videosu"></iframe>'))
+                       f'data-src="https://www.youtube-nocookie.com/embed/{html_escape(vd["id"])}?rel=0" title="{html_escape(uname)} tanıtım videosu"></iframe>'))
     harita = ""
     if panels:
         tabs = "".join(f'<button type="button" class="uk-tab" data-tab="{i}">{lbl}</button>' for i, (lbl, _) in enumerate(panels))
@@ -974,7 +974,6 @@ def uni_kunye_html(u, recs):
   <div class="uk-analiz"><h2>📊 SinavVeri.com Üniversite Analizi</h2><p>{analiz}</p></div>
   {f'<div class="uk-kurumsal"><h3>Kurumsal Bilgiler</h3><dl>{kurumsal}</dl></div>' if kurumsal else ''}
   {harita}
-  {uni_yorum_html(u)}
 </div>"""
 
 
@@ -2860,7 +2859,9 @@ DETAIL_TOOLS_JS = r"""<script nonce="__NONCE__">
     var t=e.target;
     if(t.classList&&t.classList.contains('uk-copy')){var a=t.getAttribute('data-adres')||'';try{navigator.clipboard.writeText(a);var o=t.textContent;t.textContent='✓ Kopyalandı';setTimeout(function(){t.textContent=o;},1500);}catch(e2){}return;}
     if(t.classList&&t.classList.contains('uk-tab')){var i=t.getAttribute('data-tab');var pan=document.querySelector('.uk-pan[data-pan="'+i+'"]');
-      if(pan){if(pan.hasAttribute('hidden')){pan.removeAttribute('hidden');t.classList.add('on');}else{pan.setAttribute('hidden','');t.classList.remove('on');}}return;}
+      if(pan){var ifr=pan.querySelector('iframe');
+        if(pan.hasAttribute('hidden')){pan.removeAttribute('hidden');t.classList.add('on');if(ifr&&!ifr.getAttribute('src'))ifr.setAttribute('src',ifr.getAttribute('data-src')||'');}
+        else{pan.setAttribute('hidden','');t.classList.remove('on');if(ifr)ifr.setAttribute('src','');}}return;}
   });
   var tbl=document.querySelector('table.detail-table'); if(!tbl)return;
   var tb=tbl.querySelector('tbody'); if(!tb)return;
@@ -3144,6 +3145,7 @@ def gen_universite_pages(programs):
 {DETAIL_TOOLS_JS}
 <div class="notice"><b>Kaynak:</b> YÖK Atlas 2025 (geçmiş: 2024). Doluluk = yerleşen ÷ kontenjan. Başarı sırasına göre sıralı.
 <a href="/taban-puanlari.html">Tüm taban puanları</a> · <a href="/tercih-robotu.html">tercih robotu</a> · <a href="/doluluk.html">doluluk analizi</a>.</div>
+{uni_yorum_html(u)}
 """
         og = gen_uni_og(s, u, uni_info(u), recs)
         html = base(f"universite/{s}.html", f"{u} Taban Puanları 2025 — Tüm Bölümler | SınavVeri",

@@ -249,7 +249,7 @@
   };
 })();
 </script>
-<link rel="stylesheet" href="/assets/style.css?v=20260605d">
+<link rel="stylesheet" href="/assets/style.css?v=20260605e">
 <link rel="manifest" href="/manifest.json">
 
 </head>
@@ -316,7 +316,9 @@
     var t=e.target;
     if(t.classList&&t.classList.contains('uk-copy')){var a=t.getAttribute('data-adres')||'';try{navigator.clipboard.writeText(a);var o=t.textContent;t.textContent='✓ Kopyalandı';setTimeout(function(){t.textContent=o;},1500);}catch(e2){}return;}
     if(t.classList&&t.classList.contains('uk-tab')){var i=t.getAttribute('data-tab');var pan=document.querySelector('.uk-pan[data-pan="'+i+'"]');
-      if(pan){if(pan.hasAttribute('hidden')){pan.removeAttribute('hidden');t.classList.add('on');}else{pan.setAttribute('hidden','');t.classList.remove('on');}}return;}
+      if(pan){var ifr=pan.querySelector('iframe');
+        if(pan.hasAttribute('hidden')){pan.removeAttribute('hidden');t.classList.add('on');if(ifr&&!ifr.getAttribute('src'))ifr.setAttribute('src',ifr.getAttribute('data-src')||'');}
+        else{pan.setAttribute('hidden','');t.classList.remove('on');if(ifr)ifr.setAttribute('src','');}}return;}
   });
   var tbl=document.querySelector('table.detail-table'); if(!tbl)return;
   var tb=tbl.querySelector('tbody'); if(!tb)return;
@@ -457,6 +459,15 @@
 </script>
 <div class="notice"><b>Kaynak:</b> YÖK Atlas 2025 (geçmiş: 2024). Doluluk = yerleşen ÷ kontenjan. Başarı sırasına göre sıralı.
 <a href="/taban-puanlari.html">Tüm taban puanları</a> · <a href="/tercih-robotu.html">tercih robotu</a> · <a href="/doluluk.html">doluluk analizi</a>.</div>
+<div class="uk-rev" data-uni="RAUF DENKTAŞ ÜNİVERSİTESİ (KKTC-LEFKOŞA)">
+  <div class="uk-rev-head"><h3>💬 Öğrenci Yorumları & Değerlendirmeleri</h3><span class="uk-soon">Yakında</span></div>
+  <p class="uk-rev-note">RAUF DENKTAŞ ÜNİVERSİTESİ hakkında öğrenci deneyimleri ve puanlamaları <b>çok yakında</b> burada olacak. Kampüs, eğitim kalitesi, sosyal yaşam ve barınma hakkında gerçek öğrenci görüşleri ekleyebileceksiniz.</p>
+  <form class="uk-rev-form" onsubmit="return false" aria-disabled="true">
+    <div class="uk-rev-stars" title="Puanlama yakında aktifleşecek">★★★★★</div>
+    <textarea placeholder="Deneyimini paylaş (yakında açılacak)…" disabled></textarea>
+    <button type="button" class="btn btn-primary" disabled>Gönder</button>
+  </form>
+</div>
 
 </main>
 <footer>
