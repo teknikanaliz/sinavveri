@@ -14,16 +14,16 @@ def html_escape(s):
 
 ROOT = Path(__file__).parent
 SITE = "https://sinavveri.com"
-ASSET_VER = "20260605f"
+ASSET_VER = "20260605g"
 
 # Kişiye Özel KPSS Tercih Raporu — hizmet yapılandırması
 # whatsapp: "905XXXXXXXXX" (boşsa WhatsApp butonu gizlenir) · email: sipariş e-postası
 # stripe: Stripe Payment Link URL (boşsa "sipariş sonrası ödeme linki iletilir" akışı)
 KPSS_RAPOR = {
-    "fiyat": "1.000",
-    "whatsapp": "",
+    "fiyat": "999",
+    "whatsapp": "447576165476",
     "email": "teknikanaliz@gmail.com",
-    "stripe": "https://buy.stripe.com/bJecN6cg85aMcxU6S4ds400",
+    "stripe": "https://buy.stripe.com/9B63cw3JC8mY8hE90cds401",
 }
 
 NAV = [
@@ -2758,11 +2758,11 @@ def page_kpss_robot():
         "kadroya", 4, 1,
         "KPSS puanını girin ve öğrenim düzeyinizi (Lisans/Önlisans/Ortaöğretim) seçin; o puanla atanabileceğin (taban ≤ puanın) kadroları listeler. "
         "İl ve döneme göre de filtreleyebilirsin. KPSS hesaplama için <a href='/kpss-puan-hesaplama.html'>KPSS puan hesaplama</a>."
-        "<div style='margin-top:12px;padding:14px 16px;background:linear-gradient(90deg,#14532d,#0c4a6e);border:1px solid #22c55e;border-radius:10px;color:#f0fdf4;line-height:1.6'>"
-        "<b style='color:#fff'>📄 Tamamen Kişiye Özel KPSS Raporu ister misin?</b> Kendi sınav sonucun üzerinden, senin kişisel özelliklerine ve tercihlerine göre, "
-        "konusunda uzman bir <b style='color:#fff'>KPSS rehberi eşliğinde</b> senin için tercih sırasına dizip taban trendi, doluluk ve şans analiziyle "
-        "<b style='color:#fff'>Kişiye Özel KPSS Tercih Raporu</b>'na dönüştürelim. "
-        "<a href='/kpss-tercih-raporu.html' style='color:#fde047;font-weight:800;text-decoration:underline'>Detaylar ve örnek rapor →</a></div>",
+        "<div style='margin-top:12px;padding:15px 18px;background:linear-gradient(90deg,#14532d,#0c4a6e);border:1px solid #22c55e;border-radius:10px;color:#f0fdf4;line-height:1.65'>"
+        "<p style='margin:0 0 9px'><b style='color:#fff;font-size:15px'>📄 Tamamen Kişiye Özel KPSS Raporu ister misin?</b> Sadece <b style='color:#fde047'>999 TL</b>'ye Uzman KPSS Rehberi + Detaylı Veri Analiziyle Kişiye Özel KPSS Tercih Raporu</p>"
+        "<p style='margin:0 0 9px'>🎯 <b style='color:#fff'>Boşta kalma, doğru kadroya yerleş.</b> Tek bir yanlış tercih sıralaması atamanı kaçırabilir. Kişiye özel taban trendi, doluluk ve şans analiziyle yanlış sıralama riskini en aza indir. <a href='/kpss-tercih-raporu.html' style='color:#fde047;font-weight:800;text-decoration:underline'>Örnek raporu gör →</a></p>"
+        "<p style='margin:0 0 9px'>⏳ Kendi sınav puanın üzerinden, senin kişisel özelliklerine ve önceliklerine göre, konusunda uzman bir KPSS rehberi eşliğinde senin için sıralı, kişiye özel tercih listeni hazırlayalım. <a href='/kpss-tercih-raporu.html' style='color:#fde047;font-weight:800;text-decoration:underline'>Detaylar ve örnek rapor →</a></p>"
+        "<p style='margin:0'>👨‍🏫 Tercihte yalnız kalma. KPSS uzmanı + SınavVeri verisi = sana özel, sıralı, gerekçeli tercih raporu; garanti odaklı strateji. <a href='/kpss-tercih-raporu.html' style='color:#fde047;font-weight:800;text-decoration:underline'>Örnek raporu incele →</a></p></div>",
         "ÖSYM 2025 KPSS resmî yerleştirme verisi (2025/1–2025/5).", "KPSS Puanın", "örn. 85,40")
 
 
