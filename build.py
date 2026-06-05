@@ -14,7 +14,7 @@ def html_escape(s):
 
 ROOT = Path(__file__).parent
 SITE = "https://sinavveri.com"
-ASSET_VER = "20260605j"
+ASSET_VER = "20260605k"
 
 # Kişiye Özel KPSS Tercih Raporu — hizmet yapılandırması
 # whatsapp: "905XXXXXXXXX" (boşsa WhatsApp butonu gizlenir) · email: sipariş e-postası
@@ -3537,32 +3537,108 @@ Detaylı sıralama ve alternatifler birebir görüşmede netleştirilir.</p>
                 body)
 
 
+KPSS_RAPORU_JS = r"""<script nonce="__NONCE__">
+(function(){
+  var qs=new URLSearchParams(location.search); var sid=qs.get('s')||qs.get('session_id');
+  var elc=document.getElementById('rapor');
+  function err(m){ elc.innerHTML='<div class="info-box" style="border-color:#e03131"><b>'+m+'</b></div>'; }
+  function ndz(d){ d=(d||''); if(d.indexOf('Ortaöğretim')>=0||d.indexOf('Lise')>=0)return 'Ortaöğretim'; if(d.indexOf('Önlisans')>=0)return 'Önlisans'; if(d.indexOf('Lisans')>=0)return 'Lisans'; return d; }
+  function num(s){ s=(''+(s||'')).replace(/[^0-9,.]/g,'').replace(/\./g,'').replace(',','.'); var n=parseFloat(s); return isNaN(n)?null:n; }
+  function esc(s){ return (''+(s==null?'':s)).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+  function pf(n){ return n==null?'—':Number(n).toLocaleString('tr-TR',{minimumFractionDigits:2,maximumFractionDigits:2}); }
+  if(!sid){ err('Rapor bağlantısı geçersiz (sipariş kimliği yok).'); return; }
+  elc.innerHTML='<div class="info-box">Raporun hazırlanıyor…</div>';
+  fetch('/api/kpss/status?session_id='+encodeURIComponent(sid)).then(function(r){return r.json();}).then(function(o){
+    if(!o || o.payment_status!=='paid'){ err('Ödeme bulunamadı veya henüz işleniyor. Birkaç dakika sonra tekrar deneyin.'); return; }
+    var md=o.metadata||{};
+    fetch('/veri/kpss.json').then(function(r){return r.json();}).then(function(DATA){ render(md,o,DATA); }).catch(function(){err('Veri yüklenemedi.');});
+  }).catch(function(){ err('Rapor yüklenemedi.'); });
+
+  function render(md,o,DATA){
+    var duzey=ndz(md.duzey), puan=num(md.kpsspuan);
+    if(!puan){ err('KPSS puanı okunamadı; lütfen bizimle iletişime geçin.'); return; }
+    var iller=(md.iller||'').toLocaleLowerCase('tr').split(/[,;]/).map(function(s){return s.trim();}).filter(Boolean);
+    var kw=((md.kurum||'')+' '+(md.brans||'')).toLocaleLowerCase('tr').split(/[\s,;]+/).filter(function(t){return t.length>2;});
+    var rows=DATA.filter(function(r){ return r[3]===duzey && r[8]!=null && r[8]<=puan+1; });
+    var byIl=iller.length?rows.filter(function(r){var il=(r[2]||'').toLocaleLowerCase('tr');return iller.some(function(x){return il.indexOf(x)>=0;});}):rows;
+    if(byIl.length>=3)rows=byIl;
+    if(kw.length){ var byKw=rows.filter(function(r){var h=((r[0]||'')+' '+(r[1]||'')).toLocaleLowerCase('tr');return kw.some(function(t){return h.indexOf(t)>=0;});}); if(byKw.length>=3)rows=byKw; }
+    rows.sort(function(a,b){return (b[8]||0)-(a[8]||0);});
+    var rahat=0,olasi=0,sinir=0;
+    rows.forEach(function(r){var m=puan-r[8]; if(m>=4)rahat++; else if(m>=0)olasi++; else sinir++;});
+    var top=rows.slice(0,60);
+    var tr=top.map(function(r,i){
+      var m=puan-r[8]; var band=m>=4?'<span class="tag tag-lgs">Rahat</span>':(m>=0?'<span class="tag tag-kpss">Olası</span>':'<span class="tag tag-other">Sınırda</span>');
+      return '<tr><td>'+(i+1)+'</td><td><b>'+esc(r[0])+'</b><br><small style="color:var(--fg-faded)">'+esc(r[1])+'</small></td>'
+        +'<td>'+esc(r[2])+'</td><td>'+esc(r[4])+'</td><td style="text-align:right"><b>'+pf(r[8])+'</b></td><td style="text-align:center">'+band+'</td></tr>';
+    }).join('');
+    var ad=esc(md.ad||'Aday');
+    var prof='<div class="uk-card"><div class="uk-analiz" style="border:0;padding:0"><h2 style="margin-top:0">👤 '+ad+' — Aday Profili</h2>'
+      +'<p><b>Öğrenim:</b> '+esc(duzey)+' · <b>KPSS Puanı:</b> '+pf(puan)+(md.puanturu?' ('+esc(md.puanturu)+')':'')
+      +(iller.length?' · <b>Tercih illeri:</b> '+esc(md.iller):'')+(md.brans?' · <b>Alan:</b> '+esc(md.brans):'')+'</p></div></div>';
+    var ozet='<div class="uk-stats" style="margin:16px 0"><div class="uk-stat"><span class="uk-val">'+rows.length.toLocaleString("tr-TR")+'</span><span class="uk-lbl">Uygun Kadro</span></div>'
+      +'<div class="uk-stat"><span class="uk-val" style="color:#2f9e44">'+rahat+'</span><span class="uk-lbl">Rahat</span></div>'
+      +'<div class="uk-stat"><span class="uk-val" style="color:#f59e0b">'+olasi+'</span><span class="uk-lbl">Olası</span></div>'
+      +'<div class="uk-stat"><span class="uk-val" style="color:#e8590c">'+sinir+'</span><span class="uk-lbl">Sınırda</span></div></div>';
+    var tablo= rows.length? ('<h2 style="margin:18px 0 10px">🎯 Sana Önerilen Tercih Sırası <small style="font-weight:400;color:var(--fg-faded)">(en yüksek değerli/güvenli kadrolar üstte · ilk 60)</small></h2>'
+      +'<div class="data-table-wrap"><table class="data-table"><thead><tr><th>#</th><th>Kurum / Kadro</th><th>İl</th><th>Dönem</th><th>Taban</th><th>Şans</th></tr></thead><tbody>'+tr+'</tbody></table></div>')
+      : '<div class="info-box">Bu kriterlerle uygun kadro bulunamadı. Rehberimiz seninle iletişime geçip kriterleri birlikte gözden geçirecek.</div>';
+    var rehber='<div class="uk-card" style="margin-top:18px"><div class="uk-analiz" style="border:0;padding:0"><h2 style="margin-top:0">🧭 Rehber Notu</h2>'
+      +'<p>Bu liste otomatik üretilmiş <b>ön rapordur</b>. Uzman KPSS rehberimiz; puanın, önceliklerin ve güncel kontenjan eğilimlerine göre listeyi <b>tercih sırasına</b> göre optimize edip '
+      +'<b>1-2 iş günü içinde</b> seninle iletişime geçecek (telefon/e-posta) ve birebir görüşme planlayacak.</p>'
+      +'<p style="font-size:11px;color:var(--fg-faded)">Kaynak: ÖSYM 2025 KPSS yerleştirme verisi. Tahmini değerlendirmedir; kesin tercih ÖSYM AİS üzerinden yapılır.</p></div></div>';
+    elc.innerHTML=prof+ozet+tablo+rehber
+      +'<div style="text-align:center;margin:20px 0"><button type="button" class="btn btn-ghost" onclick="window.print()">🖨️ Yazdır / PDF kaydet</button></div>';
+  }
+})();
+</script>"""
+
+
+def page_kpss_raporu():
+    body = ("""
+<div class="crumb"><a href="/index.html">Ana Sayfa</a> / <a href="/kpss-tercih-raporu.html">Kişiye Özel KPSS Tercih Raporu</a> / Raporum</div>
+<div class="page-title"><h1>📄 Kişiye Özel KPSS Tercih Raporun</h1><span class="sub">Ödemene özel hazırlanan ön rapor · veri-temelli</span></div>
+<div id="rapor"></div>
+""" + KPSS_RAPORU_JS)
+    return base("kpss-raporu.html", "Kişiye Özel KPSS Tercih Raporun | SınavVeri",
+                "Ödemenize özel hazırlanan kişiye özel KPSS tercih raporu: sıralı kadro listesi, taban puanı ve şans analizi.",
+                body, extra_head='<meta name="robots" content="noindex,nofollow">')
+
+
 def page_kpss_rapor_tesekkurler():
     wa = KPSS_RAPOR.get("whatsapp", "")
     wa_html = (f' veya <a href="https://wa.me/{wa}" target="_blank" rel="noopener">WhatsApp</a>' if wa else "")
     body = f"""
 <div class="crumb"><a href="/index.html">Ana Sayfa</a> / <a href="/kpss-tercih-raporu.html">Kişiye Özel KPSS Tercih Raporu</a> / Teşekkürler</div>
-<div class="page-title"><h1>✅ Ödemen alındı, teşekkürler!</h1><span class="sub">Kişiye Özel KPSS Tercih Raporu talebin oluşturuldu</span></div>
+<div class="page-title"><h1>✅ Ödemen alındı, teşekkürler!</h1><span class="sub">Kişiye özel ön raporun hazır</span></div>
 <div class="uk-card"><div class="uk-analiz" style="border:0;padding:0">
-<p style="font-size:15px;line-height:1.7">Ödemen başarıyla alındı. Uzman KPSS rehberimiz; puanın, öğrenim düzeyin ve tercihlerine göre
-<b>kişiye özel, sıralı tercih raporunu</b> hazırlamaya başlıyor.</p>
+<p style="font-size:15px;line-height:1.7">Ödemen başarıyla alındı ve <b>kişiye özel ön raporun otomatik hazırlandı.</b> Aşağıdaki butondan hemen görebilirsin.</p>
+<div style="text-align:center;margin:18px 0">
+  <a class="btn btn-primary" id="raporBtn" href="/kpss-tercih-raporu.html" style="font-size:17px;padding:14px 32px">📄 Ön Raporunu Gör</a>
+</div>
 <p style="font-size:15px;line-height:1.7"><b>Sırada ne var?</b></p>
 <ul style="font-size:14px;line-height:1.8;margin:0 0 8px 18px">
-<li>Raporun <b>1-2 iş günü</b> içinde hazırlanır.</li>
-<li>Sana <b>e-posta</b>{wa_html} ile ulaşıp eksik bilgileri (tercih kriterlerin) netleştiririz.</li>
-<li>Görsel PDF raporun + rehber görüşmesi planlanır.</li>
+<li>Uzman KPSS rehberimiz raporunu <b>tercih sırasına göre optimize edip 1-2 iş günü içinde</b> seninle iletişime geçecek.</li>
+<li>Sana <b>e-posta</b>{wa_html} ile ulaşıp birebir <b>rehber görüşmesi</b> planlayacağız.</li>
+<li>Nihai görsel PDF raporun rehber yorumuyla iletilecek.</li>
 </ul>
-<p style="font-size:14px;color:var(--fg-faded)">Henüz başvuru formunu doldurmadıysan, hızlı olması için
-<a href="/kpss-tercih-raporu.html#basvuru">başvuru bilgilerini buradan</a> iletebilirsin.</p>
 </div></div>
 <div style="text-align:center;margin:24px 0">
-  <a class="btn btn-ghost" href="/kpss-tercih-robotu.html">← KPSS Tercih Robotuna dön</a>
-  <a class="btn btn-primary" href="/index.html">Ana Sayfa</a>
+  <a class="btn btn-ghost" href="/kpss-tercih-robotu.html">← KPSS Tercih Robotu</a>
+  <a class="btn btn-ghost" href="/index.html">Ana Sayfa</a>
 </div>
+<script nonce="__NONCE__">
+(function(){{
+  try{{ var s=new URLSearchParams(location.search).get('session_id');
+    var b=document.getElementById('raporBtn');
+    if(s&&b){{ b.href='/kpss-raporu.html?s='+encodeURIComponent(s); }}
+  }}catch(e){{}}
+}})();
+</script>
 """
     return base("kpss-tercih-raporu-tesekkurler.html",
                 "Teşekkürler — Kişiye Özel KPSS Tercih Raporu | SınavVeri",
-                "Ödemeniz alındı. Kişiye Özel KPSS Tercih Raporunuz 1-2 iş günü içinde hazırlanacak.",
+                "Ödemeniz alındı. Kişiye özel ön KPSS tercih raporunuz hazır.",
                 body)
 
 
@@ -5107,7 +5183,8 @@ def main():
     W("kpss-tercih-raporu.html", page_kpss_rapor())
     W("kpss-tercih-raporu-ornek.html", page_kpss_rapor_ornek())
     W("kpss-tercih-raporu-tesekkurler.html", page_kpss_rapor_tesekkurler())
-    print("  → Kişiye Özel KPSS Tercih Raporu (satış + örnek + teşekkür)")
+    W("kpss-raporu.html", page_kpss_raporu())
+    print("  → Kişiye Özel KPSS Tercih Raporu (satış + örnek + teşekkür + rapor)")
 
     # LGS lise taban puanları
     lgs = load_lgs()
