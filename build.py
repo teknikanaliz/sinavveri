@@ -14,7 +14,7 @@ def html_escape(s):
 
 ROOT = Path(__file__).parent
 SITE = "https://sinavveri.com"
-ASSET_VER = "20260605k"
+ASSET_VER = "20260605l"
 
 # Kişiye Özel KPSS Tercih Raporu — hizmet yapılandırması
 # whatsapp: "905XXXXXXXXX" (boşsa WhatsApp butonu gizlenir) · email: sipariş e-postası
@@ -3393,18 +3393,18 @@ def page_kpss_rapor():
 <tr><td><b>Şans bandı</b>: Rahat / Olası / Sınırda (veri-temelli)</td><td style="text-align:center">{yes}</td><td style="text-align:center">{no}</td></tr>
 <tr><td>Kadro kodu + <b>nitelik kodu</b> uyum kontrolü</td><td style="text-align:center">{yes}</td><td style="text-align:center">~</td></tr>
 <tr><td>Görsel PDF rapor + rehber yorumu</td><td style="text-align:center">{yes}</td><td style="text-align:center">{yes}</td></tr>
-<tr><td>Rehber hocayla görüşme</td><td style="text-align:center">{yes}</td><td style="text-align:center">{yes}</td></tr>
+<tr><td>Rehber hocayla hazırlanır</td><td style="text-align:center">{yes}</td><td style="text-align:center">{yes}</td></tr>
 <tr><td>Hizmet bedeli</td><td style="text-align:center"><b>{fiyat} TL</b></td><td style="text-align:center">2.000 TL+</td></tr>
 </tbody></table></div>"""
 
     body = f"""
 <div class="crumb"><a href="/index.html">Ana Sayfa</a> / Kişiye Özel KPSS Tercih Raporu</div>
-<div class="page-title"><h1>Kişiye Özel KPSS Tercih Raporu</h1><span class="sub">Tek tercih dönemi · veri-temelli sıralı liste + rehber görüşmesi · {fiyat} TL</span></div>
+<div class="page-title"><h1>Kişiye Özel KPSS Tercih Raporu</h1><span class="sub">Tek tercih dönemi · veri-temelli sıralı liste · rehber hocayla hazırlanır · {fiyat} TL</span></div>
 
 <div class="info-box" style="font-size:15px;line-height:1.7">
 KPSS puanına ve kriterlerine göre <b>sana özel, sıralı bir atama tercih listesi</b> hazırlıyoruz: hangi kadroya
 hangi sırada yazmalısın, hangileri <b>garanti</b>, hangileri <b>riskli</b>, taban puanları yıllara göre nasıl
-değişmiş — hepsi gerçek YÖK/ÖSYM verisiyle. Üstüne <b>rehber hocayla birebir görüşme</b>.
+değişmiş — hepsi gerçek YÖK/ÖSYM verisiyle. Üstüne <b>rehber hocayla birlikte hazırlanır</b>.
 <a href="/kpss-tercih-raporu-ornek.html"><b>📄 Örnek raporu incele →</b></a>
 </div>
 
@@ -3415,7 +3415,7 @@ değişmiş — hepsi gerçek YÖK/ÖSYM verisiyle. Üstüne <b>rehber hocayla b
   <div class="tool-btn" style="cursor:default"><span class="tb-icon">📊</span><span class="tb-text"><b>Doluluk / yerleşen analizi</b><span>Her kadro her dönem doluyor mu — garanti/risk değerlendirmesi</span></span></div>
   <div class="tool-btn" style="cursor:default"><span class="tb-icon">🟢</span><span class="tb-text"><b>Şans bandı</b><span>Rahat / Olası / Sınırda — veri-temelli olasılık etiketi</span></span></div>
   <div class="tool-btn" style="cursor:default"><span class="tb-icon">🔑</span><span class="tb-text"><b>Nitelik & kadro kodu kontrolü</b><span>Yanlış/uyumsuz tercih riskini sıfırlama</span></span></div>
-  <div class="tool-btn" style="cursor:default"><span class="tb-icon">👨‍🏫</span><span class="tb-text"><b>Rehber görüşmesi + PDF</b><span>Uzman yorumu, görsel PDF rapor, birebir danışma</span></span></div>
+  <div class="tool-btn" style="cursor:default"><span class="tb-icon">👨‍🏫</span><span class="tb-text"><b>Rehber hocayla hazırlanır + PDF</b><span>Uzman yorumu, görsel PDF rapor, rehber eşliğinde hazırlık</span></span></div>
 </div>
 
 <h2 style="margin:28px 0 12px">Neden SınavVeri raporu?</h2>
@@ -3425,7 +3425,7 @@ değişmiş — hepsi gerçek YÖK/ÖSYM verisiyle. Üstüne <b>rehber hocayla b
 <div class="tool-row">
   <div class="tool-btn" style="cursor:default"><span class="tb-icon">1️⃣</span><span class="tb-text"><b>Öde ve bilgilerini gir</b><span>Ödeme ekranında düzey + KPSS puanın + tercihlerini girersin (tek adım)</span></span></div>
   <div class="tool-btn" style="cursor:default"><span class="tb-icon">2️⃣</span><span class="tb-text"><b>Uzman hazırlar</b><span>Ödeme + bilgilerin bize tek kayıtta ulaşır; raporun 1-2 iş gününde hazırlanır</span></span></div>
-  <div class="tool-btn" style="cursor:default"><span class="tb-icon">3️⃣</span><span class="tb-text"><b>Rapor + görüşme</b><span>PDF raporun e-posta ile gelir, rehber hocayla görüşürsün</span></span></div>
+  <div class="tool-btn" style="cursor:default"><span class="tb-icon">3️⃣</span><span class="tb-text"><b>Rapor + rehber</b><span>PDF raporun rehber hoca eşliğinde hazırlanır ve e-posta ile gelir</span></span></div>
 </div>
 
 <h2 style="margin:28px 0 12px" id="basvuru">🚀 Hemen Başla — Bilgilerini Gir, Öde, Rapor Yolda</h2>
@@ -3477,7 +3477,7 @@ Resmî tercih işlemi <a href="https://www.osym.gov.tr" target="_blank" rel="noo
 """
     return base("kpss-tercih-raporu.html",
                 f"Kişiye Özel KPSS Tercih Raporu {fiyat} TL — Veri Temelli Atama Tercih Listesi | SınavVeri",
-                f"KPSS puanına göre kişiye özel, sıralı atama tercih listesi-raporu: taban puanı trendi, doluluk analizi, şans bandı ve rehber görüşmesi. {fiyat} TL.",
+                f"KPSS puanına göre kişiye özel, sıralı atama tercih listesi-raporu: taban puanı trendi, doluluk analizi, şans bandı; rehber hocayla hazırlanır. {fiyat} TL.",
                 body)
 
 
@@ -3523,7 +3523,7 @@ def page_kpss_rapor_ornek():
 bunları üst sıralara yazmak yerleşme şansını riske atabilir, <b>orta sıralarda</b> değerlendirilmesi önerilir.</p>
 <p><b>Strateji:</b> Garanti kadroları (Rahat) listenin <b>sonuna doğru değil</b>, dengeli biçimde yerleştir; yüksek-değer/sınırda kadroları
 üst-orta sıralara koy. Böylece hem yüksek bir kadroyu kovalar hem de boşta kalma riskini düşürürsün.
-Detaylı sıralama ve alternatifler birebir görüşmede netleştirilir.</p>
+Detaylı sıralama ve alternatifler rehber hocayla hazırlık aşamasında netleştirilir.</p>
 </div></div>
 
 <div style="text-align:center;margin:28px 0">
@@ -3585,7 +3585,7 @@ KPSS_RAPORU_JS = r"""<script nonce="__NONCE__">
       : '<div class="info-box">Bu kriterlerle uygun kadro bulunamadı. Rehberimiz seninle iletişime geçip kriterleri birlikte gözden geçirecek.</div>';
     var rehber='<div class="uk-card" style="margin-top:18px"><div class="uk-analiz" style="border:0;padding:0"><h2 style="margin-top:0">🧭 Rehber Notu</h2>'
       +'<p>Bu liste otomatik üretilmiş <b>ön rapordur</b>. Uzman KPSS rehberimiz; puanın, önceliklerin ve güncel kontenjan eğilimlerine göre listeyi <b>tercih sırasına</b> göre optimize edip '
-      +'<b>1-2 iş günü içinde</b> seninle iletişime geçecek (telefon/e-posta) ve birebir görüşme planlayacak.</p>'
+      +'<b>1-2 iş günü içinde</b> seninle iletişime geçecek ve raporunu rehber hocayla birlikte hazırlayacak.</p>'
       +'<p style="font-size:11px;color:var(--fg-faded)">Kaynak: ÖSYM 2025 KPSS yerleştirme verisi. Tahmini değerlendirmedir; kesin tercih ÖSYM AİS üzerinden yapılır.</p></div></div>';
     elc.innerHTML=prof+ozet+tablo+rehber
       +'<div style="text-align:center;margin:20px 0"><button type="button" class="btn btn-ghost" onclick="window.print()">🖨️ Yazdır / PDF kaydet</button></div>';
@@ -3619,7 +3619,7 @@ def page_kpss_rapor_tesekkurler():
 <p style="font-size:15px;line-height:1.7"><b>Sırada ne var?</b></p>
 <ul style="font-size:14px;line-height:1.8;margin:0 0 8px 18px">
 <li>Uzman KPSS rehberimiz raporunu <b>tercih sırasına göre optimize edip 1-2 iş günü içinde</b> seninle iletişime geçecek.</li>
-<li>Sana <b>e-posta</b>{wa_html} ile ulaşıp birebir <b>rehber görüşmesi</b> planlayacağız.</li>
+<li>Sana <b>e-posta</b>{wa_html} ile ulaşıp raporunu <b>rehber hocayla birlikte hazırlayacağız</b>.</li>
 <li>Nihai görsel PDF raporun rehber yorumuyla iletilecek.</li>
 </ul>
 </div></div>
@@ -4099,7 +4099,7 @@ def page_taban_hub():
         ("/universiteler.html", "🏫", "Üniversitelere Göre", "227 üniversite · künye, analiz, logo"),
         ("/sehirler.html", "📍", "Şehirlere Göre", "81 il · ildeki üniversiteler"),
         ("/karsilastir.html", "⚖️", "Karşılaştır", "2-4 programı yan yana kıyasla"),
-        ("/kpss-tercih-raporu.html", "📄", "Kişiye Özel KPSS Tercih Raporu", "Veri-temelli sıralı liste + rehber görüşmesi"),
+        ("/kpss-tercih-raporu.html", "📄", "Kişiye Özel KPSS Tercih Raporu", "Veri-temelli sıralı liste · rehber hocayla hazırlanır"),
         ("/universite-ucretleri.html", "💰", "Vakıf Üniversite Ücretleri", "Yıllık öğrenim ücreti & burs"),
         ("/bolum-ucretleri.html", "🧾", "Bölüm Ücretleri", "Bölüm bazında vakıf ücretleri"),
         ("/doluluk.html", "📊", "Doluluk Analizi", "Kontenjan & doluluk oranları 2025"),
