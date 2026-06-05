@@ -249,7 +249,7 @@
   };
 })();
 </script>
-<link rel="stylesheet" href="/assets/style.css?v=20260605b">
+<link rel="stylesheet" href="/assets/style.css?v=20260605c">
 <link rel="manifest" href="/manifest.json">
 
 </head>
@@ -411,14 +411,7 @@
         parts.push('<div><b>Yıllara göre (taban / başarı sırası / yerleşen):</b>'
           +'<table class="pdet-hist"><thead><tr><th>Yıl</th><th>Taban</th><th>Başarı Sırası</th><th>Yerleşen</th></tr></thead><tbody>'+hr+'</tbody></table></div>');
       }
-      var kp=[]; kadro.forEach(function(v,i){ if(v>0)kp.push(KLAB[i]+': '+v); });
-      if(kp.length)parts.push('<div><b>Akademik kadro:</b> '+kp.join(' · ')+'</div>');
-      var akr=btn.getAttribute('data-akr'); if(akr)parts.push('<div><b>Akreditasyon:</b> '+esc(akr)+'</div>');
-      var sure=btn.getAttribute('data-sure'); if(sure)parts.push('<div><b>Öğrenim süresi:</b> '+esc(sure)+' yıl</div>');
-      var uc=btn.getAttribute('data-ucret'); if(uc)parts.push('<div><b>Ücret:</b> '+nf(uc)+' ₺/yıl</div>');
-      var ks=(btn.getAttribute('data-kosul')||'').split(',').filter(Boolean);
-      if(ks.length&&KOSUL){ var li=ks.map(function(c){return KOSUL[c]?'<li>'+esc(KOSUL[c])+'</li>':'';}).filter(Boolean).join('');
-        if(li)parts.push('<div style="margin-top:6px"><b>Özel koşullar:</b><ul style="margin:4px 0 0 18px">'+li+'</ul></div>'); }
+      // Yerleşen profili (demografi) — yıl tablosunun hemen altında
       var dm=(btn.getAttribute('data-demo')||'').split('|');
       if(dm.length===7){
         var dy=dm[0],kz=+dm[1]||0,er=+dm[2]||0,ls=+dm[3]||0,mz=+dm[4]||0,ub=+dm[5]||0,um=+dm[6]||0;
@@ -438,9 +431,17 @@
               +seg.map(function(s){return '<div style="width:'+Math.round(100*s[1]/ot)+'%;background:'+s[2]+'" title="'+s[0]+': '+s[1]+'"></div>';}).join('')+'</div>'
               +'<div style="font-size:11px;color:var(--fg-faded);margin-top:3px">'+seg.map(function(s){return esc(s[0])+' %'+Math.round(100*s[1]/ot);}).join(' · ')+'</div>');
           }
-          parts.push('<div style="font-size:10px;color:var(--fg-faded);margin-top:4px">Kaynak: YÖK Atlas (yerleşen istatistikleri arşivi)</div></div>');
+          parts.push('<div style="font-size:10px;color:var(--fg-faded);margin-top:4px">Cinsiyet ve öğrenim durumu dağılımını YÖK Atlas en son <b>2023</b> yerleşmeleri için yayınladı; sonraki yıllarda bu istatistik yayından kaldırıldı. Diğer tüm veriler (taban, sıra, kontenjan, yerleşen sayısı, koşullar, kadro, ücret) <b>2025</b>’tir.</div></div>');
         }
       }
+      var kp=[]; kadro.forEach(function(v,i){ if(v>0)kp.push(KLAB[i]+': '+v); });
+      if(kp.length)parts.push('<div><b>Akademik kadro:</b> '+kp.join(' · ')+'</div>');
+      var akr=btn.getAttribute('data-akr'); if(akr)parts.push('<div><b>Akreditasyon:</b> '+esc(akr)+'</div>');
+      var sure=btn.getAttribute('data-sure'); if(sure)parts.push('<div><b>Öğrenim süresi:</b> '+esc(sure)+' yıl</div>');
+      var uc=btn.getAttribute('data-ucret'); if(uc)parts.push('<div><b>Ücret:</b> '+nf(uc)+' ₺/yıl</div>');
+      var ks=(btn.getAttribute('data-kosul')||'').split(',').filter(Boolean);
+      if(ks.length&&KOSUL){ var li=ks.map(function(c){return KOSUL[c]?'<li>'+esc(KOSUL[c])+'</li>':'';}).filter(Boolean).join('');
+        if(li)parts.push('<div style="margin-top:6px"><b>Özel koşullar:</b><ul style="margin:4px 0 0 18px">'+li+'</ul></div>'); }
       if(!parts.length)parts.push('<div style="color:var(--fg-faded)">Ek detay bulunmuyor.</div>');
       var row=document.createElement('tr'); row.className='pdet-row';
       row.innerHTML='<td colspan="'+ncol+'"><div class="pdet-box">'+parts.join('')+'</div></td>';
