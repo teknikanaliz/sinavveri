@@ -14,7 +14,7 @@ def html_escape(s):
 
 ROOT = Path(__file__).parent
 SITE = "https://sinavveri.com"
-ASSET_VER = "20260605e"
+ASSET_VER = "20260605f"
 
 # Kişiye Özel KPSS Tercih Raporu — hizmet yapılandırması
 # whatsapp: "905XXXXXXXXX" (boşsa WhatsApp butonu gizlenir) · email: sipariş e-postası
@@ -23,7 +23,7 @@ KPSS_RAPOR = {
     "fiyat": "1.000",
     "whatsapp": "",
     "email": "teknikanaliz@gmail.com",
-    "stripe": "",
+    "stripe": "https://buy.stripe.com/bJecN6cg85aMcxU6S4ds400",
 }
 
 NAV = [
@@ -2758,10 +2758,11 @@ def page_kpss_robot():
         "kadroya", 4, 1,
         "KPSS puanını girin ve öğrenim düzeyinizi (Lisans/Önlisans/Ortaöğretim) seçin; o puanla atanabileceğin (taban ≤ puanın) kadroları listeler. "
         "İl ve döneme göre de filtreleyebilirsin. KPSS hesaplama için <a href='/kpss-puan-hesaplama.html'>KPSS puan hesaplama</a>."
-        "<div style='margin-top:12px;padding:12px 14px;background:linear-gradient(90deg,#16361f,#1b2a3a);border:1px solid #2f9e44;border-radius:10px'>"
-        "<b>📄 Kişiye özel rapor ister misin?</b> Bu listeyi senin için <b>tercih sırasına dizip</b> taban trendi, doluluk ve şans analiziyle "
-        "<b>Kişiye Özel KPSS Tercih Raporu</b>'na dönüştürelim + rehber görüşmesi. "
-        "<a href='/kpss-tercih-raporu.html'><b>Detaylar ve örnek rapor →</b></a></div>",
+        "<div style='margin-top:12px;padding:14px 16px;background:linear-gradient(90deg,#14532d,#0c4a6e);border:1px solid #22c55e;border-radius:10px;color:#f0fdf4;line-height:1.6'>"
+        "<b style='color:#fff'>📄 Tamamen Kişiye Özel KPSS Raporu ister misin?</b> Kendi sınav sonucun üzerinden, senin kişisel özelliklerine ve tercihlerine göre, "
+        "konusunda uzman bir <b style='color:#fff'>KPSS rehberi eşliğinde</b> senin için tercih sırasına dizip taban trendi, doluluk ve şans analiziyle "
+        "<b style='color:#fff'>Kişiye Özel KPSS Tercih Raporu</b>'na dönüştürelim. "
+        "<a href='/kpss-tercih-raporu.html' style='color:#fde047;font-weight:800;text-decoration:underline'>Detaylar ve örnek rapor →</a></div>",
         "ÖSYM 2025 KPSS resmî yerleştirme verisi (2025/1–2025/5).", "KPSS Puanın", "örn. 85,40")
 
 
