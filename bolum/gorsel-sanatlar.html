@@ -292,7 +292,7 @@
   };
 })();
 </script>
-<link rel="stylesheet" href="/assets/style.css?v=20260605c">
+<link rel="stylesheet" href="/assets/style.css?v=20260605d">
 <link rel="manifest" href="/manifest.json">
 <script nonce="__NONCE__" src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
 </head>
@@ -355,8 +355,13 @@
 <script nonce="__NONCE__">
 (function(){
   var SV=window.SV||{};
-  var _cp=document.querySelector('.uk-copy');
-  if(_cp)_cp.addEventListener('click',function(){var a=_cp.getAttribute('data-adres')||'';try{navigator.clipboard.writeText(a);_cp.textContent='✓ Kopyalandı';setTimeout(function(){_cp.textContent='📋 Adresi Kopyala';},1500);}catch(e){}});
+  // Künye: harita/video tab toggle (tıkla aç-kapa) + adres kopyala (delegasyon)
+  document.addEventListener('click',function(e){
+    var t=e.target;
+    if(t.classList&&t.classList.contains('uk-copy')){var a=t.getAttribute('data-adres')||'';try{navigator.clipboard.writeText(a);var o=t.textContent;t.textContent='✓ Kopyalandı';setTimeout(function(){t.textContent=o;},1500);}catch(e2){}return;}
+    if(t.classList&&t.classList.contains('uk-tab')){var i=t.getAttribute('data-tab');var pan=document.querySelector('.uk-pan[data-pan="'+i+'"]');
+      if(pan){if(pan.hasAttribute('hidden')){pan.removeAttribute('hidden');t.classList.add('on');}else{pan.setAttribute('hidden','');t.classList.remove('on');}}return;}
+  });
   var tbl=document.querySelector('table.detail-table'); if(!tbl)return;
   var tb=tbl.querySelector('tbody'); if(!tb)return;
   var rows=Array.prototype.slice.call(tb.querySelectorAll(':scope>tr')).filter(function(r){return !r.classList.contains('pdet-row');});

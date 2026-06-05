@@ -14,7 +14,7 @@ def html_escape(s):
 
 ROOT = Path(__file__).parent
 SITE = "https://sinavveri.com"
-ASSET_VER = "20260605c"
+ASSET_VER = "20260605d"
 
 # Kişiye Özel KPSS Tercih Raporu — hizmet yapılandırması
 # whatsapp: "905XXXXXXXXX" (boşsa WhatsApp butonu gizlenir) · email: sipariş e-postası
@@ -644,6 +644,30 @@ _demo_p = ROOT / "data" / "demografi.json"
 DEMOGRAFI = json.loads(_demo_p.read_text(encoding="utf-8")) if _demo_p.exists() else {}
 _univ_p = ROOT / "data" / "universiteler.json"
 UNIV = json.loads(_univ_p.read_text(encoding="utf-8")) if _univ_p.exists() else {}
+_vid_p = ROOT / "data" / "uni_videos.json"
+UNI_VIDEOS = json.loads(_vid_p.read_text(encoding="utf-8")) if _vid_p.exists() else {}
+
+
+def tr_phone(raw):
+    """Ham telefonu (ör. 2223350581) Türkçe biçime + tıklanır tel: linkine çevirir."""
+    d = re.sub(r"\D", "", raw or "")
+    if d.startswith("90") and len(d) == 12:
+        d = d[2:]
+    if len(d) == 11 and d.startswith("0"):
+        d = d[1:]
+    if len(d) != 10:
+        return None
+    return {"display": f"0{d[0:3]} {d[3:6]} {d[6:8]} {d[8:10]}", "tel": f"+90{d}"}
+
+
+def uni_video(u):
+    """Üniversitenin seçili tanıtım video kaydı (id/başlık) veya None."""
+    info = uni_info(u)
+    uid = info.get("id")
+    if uid and str(uid) in UNI_VIDEOS:
+        return UNI_VIDEOS[str(uid)]
+    nk = "n_" + _uni_norm(u).replace(" ", "-")
+    return UNI_VIDEOS.get(nk)
 
 
 def _uni_norm(s):
@@ -895,42 +919,53 @@ def uni_kunye_html(u, recs):
         f'<div class="uk-stat"><span class="uk-ico">{i}</span><span class="uk-val">{html_escape(v)}</span><span class="uk-lbl">{html_escape(l)}</span></div>'
         for i, l, v in stats)
 
-    # Kurumsal bilgiler satırları
+    # Kurumsal bilgiler satırları (öğrenci kırılımı tam-genişlik, yan yana)
     rows = []
     if info.get("website"):
         w = info["website"].replace("http://", "").replace("https://", "").rstrip("/")
-        rows.append(("Web", f'<a href="{html_escape(info["website"])}" target="_blank" rel="noopener nofollow">{html_escape(w)}</a>'))
+        rows.append(("Web", f'<a href="{html_escape(info["website"])}" target="_blank" rel="noopener nofollow">{html_escape(w)}</a>', False))
     if info.get("rektor"):
-        rows.append(("Rektör", html_escape(info["rektor"])))
-    if info.get("telefon"):
-        rows.append(("Telefon", html_escape(info["telefon"])))
+        rows.append(("Rektör", html_escape(info["rektor"]), False))
+    ph = tr_phone(info.get("telefon"))
+    if ph:
+        rows.append(("Telefon", f'<a href="tel:{ph["tel"]}">{ph["display"]}</a>', False))
+    elif info.get("telefon"):
+        rows.append(("Telefon", html_escape(info["telefon"]), False))
     if info.get("bolge"):
-        rows.append(("Bölge", html_escape(info["bolge"])))
+        rows.append(("Bölge", html_escape(info["bolge"]), False))
     if info.get("lisans") or info.get("onlisans"):
         det = []
         for lbl, k in [("Lisans", "lisans"), ("Önlisans", "onlisans"), ("Yüksek lisans", "yukseklisans"), ("Doktora", "doktora")]:
             if info.get(k):
                 det.append(f"{lbl}: {nf_tr(info[k])}")
         if det:
-            rows.append(("Öğrenci kırılımı", html_escape(" · ".join(det))))
-    kurumsal = "".join(f'<div class="uk-row"><dt>{l}</dt><dd>{v}</dd></div>' for l, v in rows)
+            rows.append(("Öğrenci kırılımı", html_escape(" · ".join(det)), True))
+    kurumsal = "".join(
+        f'<div class="uk-row{" uk-row-full" if full else ""}"><dt>{l}</dt><dd>{v}</dd></div>'
+        for l, v, full in rows)
 
-    # Harita + adres
+    # Harita + Tanıtım Videosu — tab/akordeon (tıkla aç-kapa, içerik hemen altında)
     adres = info.get("adres") or ""
     uname = u.split(" (")[0]
-    vid = "https://www.youtube.com/results?search_query=" + html_escape((uname + " tanıtım filmi").replace(" ", "+"))
+    vd = uni_video(u)
+    map_q = html_escape(((uname + " " + (il or "")).strip()).replace(" ", "+")) if (adres or il) else ""
+    panels = []   # (buton, panel-içerik)
+    if map_q:
+        map_embed = f'https://www.google.com/maps?q={map_q}&output=embed&hl=tr'
+        panels.append(("🗺️ Haritada Aç",
+                       (f'<div class="uk-adres">📍 {html_escape(adres)} '
+                        f'<button type="button" class="uk-copy" data-adres="{html_escape(adres)}">📋 Kopyala</button></div>' if adres else "")
+                       + f'<iframe class="uk-embed" loading="lazy" referrerpolicy="no-referrer-when-downgrade" src="{map_embed}" title="{html_escape(uname)} harita"></iframe>'))
+    if vd and vd.get("id"):
+        panels.append(("🎬 Tanıtım Videosu",
+                       f'<div class="uk-vtitle">{html_escape(vd.get("t",""))}{(" · " + html_escape(vd.get("ch",""))) if vd.get("ch") else ""}</div>'
+                       f'<iframe class="uk-embed" loading="lazy" allowfullscreen referrerpolicy="strict-origin-when-cross-origin" '
+                       f'src="https://www.youtube-nocookie.com/embed/{html_escape(vd["id"])}" title="{html_escape(uname)} tanıtım videosu"></iframe>'))
     harita = ""
-    if adres or il:
-        q = (uname + " " + (il or "")).strip()
-        maps = "https://www.google.com/maps/search/?api=1&query=" + html_escape(q.replace(" ", "+"))
-        harita = (f'<div class="uk-map">'
-                  + (f'<div class="uk-adres">📍 {html_escape(adres)}</div>' if adres else "")
-                  + f'<a class="btn btn-ghost" href="{maps}" target="_blank" rel="noopener nofollow">🗺️ Haritada Aç</a>'
-                  + f'<a class="btn btn-ghost" href="{vid}" target="_blank" rel="noopener nofollow">🎬 Tanıtım Videosu</a>'
-                  + (f'<button type="button" class="btn btn-ghost uk-copy" data-adres="{html_escape(adres)}">📋 Adresi Kopyala</button>' if adres else "")
-                  + "</div>")
-    else:
-        harita = (f'<div class="uk-map"><a class="btn btn-ghost" href="{vid}" target="_blank" rel="noopener nofollow">🎬 Tanıtım Videosu</a></div>')
+    if panels:
+        tabs = "".join(f'<button type="button" class="uk-tab" data-tab="{i}">{lbl}</button>' for i, (lbl, _) in enumerate(panels))
+        pans = "".join(f'<div class="uk-pan" data-pan="{i}" hidden>{c}</div>' for i, (_, c) in enumerate(panels))
+        harita = f'<div class="uk-tabs">{tabs}</div>{pans}'
 
     analiz = uni_analiz(u, info, recs)
     return f"""
@@ -2820,8 +2855,13 @@ DETAIL_CMP = """
 DETAIL_TOOLS_JS = r"""<script nonce="__NONCE__">
 (function(){
   var SV=window.SV||{};
-  var _cp=document.querySelector('.uk-copy');
-  if(_cp)_cp.addEventListener('click',function(){var a=_cp.getAttribute('data-adres')||'';try{navigator.clipboard.writeText(a);_cp.textContent='✓ Kopyalandı';setTimeout(function(){_cp.textContent='📋 Adresi Kopyala';},1500);}catch(e){}});
+  // Künye: harita/video tab toggle (tıkla aç-kapa) + adres kopyala (delegasyon)
+  document.addEventListener('click',function(e){
+    var t=e.target;
+    if(t.classList&&t.classList.contains('uk-copy')){var a=t.getAttribute('data-adres')||'';try{navigator.clipboard.writeText(a);var o=t.textContent;t.textContent='✓ Kopyalandı';setTimeout(function(){t.textContent=o;},1500);}catch(e2){}return;}
+    if(t.classList&&t.classList.contains('uk-tab')){var i=t.getAttribute('data-tab');var pan=document.querySelector('.uk-pan[data-pan="'+i+'"]');
+      if(pan){if(pan.hasAttribute('hidden')){pan.removeAttribute('hidden');t.classList.add('on');}else{pan.setAttribute('hidden','');t.classList.remove('on');}}return;}
+  });
   var tbl=document.querySelector('table.detail-table'); if(!tbl)return;
   var tb=tbl.querySelector('tbody'); if(!tb)return;
   var rows=Array.prototype.slice.call(tb.querySelectorAll(':scope>tr')).filter(function(r){return !r.classList.contains('pdet-row');});
