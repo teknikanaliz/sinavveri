@@ -14,7 +14,7 @@ def html_escape(s):
 
 ROOT = Path(__file__).parent
 SITE = "https://sinavveri.com"
-ASSET_VER = "20260605i"
+ASSET_VER = "20260605j"
 
 # Kişiye Özel KPSS Tercih Raporu — hizmet yapılandırması
 # whatsapp: "905XXXXXXXXX" (boşsa WhatsApp butonu gizlenir) · email: sipariş e-postası
@@ -23,7 +23,10 @@ KPSS_RAPOR = {
     "fiyat": "999",
     "whatsapp": "447576165476",
     "email": "teknikanaliz@gmail.com",
-    "stripe": "https://buy.stripe.com/9B63cw3JC8mY8hE90cds401",
+    # Embedded Checkout (sayfa-içi): backend /api/kpss/checkout + Stripe.js publishable key
+    "pk": "pk_test_51TZZptL9vmvDCXaiOwYrKSYgozRiuRQjmdSmhbEdTt4TERmGQXi1VukxwSo7xhtVaTm7sTdw8Am6cGBRgbj4euoX00bzN1CDtc",
+    "api": "/api/kpss/checkout",
+    "stripe": "",  # eski Payment Link (embedded'a geçildi; boş = link butonu yok)
 }
 
 NAV = [
@@ -3327,35 +3330,44 @@ def page_karsilastir():
 
 
 # ───────────────────────── KİŞİYE ÖZEL KPSS TERCİH RAPORU (HİZMET) ─────────────────────────
-KPSS_RAPOR_FORM_JS = r"""<script nonce="__NONCE__">
+KPSS_RAPOR_FORM_JS = r"""<script src="https://js.stripe.com/v3/" nonce="__NONCE__"></script>
+<script nonce="__NONCE__">
 (function(){
-  var SV=window.SV||{};
-  var WA="__WA__", EMAIL="__EMAIL__";
+  var WA="__WA__", EMAIL="__EMAIL__", PK="__PK__", API="__API__";
   function v(id){var e=document.getElementById(id);return e?e.value.trim():'';}
-  function build(){
-    var L=[];
-    L.push('— SINAVVERİ · KPSS RAPORU SORU/ÖN GÖRÜŞME —');
-    L.push('Ad Soyad: '+v('kr_ad'));
-    L.push('Telefon: '+v('kr_tel'));
-    L.push('Mesaj: '+v('kr_not'));
-    return L.join('\n');
-  }
+  function st(m,err){var s=document.getElementById('kr_status');if(s){s.textContent=m||'';s.style.color=err?'#e03131':'var(--accent)';}}
+  // Sipariş + Embedded Checkout
+  function order(){return {ad:v('kr_ad'),tel:v('kr_tel'),eposta:v('kr_eposta'),duzey:v('kr_duzey'),
+    pt:v('kr_pt'),puan:v('kr_puan'),il:v('kr_il'),kurum:v('kr_kurum'),brans:v('kr_brans'),not:v('kr_not')};}
   function valid(){
-    if(!v('kr_not')&&!v('kr_ad')){ var e=document.getElementById('kr_not'); if(e){e.focus();}
-      document.getElementById('kr_status').textContent='Lütfen sorunu/mesajını yaz.'; return false; }
-    document.getElementById('kr_status').textContent='';
-    return true;
+    var req=[['kr_ad','Ad Soyad'],['kr_tel','Telefon'],['kr_duzey','Öğrenim düzeyi'],['kr_puan','KPSS puanı']];
+    for(var i=0;i<req.length;i++){ if(!v(req[i][0])){ var e=document.getElementById(req[i][0]); if(e)e.focus();
+      st('Lütfen '+req[i][1]+' alanını doldurun.',true); return false; } }
+    st(''); return true;
   }
-  var wb=document.getElementById('kr_wa');
-  if(wb){ if(WA){ wb.addEventListener('click',function(){ if(!valid())return;
-      window.open('https://wa.me/'+WA+'?text='+encodeURIComponent(build()),'_blank'); }); }
-    else { wb.style.display='none'; } }
-  var eb=document.getElementById('kr_email');
-  if(eb){ eb.addEventListener('click',function(){ if(!valid())return;
-      var s='Kişiye Özel KPSS Tercih Raporu Talebi';
-      window.location.href='mailto:'+EMAIL+'?subject='+encodeURIComponent(s)+'&body='+encodeURIComponent(build()); }); }
-  var cb=document.getElementById('kr_copy');
-  if(cb){ cb.addEventListener('click',function(){ if(!valid())return; SV.copy(build(),cb); }); }
+  var btn=document.getElementById('kr_pay');
+  if(btn){ btn.addEventListener('click',function(){
+    if(!valid())return;
+    if(typeof Stripe==='undefined'){ st('Ödeme altyapısı yüklenemedi; sayfayı yenileyin.',true); return; }
+    btn.disabled=true; st('Güvenli ödeme hazırlanıyor…');
+    fetch(API,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(order())})
+      .then(function(r){return r.json();})
+      .then(function(d){
+        if(!d.clientSecret)throw new Error('no secret');
+        document.getElementById('kr_formwrap').style.display='none';
+        document.getElementById('kr_checkout').style.display='block';
+        st('');
+        return Stripe(PK).initEmbeddedCheckout({clientSecret:d.clientSecret})
+          .then(function(c){ c.mount('#kr_checkout'); });
+      })
+      .catch(function(){ st('Ödeme başlatılamadı, lütfen tekrar deneyin.',true); btn.disabled=false; });
+  }); }
+  // Soru / ön görüşme (WhatsApp / e-posta)
+  function qmsg(){return '— SINAVVERİ KPSS RAPORU — SORU\nAd: '+v('q_ad')+'\nTel: '+v('q_tel')+'\nMesaj: '+v('q_not');}
+  var qw=document.getElementById('q_wa');
+  if(qw){ if(WA){ qw.addEventListener('click',function(){ window.open('https://wa.me/'+WA+'?text='+encodeURIComponent(qmsg()),'_blank'); }); } else qw.style.display='none'; }
+  var qe=document.getElementById('q_email');
+  if(qe){ qe.addEventListener('click',function(){ window.location.href='mailto:'+EMAIL+'?subject='+encodeURIComponent('KPSS Raporu — Soru')+'&body='+encodeURIComponent(qmsg()); }); }
 })();
 </script>"""
 
@@ -3364,20 +3376,10 @@ def page_kpss_rapor():
     wa = KPSS_RAPOR.get("whatsapp", "")
     email = KPSS_RAPOR.get("email", "")
     fiyat = KPSS_RAPOR.get("fiyat", "1.000")
-    stripe = KPSS_RAPOR.get("stripe", "")
-    js = (KPSS_RAPOR_FORM_JS.replace("__WA__", wa).replace("__EMAIL__", email))
-
-    # Ödeme bölümü: Stripe linki varsa "Öde" butonu, yoksa sipariş-sonrası ödeme akışı
-    if stripe:
-        odeme = (f'<a class="btn btn-primary" href="{stripe}" rel="noopener" style="font-size:17px;padding:14px 30px">'
-                 f'💳 Öde ve Raporu Başlat — {fiyat} TL</a>'
-                 '<p style="font-size:13px;color:var(--fg);margin-top:12px;line-height:1.6">Ödeme ekranında <b>öğrenim düzeyin, KPSS puanın ve tercihlerini</b> de gireceksin — '
-                 'ödemen ve bilgilerin <b>birlikte tek kayıtta</b> bize ulaşır, ayrıca form doldurman gerekmez. '
-                 'Güvenli ödeme Stripe altyapısıyla (kredi/banka kartı); sonrasında otomatik siteye dönersin.</p>')
-    else:
-        odeme = ('<p style="font-size:14px;color:var(--fg);line-height:1.6">Talebinizi gönderdikten sonra '
-                 'size <b>güvenli ödeme bağlantısı</b> (kredi/banka kartı) iletilir. Ödeme onaylanınca raporunuz '
-                 '<b>1-2 iş günü</b> içinde hazırlanıp e-posta ile gönderilir ve rehber görüşmesi planlanır.</p>')
+    pk = KPSS_RAPOR.get("pk", "")
+    api = KPSS_RAPOR.get("api", "/api/kpss/checkout")
+    js = (KPSS_RAPOR_FORM_JS.replace("__WA__", wa).replace("__EMAIL__", email)
+          .replace("__PK__", pk).replace("__API__", api))
 
     yes = '<span style="color:#2f9e44;font-weight:800">✓</span>'
     no = '<span style="color:#e03131">✕</span>'
@@ -3426,22 +3428,45 @@ değişmiş — hepsi gerçek YÖK/ÖSYM verisiyle. Üstüne <b>rehber hocayla b
   <div class="tool-btn" style="cursor:default"><span class="tb-icon">3️⃣</span><span class="tb-text"><b>Rapor + görüşme</b><span>PDF raporun e-posta ile gelir, rehber hocayla görüşürsün</span></span></div>
 </div>
 
-<h2 style="margin:28px 0 12px" id="basvuru">🚀 Hemen Başla</h2>
-<div class="calc-card" style="text-align:center;padding:24px">{odeme}</div>
+<h2 style="margin:28px 0 12px" id="basvuru">🚀 Hemen Başla — Bilgilerini Gir, Öde, Rapor Yolda</h2>
+<div class="calc-card">
+  <div id="kr_formwrap">
+    <p style="font-size:13px;color:var(--fg-faded);margin:0 0 14px">Bilgilerini gir; ödeme bu sayfada güvenle alınır. Bilgilerin ve ödemen <b>tek kayıtta</b> bize ulaşır — başka form doldurman gerekmez.</p>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:12px">
+      <div><label class="kr-l">Ad Soyad *</label><input id="kr_ad" type="text" class="kr-i" placeholder="Adınız Soyadınız"></div>
+      <div><label class="kr-l">Telefon *</label><input id="kr_tel" type="tel" class="kr-i" placeholder="05XX XXX XX XX"></div>
+      <div><label class="kr-l">E-posta</label><input id="kr_eposta" type="email" class="kr-i" placeholder="ornek@eposta.com"></div>
+      <div><label class="kr-l">Öğrenim Düzeyi *</label>
+        <select id="kr_duzey" class="kr-i"><option value="">Seçiniz</option><option>Ortaöğretim (Lise)</option><option>Önlisans</option><option>Lisans</option></select></div>
+      <div><label class="kr-l">KPSS Puan Türü</label><input id="kr_pt" type="text" class="kr-i" placeholder="örn. P3, P93, P94"></div>
+      <div><label class="kr-l">KPSS Puanı *</label><input id="kr_puan" type="text" inputmode="decimal" class="kr-i" placeholder="örn. 78,540"></div>
+      <div><label class="kr-l">Tercih Edilen İller</label><input id="kr_il" type="text" class="kr-i" placeholder="örn. Ankara, İstanbul"></div>
+      <div><label class="kr-l">Kurum / Kadro Tercihleri</label><input id="kr_kurum" type="text" class="kr-i" placeholder="örn. belediye, üniversite, bakanlık"></div>
+      <div><label class="kr-l">Branş / Alan / Bölüm</label><input id="kr_brans" type="text" class="kr-i" placeholder="örn. Büro Personeli, Mühendis, VHKİ"></div>
+    </div>
+    <div style="margin-top:12px"><label class="kr-l">Eklemek istedikleriniz</label>
+      <textarea id="kr_not" class="kr-i" style="min-height:56px;resize:vertical" placeholder="Önceliklerin, özel durumun…"></textarea></div>
+    <div id="kr_status" style="margin-top:10px;font-size:13px;font-weight:700"></div>
+    <div style="margin-top:14px">
+      <button type="button" class="btn btn-primary" id="kr_pay" style="font-size:17px;padding:14px 30px">💳 Öde ve Raporu Oluştur — {fiyat} TL</button>
+      <p style="font-size:12px;color:var(--fg-faded);margin-top:10px">🔒 Ödeme bu sayfada Stripe güvencesiyle alınır (kredi/banka kartı). Bilgilerin yalnızca raporun için kullanılır.</p>
+    </div>
+  </div>
+  <div id="kr_checkout" style="display:none;min-height:320px"></div>
+</div>
 
 <div class="calc-card" style="margin-top:16px">
   <b style="font-size:15px">💬 Önce sormak ister misin?</b>
-  <p style="font-size:13px;color:var(--fg-faded);margin:6px 0 12px">Ödeme öncesi aklına takılanı sor; ön görüşme yapalım. (Sipariş ve ödeme tek adımda yukarıdaki butonla alınır — bu bölüm yalnızca soruların için.)</p>
+  <p style="font-size:13px;color:var(--fg-faded);margin:6px 0 12px">Ödeme öncesi aklına takılanı sor; ön görüşme yapalım.</p>
   <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px">
-    <div><label class="kr-l">Ad Soyad</label><input id="kr_ad" type="text" class="kr-i" placeholder="Adınız"></div>
-    <div><label class="kr-l">Telefon</label><input id="kr_tel" type="tel" class="kr-i" placeholder="05XX XXX XX XX"></div>
+    <div><label class="kr-l">Ad Soyad</label><input id="q_ad" type="text" class="kr-i" placeholder="Adınız"></div>
+    <div><label class="kr-l">Telefon</label><input id="q_tel" type="tel" class="kr-i" placeholder="05XX XXX XX XX"></div>
   </div>
   <div style="margin-top:12px"><label class="kr-l">Sorun / mesajın</label>
-    <textarea id="kr_not" class="kr-i" style="min-height:60px;resize:vertical" placeholder="Sormak istediğin…"></textarea></div>
-  <div id="kr_status" style="margin-top:10px;font-size:13px;color:#e03131;font-weight:700"></div>
+    <textarea id="q_not" class="kr-i" style="min-height:56px;resize:vertical" placeholder="Sormak istediğin…"></textarea></div>
   <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:12px">
-    <button type="button" class="btn btn-primary" id="kr_wa" style="background:#25d366;border-color:#25d366">📲 WhatsApp'tan Sor</button>
-    <button type="button" class="btn btn-primary" id="kr_email">✉️ E-posta ile Sor</button>
+    <button type="button" class="btn btn-primary" id="q_wa" style="background:#25d366;border-color:#25d366">📲 WhatsApp'tan Sor</button>
+    <button type="button" class="btn btn-ghost" id="q_email">✉️ E-posta ile Sor</button>
   </div>
 </div>
 
