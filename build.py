@@ -4552,11 +4552,9 @@ def hub_links_html(exam, hub_links):
     EX = _HUB_CFG[exam][2]
     kwp = _HUB_CFG[exam][6]
     sub = _HUB_CFG[exam][1]
-    CAP = 200
-    shown = links[:CAP]
     items = " · ".join(f'<a href="/{sub}/{s}.html">{g}</a> <span style="color:var(--fg-faded)">({n})</span>'
-                       for s, g, n in shown)
-    extra = "" if len(links) <= CAP else f' <span style="color:var(--fg-faded)">… ve {len(links)-CAP} kategori daha (yukarıdaki aramayı kullanın).</span>'
+                       for s, g, n in links)
+    extra = ""
     return (f'<div class="info-box" style="margin-top:14px"><b>{EX} {kwp}na göre göz atın ({len(links)}):</b> '
             f'<div style="margin-top:8px;line-height:2;font-size:13px">{items}{extra}</div></div>')
 
