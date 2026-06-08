@@ -1,13 +1,13 @@
 {
-  "kaynak": "MEB LGS merkezi yerleştirme (resmî; 2022 meb.gov.tr + 2024 eba.gov.tr ile birebir doğrulandı)",
   "yil": 2025,
+  "kaynak": "MEB LGS merkezi yerleştirme (resmî; 2022 meb.gov.tr + 2024 eba.gov.tr ile birebir doğrulandı)",
   "yillar": [
     2025,
     2024,
     2023,
     2022
   ],
-  "tp24_kapsam": 2931,
+  "il_sayisi": 81,
   "toplam_okul": 3062,
-  "il_sayisi": 81
+  "tp24_kapsam": 2931
 }
