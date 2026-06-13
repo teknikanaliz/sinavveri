@@ -41,6 +41,11 @@ jobs:
               [ -f "$SITE/shared/$f" ] && ln -sf "../../shared/$f" "./$f"
             done
 
+            # 2.5 Uretilen buyuk dizinler -> shared symlink (release sismesini onler; HastaneVeri deseni)
+            for d in bolum universite; do
+              [ -d "$SITE/shared/$d" ] && { rm -rf "./$d"; ln -sfn "$SITE/shared/$d" "./$d"; }
+            done
+
             # 3. TrVeri ortak _shared
             ln -sfn /var/www/_shared ./_shared
 

@@ -37,3 +37,7 @@ data/_demografi_kaynak.csv
 data/_universiteler_kaynak.csv
 data/_uni_idmap.json
 _backend-sinavveri-pay/
+
+# Uretilen sayfalar -> shared/ symlink (kanonik, HastaneVeri deseni)
+bolum/
+universite/
