@@ -79,7 +79,7 @@ jobs:
             fi
 
             # 8. Eski release temizliği (son 5 release tut)
-            cd "$SITE/releases" && ls -t | tail -n +6 | xargs -r rm -rf
+            cd "$SITE/releases" && ls -t | tail -n +4 | xargs -r rm -rf
 
             # 9. Deploy log
             mkdir -p "$SITE/shared/log"
@@ -149,7 +149,7 @@ jobs:
               exit 1
             fi
 
-            cd "$SITE/releases" && ls -t | tail -n +6 | xargs -r rm -rf
+            cd "$SITE/releases" && ls -t | tail -n +4 | xargs -r rm -rf
             mkdir -p "$SITE/shared/log"
             echo "$(date -u +%FT%TZ): Deployed (retry) ${TIMESTAMP}_${SHA} (run #${{ github.run_number }})" >> "$SITE/shared/log/deploys.log"
 
