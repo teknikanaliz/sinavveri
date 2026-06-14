@@ -1,0 +1,6 @@
+# TEK DOĞRULUK KAYNAĞI — üretilen/shared dizinler (TrVeri kanonik standart)
+# Bu dizinler: shared/'dan symlink'lenir + gitignore'ludur + git-auto-push ASLA commit etmez.
+# Değiştirince scripts/sync-shared-dirs.sh çalıştır → .gitignore otomatik hizalanır.
+# Detay: DEPLOY-STANDARD.md "Shared-Dirs Standardı".
+bolum
+universite

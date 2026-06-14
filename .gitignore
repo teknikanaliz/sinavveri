@@ -41,3 +41,7 @@ _backend-sinavveri-pay/
 # Uretilen sayfalar -> shared/ symlink (kanonik, HastaneVeri deseni)
 bolum/
 universite/
+# >>> shared-dirs (auto: sync-shared-dirs.sh — elle düzenleme) >>>
+bolum/
+universite/
+# <<< shared-dirs <<<
