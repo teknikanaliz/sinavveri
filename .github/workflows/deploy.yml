@@ -128,6 +128,14 @@ jobs:
             for f in e77c22b97eb527506d152246be339059.txt; do
               [ -f "$SITE/shared/$f" ] && ln -sf "../../shared/$f" "./$f"
             done
+            # shared dizinler — .shared-dirs tek kaynagi (self-seeding: yoksa clone'dan tohumla)
+            if [ -f .shared-dirs ]; then
+              while IFS= read -r _l; do _d="${_l%%#*}"; _d="${_d// /}"; [ -z "$_d" ] && continue
+                mkdir -p "$SITE/shared/$_d"
+                [ -d "./$_d" ] && cp -rn "./$_d/." "$SITE/shared/$_d/" 2>/dev/null || true
+                rm -rf "./$_d"; ln -sfn "$SITE/shared/$_d" "./$_d"
+              done < .shared-dirs
+            fi
             ln -sfn /var/www/_shared ./_shared
 
             if [ -x scripts/post-deploy.sh ]; then
