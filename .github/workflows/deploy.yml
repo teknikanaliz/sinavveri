@@ -1,178 +1,133 @@
 name: Deploy SinavVeri (Capistrano)
-
 on:
   push:
     branches: [main]
   workflow_dispatch:
-
 jobs:
   deploy:
     runs-on: ubuntu-latest
     steps:
-      - name: Deploy to TR Server (Capistrano-style atomic release) — attempt 1
+      - name: Setup cloudflared (pinned) + SSH known_hosts
+        run: |
+          CFD_VER=2026.6.0
+          CFD_SHA=08d27c4c5d3ed73ee3e98ef2ddceb4ad09fd4cfc28e243565a189538e8ccd706
+          curl -fsSL -o /tmp/cloudflared "https://github.com/cloudflare/cloudflared/releases/download/${CFD_VER}/cloudflared-linux-amd64"
+          echo "${CFD_SHA}  /tmp/cloudflared" | sha256sum -c -
+          sudo install /tmp/cloudflared /usr/local/bin/cloudflared
+          mkdir -p ~/.ssh && chmod 700 ~/.ssh
+          printf '%s\n' "${{ secrets.SERVER_SSH_KEY }}" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          printf '%s\n' "ssh.trveri.com ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIPO/xbPpqWAEiSr5cpVN1PcDt/xBXBdjvdFazhcENnjQ" > ~/.ssh/known_hosts
+          chmod 600 ~/.ssh/known_hosts
+          cat > ~/.ssh/config <<'SSHCFG'
+          Host ssh.trveri.com
+            ProxyCommand cloudflared access ssh --hostname %h
+            IdentityFile ~/.ssh/deploy_key
+            User root
+            StrictHostKeyChecking yes
+            UserKnownHostsFile ~/.ssh/known_hosts
+            ConnectTimeout 45
+            ServerAliveInterval 15
+          SSHCFG
+
+      - name: Write deploy script
+        run: |
+          cat > /tmp/deploy.sh <<'DEPLOY'
+          set -e
+          SITE=/var/www/sinavveri.com
+          TIMESTAMP=$(date -u +%Y%m%d%H%M%S)
+          SHA=${GITHUB_SHA::7}
+          RELEASE="$SITE/releases/${TIMESTAMP}_${SHA}"
+
+          # 1. Fresh clone
+          mkdir -p "$RELEASE"
+          cd "$RELEASE"
+          git clone --depth=1 --branch=main \
+            -c core.sshCommand="ssh -i /root/.ssh/github_push -o StrictHostKeyChecking=accept-new" \
+            git@github.com:teknikanaliz/sinavveri.git .
+
+          # 2. Persistent linkler (Cloudflare token shared'da)
+          for f in e77c22b97eb527506d152246be339059.txt; do
+            [ -f "$SITE/shared/$f" ] && ln -sf "../../shared/$f" "./$f"
+          done
+
+          # 2.5 Uretilen buyuk dizinler -> shared symlink (release sismesini onler; HastaneVeri deseni)
+          # shared dizinler — .shared-dirs tek kaynagi (self-seeding: yoksa clone'dan tohumla)
+          if [ -f .shared-dirs ]; then
+            while IFS= read -r _l; do _d="${_l%%#*}"; _d="${_d// /}"; [ -z "$_d" ] && continue
+              mkdir -p "$SITE/shared/$_d"
+              [ -d "./$_d" ] && cp -rn "./$_d/." "$SITE/shared/$_d/" 2>/dev/null || true
+              rm -rf "./$_d"; ln -sfn "$SITE/shared/$_d" "./$_d"
+            done < .shared-dirs
+          fi
+
+          # 3. TrVeri ortak _shared
+          ln -sfn /var/www/_shared ./_shared
+
+          # 4. Post-deploy hook (yoksa skip — build.py lokal'de çalışıyor)
+          if [ -x scripts/post-deploy.sh ]; then
+            if [ "$(stat -c %u scripts/post-deploy.sh)" != "0" ]; then
+              echo "SECURITY: scripts/post-deploy.sh root-owned değil"; exit 1
+            fi
+            bash scripts/post-deploy.sh
+          fi
+
+          # 5. Selective chown
+          chown -R www:www "$RELEASE"
+          chown -R root:root "$RELEASE/.git"
+          [ -d "$RELEASE/scripts" ] && chown -R root:root "$RELEASE/scripts"
+
+          # 6. ATOMIC SWAP
+          ln -sfn "$RELEASE" "$SITE/current"
+
+          echo "Deployed: ${SHA} at $(date -u) → $RELEASE"
+
+          # 7. Health check + otomatik rollback
+          sleep 2
+          HTTP_CODE=$(curl -s -o /dev/null -w '%{http_code}' --max-time 10 https://sinavveri.com/)
+          if [ "$HTTP_CODE" != "200" ]; then
+            PREV=$(ls -t "$SITE/releases" | grep -v "${TIMESTAMP}_${SHA}" | head -1)
+            if [ -n "$PREV" ]; then
+              ln -sfn "$SITE/releases/$PREV" "$SITE/current"
+            fi
+            curl -s -X POST "https://api.telegram.org/bot${{ secrets.TG_BOT_TOKEN }}/sendMessage" \
+              -d chat_id="${{ secrets.TG_CHAT_ID }}" \
+              -d parse_mode="HTML" \
+              -d text="<b>❌ sinavveri.com Capistrano deploy HATA</b>%0AHTTP $HTTP_CODE → otomatik rollback ($PREV)" \
+              -o /dev/null
+            exit 1
+          fi
+
+          # 8. Eski release temizliği (son 5 release tut)
+          cd "$SITE/releases" && ls -t | tail -n +4 | xargs -r rm -rf
+
+          # 9. Deploy log
+          mkdir -p "$SITE/shared/log"
+          echo "$(date -u +%FT%TZ): Deployed ${TIMESTAMP}_${SHA} (run #${{ github.run_number }})" >> "$SITE/shared/log/deploys.log"
+          DEPLOY
+
+      - name: Deploy via CF tunnel — attempt 1
         id: try1
         continue-on-error: true
-        uses: appleboy/ssh-action@029f5b4aeeeb58fdfe1410a5d17f967dacf36262 # v1.0.3
         env:
-          GITHUB_SHA: ${{ github.sha }}
-          GITHUB_RUN_NUMBER: ${{ github.run_number }}
-        with:
-          host: 185.136.205.177
-          username: root
-          key: ${{ secrets.SERVER_SSH_KEY }}
-          port: 22
-          envs: GITHUB_SHA,GITHUB_RUN_NUMBER
-          script: |
-            set -e
-            SITE=/var/www/sinavveri.com
-            TIMESTAMP=$(date -u +%Y%m%d%H%M%S)
-            SHA=${GITHUB_SHA::7}
-            RELEASE="$SITE/releases/${TIMESTAMP}_${SHA}"
+          TUNNEL_SERVICE_TOKEN_ID: ${{ secrets.CF_ACCESS_CLIENT_ID }}
+          TUNNEL_SERVICE_TOKEN_SECRET: ${{ secrets.CF_ACCESS_CLIENT_SECRET }}
+        run: ssh ssh.trveri.com "GITHUB_SHA=${{ github.sha }} bash -s" < /tmp/deploy.sh
 
-            # 1. Fresh clone
-            mkdir -p "$RELEASE"
-            cd "$RELEASE"
-            git clone --depth=1 --branch=main \
-              -c core.sshCommand="ssh -i /root/.ssh/github_push -o StrictHostKeyChecking=accept-new" \
-              git@github.com:teknikanaliz/sinavveri.git .
-
-            # 2. Persistent linkler (Cloudflare token shared'da)
-            for f in e77c22b97eb527506d152246be339059.txt; do
-              [ -f "$SITE/shared/$f" ] && ln -sf "../../shared/$f" "./$f"
-            done
-
-            # 2.5 Uretilen buyuk dizinler -> shared symlink (release sismesini onler; HastaneVeri deseni)
-            # shared dizinler — .shared-dirs tek kaynagi (self-seeding: yoksa clone'dan tohumla)
-            if [ -f .shared-dirs ]; then
-              while IFS= read -r _l; do _d="${_l%%#*}"; _d="${_d// /}"; [ -z "$_d" ] && continue
-                mkdir -p "$SITE/shared/$_d"
-                [ -d "./$_d" ] && cp -rn "./$_d/." "$SITE/shared/$_d/" 2>/dev/null || true
-                rm -rf "./$_d"; ln -sfn "$SITE/shared/$_d" "./$_d"
-              done < .shared-dirs
-            fi
-
-            # 3. TrVeri ortak _shared
-            ln -sfn /var/www/_shared ./_shared
-
-            # 4. Post-deploy hook (yoksa skip — build.py lokal'de çalışıyor)
-            if [ -x scripts/post-deploy.sh ]; then
-              if [ "$(stat -c %u scripts/post-deploy.sh)" != "0" ]; then
-                echo "SECURITY: scripts/post-deploy.sh root-owned değil"; exit 1
-              fi
-              bash scripts/post-deploy.sh
-            fi
-
-            # 5. Selective chown
-            chown -R www:www "$RELEASE"
-            chown -R root:root "$RELEASE/.git"
-            [ -d "$RELEASE/scripts" ] && chown -R root:root "$RELEASE/scripts"
-
-            # 6. ATOMIC SWAP
-            ln -sfn "$RELEASE" "$SITE/current"
-
-            echo "Deployed: ${SHA} at $(date -u) → $RELEASE"
-
-            # 7. Health check + otomatik rollback
-            sleep 2
-            HTTP_CODE=$(curl -s -o /dev/null -w '%{http_code}' --max-time 10 https://sinavveri.com/)
-            if [ "$HTTP_CODE" != "200" ]; then
-              PREV=$(ls -t "$SITE/releases" | grep -v "${TIMESTAMP}_${SHA}" | head -1)
-              if [ -n "$PREV" ]; then
-                ln -sfn "$SITE/releases/$PREV" "$SITE/current"
-              fi
-              curl -s -X POST "https://api.telegram.org/bot${{ secrets.TG_BOT_TOKEN }}/sendMessage" \
-                -d chat_id="${{ secrets.TG_CHAT_ID }}" \
-                -d parse_mode="HTML" \
-                -d text="<b>❌ sinavveri.com Capistrano deploy HATA</b>%0AHTTP $HTTP_CODE → otomatik rollback ($PREV)" \
-                -o /dev/null
-              exit 1
-            fi
-
-            # 8. Eski release temizliği (son 5 release tut)
-            cd "$SITE/releases" && ls -t | tail -n +4 | xargs -r rm -rf
-
-            # 9. Deploy log
-            mkdir -p "$SITE/shared/log"
-            echo "$(date -u +%FT%TZ): Deployed ${TIMESTAMP}_${SHA} (run #${{ github.run_number }})" >> "$SITE/shared/log/deploys.log"
-
-      - name: Wait 30s before retry (transient SSH glitch recovery)
+      - name: Wait 30s before retry (transient glitch recovery)
         if: steps.try1.outcome == 'failure'
         run: sleep 30
 
-      - name: Deploy to TR Server — attempt 2 (retry on transient glitch)
+      - name: Deploy via CF tunnel — attempt 2
         id: try2
         if: steps.try1.outcome == 'failure'
-        uses: appleboy/ssh-action@029f5b4aeeeb58fdfe1410a5d17f967dacf36262 # v1.0.3
         env:
-          GITHUB_SHA: ${{ github.sha }}
-          GITHUB_RUN_NUMBER: ${{ github.run_number }}
-        with:
-          host: 185.136.205.177
-          username: root
-          key: ${{ secrets.SERVER_SSH_KEY }}
-          port: 22
-          envs: GITHUB_SHA,GITHUB_RUN_NUMBER
-          script: |
-            set -e
-            SITE=/var/www/sinavveri.com
-            TIMESTAMP=$(date -u +%Y%m%d%H%M%S)
-            SHA=${GITHUB_SHA::7}
-            RELEASE="$SITE/releases/${TIMESTAMP}_${SHA}"
-
-            mkdir -p "$RELEASE"
-            cd "$RELEASE"
-            git clone --depth=1 --branch=main \
-              -c core.sshCommand="ssh -i /root/.ssh/github_push -o StrictHostKeyChecking=accept-new" \
-              git@github.com:teknikanaliz/sinavveri.git .
-
-            for f in e77c22b97eb527506d152246be339059.txt; do
-              [ -f "$SITE/shared/$f" ] && ln -sf "../../shared/$f" "./$f"
-            done
-            # shared dizinler — .shared-dirs tek kaynagi (self-seeding: yoksa clone'dan tohumla)
-            if [ -f .shared-dirs ]; then
-              while IFS= read -r _l; do _d="${_l%%#*}"; _d="${_d// /}"; [ -z "$_d" ] && continue
-                mkdir -p "$SITE/shared/$_d"
-                [ -d "./$_d" ] && cp -rn "./$_d/." "$SITE/shared/$_d/" 2>/dev/null || true
-                rm -rf "./$_d"; ln -sfn "$SITE/shared/$_d" "./$_d"
-              done < .shared-dirs
-            fi
-            ln -sfn /var/www/_shared ./_shared
-
-            if [ -x scripts/post-deploy.sh ]; then
-              if [ "$(stat -c %u scripts/post-deploy.sh)" != "0" ]; then
-                echo "SECURITY: scripts/post-deploy.sh root-owned değil"; exit 1
-              fi
-              bash scripts/post-deploy.sh
-            fi
-
-            chown -R www:www "$RELEASE"
-            chown -R root:root "$RELEASE/.git"
-            [ -d "$RELEASE/scripts" ] && chown -R root:root "$RELEASE/scripts"
-
-            ln -sfn "$RELEASE" "$SITE/current"
-            echo "Deployed (retry): ${SHA} at $(date -u) → $RELEASE"
-
-            sleep 2
-            HTTP_CODE=$(curl -s -o /dev/null -w '%{http_code}' --max-time 10 https://sinavveri.com/)
-            if [ "$HTTP_CODE" != "200" ]; then
-              PREV=$(ls -t "$SITE/releases" | grep -v "${TIMESTAMP}_${SHA}" | head -1)
-              if [ -n "$PREV" ]; then
-                ln -sfn "$SITE/releases/$PREV" "$SITE/current"
-              fi
-              curl -s -X POST "https://api.telegram.org/bot${{ secrets.TG_BOT_TOKEN }}/sendMessage" \
-                -d chat_id="${{ secrets.TG_CHAT_ID }}" \
-                -d parse_mode="HTML" \
-                -d text="<b>❌ sinavveri.com Capistrano deploy HATA (retry)</b>%0AHTTP $HTTP_CODE → otomatik rollback ($PREV)" \
-                -o /dev/null
-              exit 1
-            fi
-
-            cd "$SITE/releases" && ls -t | tail -n +4 | xargs -r rm -rf
-            mkdir -p "$SITE/shared/log"
-            echo "$(date -u +%FT%TZ): Deployed (retry) ${TIMESTAMP}_${SHA} (run #${{ github.run_number }})" >> "$SITE/shared/log/deploys.log"
+          TUNNEL_SERVICE_TOKEN_ID: ${{ secrets.CF_ACCESS_CLIENT_ID }}
+          TUNNEL_SERVICE_TOKEN_SECRET: ${{ secrets.CF_ACCESS_CLIENT_SECRET }}
+        run: ssh ssh.trveri.com "GITHUB_SHA=${{ github.sha }} bash -s" < /tmp/deploy.sh
 
       - name: Final fail (both attempts failed)
         if: steps.try1.outcome == 'failure' && steps.try2.outcome == 'failure'
         run: |
-          echo "Both deploy attempts failed — see TG alert"
+          echo "Both deploy attempts failed"
           exit 1
