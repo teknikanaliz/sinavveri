@@ -96,7 +96,7 @@ def build(out_path):
 <title>TUS/DUS Geçmiş Yıl Eşleştirme Denetimi — SınavVeri</title>
 <style>
 :root{color-scheme:dark}
-body{font-family:system-ui,Segoe UI,Roboto,sans-serif;margin:0;background:#0f172a;color:#e2e8f0;font-size:14px}
+body{font-family:system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;margin:0;background:#0f172a;color:#e2e8f0;font-size:14px}
 header{padding:20px 24px;background:#1e293b;border-bottom:1px solid #334155}
 h1{margin:0 0 4px;font-size:20px}.muted{color:#94a3b8;font-size:13px}
 .wrap{padding:20px 24px;max-width:1400px;margin:0 auto}

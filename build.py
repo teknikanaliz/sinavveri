@@ -2763,9 +2763,9 @@ def page_kpss_robot():
         "İl ve döneme göre de filtreleyebilirsin. KPSS hesaplama için <a href='/kpss-puan-hesaplama.html'>KPSS puan hesaplama</a>."
         "<div style='margin-top:12px;padding:15px 18px;background:linear-gradient(90deg,#14532d,#0c4a6e);border:1px solid #22c55e;border-radius:10px;color:#f0fdf4;line-height:1.65'>"
         "<p style='margin:0 0 9px'><b style='color:#fff;font-size:15px'>📄 Tamamen Kişiye Özel KPSS Raporu ister misin?</b> Sadece <b style='color:#fde047'>999 TL</b>'ye Uzman KPSS Rehberi + Detaylı Veri Analiziyle Kişiye Özel KPSS Tercih Raporu</p>"
-        "<p style='margin:0 0 9px'>🎯 <b style='color:#fff'>Boşta kalma, doğru kadroya yerleş.</b> Tek bir yanlış tercih sıralaması atamanı kaçırabilir. Kişiye özel taban trendi, doluluk ve şans analiziyle yanlış sıralama riskini en aza indir. <a href='/kpss-tercih-raporu.html' style='color:#fde047;font-weight:800;text-decoration:underline'>Örnek raporu gör →</a></p>"
-        "<p style='margin:0 0 9px'>⏳ Kendi sınav puanın üzerinden, senin kişisel özelliklerine ve önceliklerine göre, konusunda uzman bir KPSS rehberi eşliğinde senin için sıralı, kişiye özel tercih listeni hazırlayalım. <a href='/kpss-tercih-raporu.html' style='color:#fde047;font-weight:800;text-decoration:underline'>Detaylar ve örnek rapor →</a></p>"
-        "<p style='margin:0'>👨‍🏫 Tercihte yalnız kalma. KPSS uzmanı + SınavVeri verisi = sana özel, sıralı, gerekçeli tercih raporu; garanti odaklı strateji. <a href='/kpss-tercih-raporu.html' style='color:#fde047;font-weight:800;text-decoration:underline'>Örnek raporu incele →</a></p></div>",
+        "<p style='margin:0 0 9px'>🎯 <b style='color:#fff'>Boşta kalma, doğru kadroya yerleş.</b> Tek bir yanlış tercih sıralaması atamanı kaçırabilir. Kişiye özel taban trendi, doluluk ve şans analiziyle yanlış sıralama riskini en aza indir. <a href='/kpss-tercih-raporu.html' style='color:#fde047;font-weight:700;text-decoration:underline'>Örnek raporu gör →</a></p>"
+        "<p style='margin:0 0 9px'>⏳ Kendi sınav puanın üzerinden, senin kişisel özelliklerine ve önceliklerine göre, konusunda uzman bir KPSS rehberi eşliğinde senin için sıralı, kişiye özel tercih listeni hazırlayalım. <a href='/kpss-tercih-raporu.html' style='color:#fde047;font-weight:700;text-decoration:underline'>Detaylar ve örnek rapor →</a></p>"
+        "<p style='margin:0'>👨‍🏫 Tercihte yalnız kalma. KPSS uzmanı + SınavVeri verisi = sana özel, sıralı, gerekçeli tercih raporu; garanti odaklı strateji. <a href='/kpss-tercih-raporu.html' style='color:#fde047;font-weight:700;text-decoration:underline'>Örnek raporu incele →</a></p></div>",
         "ÖSYM 2025 KPSS resmî yerleştirme verisi (2025/1–2025/5).", "KPSS Puanın", "örn. 85,40")
 
 
@@ -3241,7 +3241,7 @@ KARSILASTIR_JS = r"""<script nonce="__NONCE__">
       .catch(function(){el('kStatus').textContent='Veri yüklenemedi.';}); }
   function doluluk(r){var k=r[IDX.kont],y=r[IDX.yer];if(!k)return '—';var o=Math.round(100*(y||0)/k);return (y||0)+'/'+k+' (%'+o+')';}
   function row(label,vals,bold){
-    var tds=vals.map(function(v){return '<td'+(bold?' style="font-weight:800"':'')+'>'+v+'</td>';}).join('');
+    var tds=vals.map(function(v){return '<td'+(bold?' style="font-weight:700"':'')+'>'+v+'</td>';}).join('');
     return '<tr><th>'+label+'</th>'+tds+'</tr>';
   }
   function render(){
@@ -3381,7 +3381,7 @@ def page_kpss_rapor():
     js = (KPSS_RAPOR_FORM_JS.replace("__WA__", wa).replace("__EMAIL__", email)
           .replace("__PK__", pk).replace("__API__", api))
 
-    yes = '<span style="color:#2f9e44;font-weight:800">✓</span>'
+    yes = '<span style="color:#2f9e44;font-weight:700">✓</span>'
     no = '<span style="color:#e03131">✕</span>'
     karsilastirma = f"""
 <div class="data-table-wrap"><table class="data-table">
@@ -3482,7 +3482,7 @@ Resmî tercih işlemi <a href="https://www.osym.gov.tr" target="_blank" rel="noo
 
 
 def page_kpss_rapor_ornek():
-    chip = lambda t, c: f'<span style="display:inline-block;background:{c};color:#fff;font-size:11px;font-weight:800;padding:2px 9px;border-radius:999px">{t}</span>'
+    chip = lambda t, c: f'<span style="display:inline-block;background:{c};color:#fff;font-size:11px;font-weight:700;padding:2px 9px;border-radius:999px">{t}</span>'
     rahat, olasi, sinir = chip("RAHAT", "#2f9e44"), chip("OLASI", "#f59e0b"), chip("SINIRDA", "#e8590c")
     # Örnek (temsilî) veri — gerçek YÖK/ÖSYM 2025 değer aralıklarıyla tutarlı
     rows = [

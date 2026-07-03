@@ -311,7 +311,7 @@
       .catch(function(){el('kStatus').textContent='Veri yüklenemedi.';}); }
   function doluluk(r){var k=r[IDX.kont],y=r[IDX.yer];if(!k)return '—';var o=Math.round(100*(y||0)/k);return (y||0)+'/'+k+' (%'+o+')';}
   function row(label,vals,bold){
-    var tds=vals.map(function(v){return '<td'+(bold?' style="font-weight:800"':'')+'>'+v+'</td>';}).join('');
+    var tds=vals.map(function(v){return '<td'+(bold?' style="font-weight:700"':'')+'>'+v+'</td>';}).join('');
     return '<tr><th>'+label+'</th>'+tds+'</tr>';
   }
   function render(){
