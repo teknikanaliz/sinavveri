@@ -390,7 +390,7 @@ def base(slug, title, desc, body, *, extra_head="", extra_ld=None, og_image=None
   <div class="footer-inner">
     <span>© 2026 SınavVeri.com · <a href="https://www.trveri.com" target="_blank" rel="noopener noreferrer">Türkiye Veri Platformu</a> ürünüdür.</span>
     <span class="fi-grow"></span>
-    <span>Kaynak: ÖSYM · MEB</span>
+    <span>Kaynak: <a href="https://www.osym.gov.tr" target="_blank" rel="noopener noreferrer">ÖSYM</a> · <a href="https://www.meb.gov.tr" target="_blank" rel="noopener noreferrer">MEB</a></span>
     <span>Resmî kaynak değildir; bilgi amaçlıdır.</span>
   </div>
 </footer>
@@ -1168,7 +1168,7 @@ def page_takvim():
 </table>
 </div>
 <div class="notice"><b>Not:</b> Tarihler ÖSYM 2026 Yılı Sınav Takvimi ve her sınavın resmî <b>kılavuz/duyurularıyla</b> (YKS, LGS, KPSS, DGS, ALES, TUS, DUS, YDS…) teyit edilmiştir.
-Yaklaşmayan sınavların başvuru tarihleri ilgili kılavuz yayımlanınca kesinleşir; güncel bilgi için osym.gov.tr ve meb.gov.tr esastır.</div>
+Yaklaşmayan sınavların başvuru tarihleri ilgili kılavuz yayımlanınca kesinleşir; güncel bilgi için <a href="https://www.osym.gov.tr" target="_blank" rel="noopener">osym.gov.tr</a> ve <a href="https://www.meb.gov.tr" target="_blank" rel="noopener">meb.gov.tr</a> esastır.</div>
 """
     ev = [{"@type": "Event", "name": s["ad"], "startDate": s["sinav"],
            "eventAttendanceMode": "https://schema.org/OfflineEventAttendanceMode",
@@ -1598,7 +1598,7 @@ def guide(slug, exam, title_full, icon, calc_slug, intro, sections, has_calc=Tru
 {sec_html}
 </div>
 <div class="notice" style="max-width:880px"><b>Bilgi:</b> Bu sayfa bilgilendirme amaçlıdır. Başvuru koşulları ve güncel kurallar için
-resmî kaynak ÖSYM/MEB esas alınmalıdır.</div>
+resmî kaynak <a href="https://www.osym.gov.tr" target="_blank" rel="noopener">ÖSYM</a>/<a href="https://www.meb.gov.tr" target="_blank" rel="noopener">MEB</a> esas alınmalıdır.</div>
 """
     extra_ld = [breadcrumb_ld([("Ana Sayfa", "index.html"), (f"{exam} Rehberi", None)])]
     if faqs:
@@ -2495,7 +2495,7 @@ def page_tercih_robotu():
 <div class="notice"><b>Nasıl çalışır?</b> Sıranı girdiğinde hem rahat yerleşeceğin hem de <b>şansın olan</b> programlar listelenir.
 "Şans": <b>Rahat</b> (taban sıran senden epey geride — güvenli), <b>Olası</b> (sıraya yakın), <b>Sınırda</b> (taban senden biraz daha iyi — riskli ama 2026'da değişebileceği için denenebilir).
 Bu bir tahmindir; 2026 taban sıraları kontenjan ve tercih yoğunluğuna göre değişir. Resmî tercih için
-ÖSYM kılavuzu esastır.</div>
+<a href="https://www.osym.gov.tr" target="_blank" rel="noopener">ÖSYM</a> kılavuzu esastır.</div>
 """ + ROBOT_JS
     # rIl doldurma — robot da fillIl benzeri ister; basitçe SEARCH veri yüklenince doldurulmuyor.
     fill = r"""<script nonce="__NONCE__">
@@ -2701,7 +2701,7 @@ def puan_robot_page(slug, title, desc, h1, sub, veri_file, nb, ns, show, taban, 
 <div id="rhint" style="display:none;font-size:12px;color:var(--fg-faded);margin-top:10px;text-align:center"></div>
 <div class="notice"><b>Nasıl çalışır?</b> Puanın bir programın/kadronun taban puanından <b>yüksek veya eşitse</b> oraya yerleşebilirsin.
 "Şans" payı güvenliği gösterir: <b>Rahat</b> (geniş pay), <b>Olası</b>, <b>Sınırda</b>. Bu bir tahmindir; gelecek yıl taban puanları
-kontenjan ve tercih yoğunluğuna göre değişir. <b>Kaynak:</b> {kaynak} Resmî tercih için ÖSYM esastır.</div>
+kontenjan ve tercih yoğunluğuna göre değişir. <b>Kaynak:</b> {kaynak} Resmî tercih için <a href="https://www.osym.gov.tr" target="_blank" rel="noopener">ÖSYM</a> esastır.</div>
 {js}
 """
     return base(slug, title, desc, body,
@@ -3321,7 +3321,7 @@ def page_karsilastir():
   <div id="kStatus" style="margin-top:10px;font-size:13px;color:var(--accent);font-weight:700"></div>
 </div>
 <div id="kResult"></div>
-<div class="notice"><b>Kaynak:</b> YÖK Atlas 2025 (geçmiş: 2024, 2023). Karşılaştırma tahmini değerlendirme amaçlıdır; resmî tercih için ÖSYM esastır.</div>
+<div class="notice"><b>Kaynak:</b> YÖK Atlas 2025 (geçmiş: 2024, 2023). Karşılaştırma tahmini değerlendirme amaçlıdır; resmî tercih için <a href="https://www.osym.gov.tr" target="_blank" rel="noopener">ÖSYM</a> esastır.</div>
 {KARSILASTIR_JS}
 """
     return base("karsilastir.html", "Bölüm ve Üniversite Karşılaştırma 2025 — Taban Puanı Kıyasla | SınavVeri",
@@ -3471,7 +3471,7 @@ değişmiş — hepsi gerçek YÖK/ÖSYM verisiyle. Üstüne <b>rehber hocayla b
 </div>
 
 <div class="notice" style="margin-top:20px"><b>Not:</b> Bu hizmet kişisel danışmanlık ve veri-temelli analiz sunar; kesin yerleştirme garantisi vermez.
-Resmî tercih işlemi ÖSYM üzerinden yapılır.
+Resmî tercih işlemi <a href="https://www.osym.gov.tr" target="_blank" rel="noopener">ÖSYM</a> üzerinden yapılır.
 Önce ücretsiz <a href="/kpss-tercih-robotu.html">KPSS tercih robotumuzu</a> deneyebilirsiniz.</div>
 {js}
 """
@@ -4030,7 +4030,7 @@ def page_lise_taban_index(lgs, il_slugs):
 </div>
 <div class="notice"><b>Kaynak:</b> MEB 2025 LGS merkezi yerleştirme verileri. Taban puanı ve yüzdelik dilim,
 o liseye <b>en son yerleşen</b> öğrencinin değeridir. Yalnızca <b>sınavla öğrenci alan</b> liseler listelenir.
-Resmî kayıt için MEB/e-Okul esastır.</div>
+Resmî kayıt için <a href="https://www.meb.gov.tr" target="_blank" rel="noopener">MEB</a>/e-Okul esastır.</div>
 <div class="section" style="margin-top:24px"><h2>İllere Göre Lise Taban Puanları</h2>
 <div class="section-sub">İl sayfasında o ilin tüm liseleri taban puanına göre sıralı.</div>
 <div style="line-height:2">""" + il_links + """</div></div>
@@ -4275,7 +4275,7 @@ def minmax_page(slug, title, desc, h1, sub, file, cols, filters, search_idx, int
   <div id="moreInfo" style="font-size:12px;color:var(--fg-faded);margin-top:6px"></div>
 </div>
 <div class="notice"><b>Kaynak:</b> {kaynak} Taban = o programa/kadroya yerleşen <b>en düşük</b>, tavan = <b>en yüksek</b> puan.
-Yerleşen olmayan satırlarda değer boştur (—). Resmî bilgi için ÖSYM esastır.</div>
+Yerleşen olmayan satırlarda değer boştur (—). Resmî bilgi için <a href="https://www.osym.gov.tr" target="_blank" rel="noopener">ÖSYM</a> esastır.</div>
 {hub_html}
 {js}
 """
@@ -4435,7 +4435,7 @@ def page_kpss_atama(hubs=None):
         "KPSS atamaları tek-seferlik ilanlar olduğundan eşleşme kısmidir (Çevre Bak. için 2024 verisi yoktur). "
         "<b>Aynı unvanlı birden çok kadro</b> farklı <b>nitelik (aranan şartlar)</b> içerir; ayırmak için kadro adının yanına "
         "<b>(Kadro Kodu: …)</b> eklenir. Bir kadronun tüm niteliklerini görmek için bu kodu, ilgili dönemin "
-        "ÖSYM KPSS tercih kılavuzunda aratın.",
+        "<a href='https://www.osym.gov.tr/TR,62/kpss.html' target='_blank' rel='noopener'>ÖSYM KPSS tercih kılavuzunda</a> aratın.",
         OSYM_KAYNAK, ph="Kadro / kurum ara…", hub_html=hub_links_html("kpss", hubs), spark=[8, 6])
 
 
