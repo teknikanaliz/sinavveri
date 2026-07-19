@@ -512,6 +512,18 @@ Yerleştirme puanına OBP (Okul Başarı Puanı = Diploma Notu × 5) en fazla 60
   });
 })();
 </script>
+<script nonce="__NONCE__">
+(function(){
+  document.addEventListener('error',function(e){
+    var t=e.target;
+    if(!t||t.tagName!=='IMG'||!t.classList||!t.classList.contains('uni-logo'))return;
+    var n=+(t.getAttribute('data-rt')||0); if(n>=2)return;
+    t.setAttribute('data-rt',n+1);
+    var u=(t.getAttribute('src')||'').split('?')[0];
+    if(u) setTimeout(function(){t.setAttribute('src',u+'?r='+(n+1)+'-'+Date.now());},350*(n+1));
+  },true);
+})();
+</script>
 <script nonce="__NONCE__">if('serviceWorker' in navigator){navigator.serviceWorker.register('/sw.js').catch(function(){});}</script>
 </body>
 </html>

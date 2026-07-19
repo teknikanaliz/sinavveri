@@ -313,6 +313,21 @@ CARD_LABEL_JS = r"""<script nonce="__NONCE__">
 })();
 </script>"""
 
+# Logo yükleme dayanıklılığı: yavaş bağlantıda ilk yüklemede kopan üniversite
+# logolarını otomatik yeniden dener (kullanıcı elle "yenile" demek zorunda kalmaz).
+LOGO_RETRY_JS = r"""<script nonce="__NONCE__">
+(function(){
+  document.addEventListener('error',function(e){
+    var t=e.target;
+    if(!t||t.tagName!=='IMG'||!t.classList||!t.classList.contains('uni-logo'))return;
+    var n=+(t.getAttribute('data-rt')||0); if(n>=2)return;
+    t.setAttribute('data-rt',n+1);
+    var u=(t.getAttribute('src')||'').split('?')[0];
+    if(u) setTimeout(function(){t.setAttribute('src',u+'?r='+(n+1)+'-'+Date.now());},350*(n+1));
+  },true);
+})();
+</script>"""
+
 
 def breadcrumb_ld(items):
     """items: [(name, slug_or_None)]. Son öğe genelde slug'sız (mevcut sayfa)."""
@@ -442,6 +457,7 @@ def base(slug, title, desc, body, *, extra_head="", extra_ld=None, og_image=None
 {HEADER_SEARCH_JS}
 {NAV_TOGGLE_JS}
 {CARD_LABEL_JS}
+{LOGO_RETRY_JS}
 <script nonce="__NONCE__">if('serviceWorker' in navigator){{navigator.serviceWorker.register('/sw.js').catch(function(){{}});}}</script>
 </body>
 </html>"""
