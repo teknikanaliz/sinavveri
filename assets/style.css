@@ -88,15 +88,15 @@ nav a:hover, nav a.active { background: var(--header-link-hover); color: var(--h
 .theme-toggle:hover { background: rgba(255,255,255,.22); border-color: rgba(255,255,255,.4); }
 [data-theme="dark"] .theme-toggle { background: rgba(255,255,255,.06); border-color: rgba(255,255,255,.14); }
 .header-right { display: flex; align-items: center; }
-/* Üst menü tek satırda kalsın: 9 nav öğesi + arama + tema kutusu 1180px'e sığsın
-   (aksi halde "Takvim · Rehberler" 2. satıra taşıyordu). Masaüstünde tema butonu
+/* Üst menü tek satırda kalsın: 10 nav öğesi + arama + tema kutusu 1180px'e sığsın
+   (aksi halde "Rehberler · Hakkımızda" 2. satıra taşıyor). Masaüstünde tema butonu
    yalnız ikon; ≤700px'te zaten hamburger devreye girer. */
 @media (min-width: 701px) {
-  nav a { padding: 6px 8px; }
-  .hsearch input { width: 150px; }
-  .hsearch input:focus { width: 200px; }
+  nav a { padding: 6px 6px; }
+  /* Yüksek özgüllük (.header-right ...) — aksi halde alttaki genel .hsearch input{width:190px} kuralı ezer */
+  .header-right .hsearch input { width: 132px; }
   .theme-toggle .toggle-text { display: none; }
-  .theme-toggle { margin-left: 8px; padding: 6px 9px; }
+  .theme-toggle { margin-left: 6px; padding: 6px 8px; }
 }
 
 main { max-width: 1180px; margin: 0 auto; padding: 24px 20px 48px; }

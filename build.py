@@ -39,7 +39,14 @@ NAV = [
     ("/listeler.html", "Listeler"),
     ("/takvim.html", "Takvim"),
     ("/rehberler.html", "Rehberler"),
+    ("/hakkimizda.html", "Hakkımızda"),
 ]
+
+# TrVeri STANDART paylaş bileşeni (rule 3.16) — servermimari/assets/share.js kopyası.
+# İçerik/detay sayfasında ana veri tablosunun ÜSTÜNE <div class="share-bar"></div> konur;
+# SHARE_JS (nonce'lu external script, CSP strict-dynamic ile yüklenir) yalnız o sayfalarda base(share=True) ile eklenir.
+SHARE_BAR = '<div class="share-bar"></div>'
+SHARE_JS = f'<script src="/assets/share.js?v={ASSET_VER}" nonce="__NONCE__" defer></script>'
 
 
 def jsonld(title, desc, slug, extra=None):
@@ -340,8 +347,9 @@ def breadcrumb_ld(items):
     return {"@type": "BreadcrumbList", "itemListElement": el}
 
 
-def base(slug, title, desc, body, *, extra_head="", extra_ld=None, og_image=None):
+def base(slug, title, desc, body, *, extra_head="", extra_ld=None, og_image=None, share=False):
     canonical = SITE + "/" + (slug if slug != "index.html" else "")
+    share_js = SHARE_JS if share else ""
     og_url = SITE + (og_image if og_image else "/assets/og.png")
     nav_parts = []
     for href, label in NAV:
@@ -459,6 +467,7 @@ def base(slug, title, desc, body, *, extra_head="", extra_ld=None, og_image=None
 {CARD_LABEL_JS}
 {LOGO_RETRY_JS}
 <script nonce="__NONCE__">if('serviceWorker' in navigator){{navigator.serviceWorker.register('/sw.js').catch(function(){{}});}}</script>
+{share_js}
 </body>
 </html>"""
 
@@ -3153,6 +3162,7 @@ def gen_universite_pages(programs):
 <div class="crumb"><a href="/index.html">Ana Sayfa</a> / <a href="/universiteler.html">Üniversiteler</a> / {u}</div>
 <div class="page-title uni-title">{uni_logo_html(u, size=48, cls="uni-logo-h1")}<div><h1>{u} Taban Puanları 2025</h1><span class="sub">{il} · {tur} · {len(recs)} program · YÖK Atlas 2025</span></div></div>
 {uni_kunye_html(u, recs)}
+{SHARE_BAR}
 {DETAIL_BAR}
 <div class="data-table-wrap">
 <table class="data-table detail-table" data-live="1">
@@ -3170,7 +3180,7 @@ def gen_universite_pages(programs):
         og = gen_uni_og(s, u, uni_info(u), recs)
         html = base(f"universite/{s}.html", f"{u} Taban Puanları 2025 — Tüm Bölümler | SınavVeri",
                     f"{u} 2025 taban puanları ve başarı sıralamaları. {len(recs)} programın taban puanı, kontenjan ve sıralaması YÖK Atlas verisiyle.",
-                    body, og_image=og)
+                    body, og_image=og, share=True)
         write(f"universite/{s}.html", html)
     return u_by_slug
 
@@ -3697,12 +3707,13 @@ def gen_sehir_pages(programs, u_by_slug):
 <div class="crumb"><a href="/index.html">Ana Sayfa</a> / <a href="/sehirler.html">Şehirler</a> / {il}</div>
 <div class="page-title"><h1>{il} Üniversiteleri 2025</h1><span class="sub">{len(unis)} üniversite · {dev} devlet · {vak} vakıf · YÖK Atlas 2025</span></div>
 <div class="info-box">{il} ilinde bulunan tüm üniversitelerin bölümleri, taban puanları ve başarı sıralamaları. Bir üniversiteye tıklayarak {tr_loc_ki(il)} programların 2025 taban puanlarını inceleyebilirsiniz.</div>
+{SHARE_BAR}
 <div class="tool-row">{cards}</div>
 <div class="notice"><b>Kaynak:</b> YÖK Atlas 2025. <a href="/universite-taban-puanlari.html?il={il}">{il} programlarını ara</a> · <a href="/sehirler.html">tüm şehirler</a>.</div>
 """
         html = base(f"sehir/{s}.html", f"{il} Üniversiteleri 2025 — Taban Puanları ve Bölümler | SınavVeri",
                     f"{il} ilindeki {len(unis)} üniversitenin 2025 taban puanları, bölümleri ve başarı sıralamaları. Devlet ve vakıf üniversiteleri YÖK Atlas verisiyle.",
-                    body)
+                    body, share=True)
         write(f"sehir/{s}.html", html)
     return il_slugs
 
@@ -4086,6 +4097,7 @@ def gen_lise_il_pages(lgs):
 <div class="crumb"><a href="/index.html">Ana Sayfa</a> / <a href="/lise-taban-puanlari.html">LGS Liseler</a> / {il}</div>
 <div class="page-title"><h1>{il} Liseleri Taban Puanları (LGS · 3 Yıllık Trend)</h1><span class="sub">{len(recs)} sınavla öğrenci alan lise · MEB resmî · 2023-2024-2025 taban + yüzdelik dilim</span></div>
 <div class="info-box">{summary} 2024/2023 sütunları geçmiş yıl tabanı, Trend sütunu 2025'in bir önceki yıla göre değişimidir. Tablo 2025 tabanına göre sıralıdır; başlığa tıklayarak yeniden sıralayabilirsiniz.</div>
+{SHARE_BAR}
 <div class="data-table-wrap">
 <table class="data-table">
 <thead><tr><th>Lise</th><th>İlçe</th><th>Tür</th><th>Kont.</th><th>2025 Taban</th><th>2024</th><th>2023</th><th>Trend</th><th>Yüzdelik</th></tr></thead>
@@ -4097,7 +4109,7 @@ Tüm Türkiye: <a href="/lise-taban-puanlari.html">LGS lise taban puanları</a> 
 """
         html = base(f"lise/{sl}.html", f"{il} Liseleri Taban Puanları 2025 LGS — Yüzdelik Dilim | SınavVeri",
                     f"{il} 2025 LGS lise taban puanları ve yüzdelik dilimleri. {len(recs)} sınavla öğrenci alan Fen, Anadolu, İmam Hatip ve Meslek lisesi. MEB verisi.",
-                    body)
+                    body, share=True)
         write(f"lise/{sl}.html", html)
     return slugs
 
@@ -5102,6 +5114,53 @@ def write_arama(g_by_slug, u_by_slug, il_slugs):
 
 
 # ───────────────────────── ÇALIŞTIR ─────────────────────────
+def page_hakkimizda():
+    body = f"""
+<div class="hero">
+  <h1>Hakkımızda</h1>
+  <p style="font-style:italic">Veriyi rakam değil, doğru karar verme rehberi olarak görüyoruz.</p>
+</div>
+
+<div class="prose">
+<p>Hayatın her anında doğru veriye ulaşmanın kritik olduğunu biliyoruz. <b>Yaşam, sağlık, gıda, ekonomi, enerji, teknoloji</b> ve günlük ihtiyaçlara kadar uzanan dijital ağımızla, geniş bir yelpazede, hayatınızı kolaylaştıracak bilgiyi topluyor, doğruluyor ve sade arayüzlerle <b>eksiksiz, kesintisiz ve en hızlı şekilde</b> size sunuyoruz.</p>
+<p>Ekibimizin <b>30 yılı aşkın</b> saha tecrübesini dijital dünyanın hızıyla birleştiriyor, karmaşık verileri herkes için <b>anlaşılır, erişilebilir ve faydalı</b> hale getiriyoruz. Herkesin veriye eksiksiz, kesintisiz ve hızlı ulaşması gerektiğine inanıyor; bu amaçla farklı uzmanlık alanlarında <b>20+ canlı</b> web ve mobil uygulamamızla kesintisiz hizmet veriyoruz.</p>
+
+<h2>SınavVeri nedir?</h2>
+<p><b>SınavVeri.com</b>, Türkiye'deki merkezi sınavlara hazırlanan öğrenciler ve adaylar için taban puanları, başarı sıralamaları, kontenjanlar, puan hesaplama araçları ve sınav takvimini tek çatı altında toplayan bağımsız bir eğitim verisi platformudur. YKS, LGS, KPSS, DGS, ALES, TUS, DUS ve daha fazlası için binlerce üniversite programının, lisenin ve kadronun güncel verisini sade, hızlı ve reklamsız bir arayüzle sunuyoruz.</p>
+<p>Amacımız; dağınık ve karmaşık resmî verileri, tercih döneminde doğru karar vermenizi sağlayacak <b>karşılaştırılabilir, aranabilir ve anlaşılır</b> hâle getirmek. Bir bölümü mü araştırıyorsunuz, sıralamanıza uygun üniversiteleri mi arıyorsunuz, yoksa puanınızı mı hesaplamak istiyorsunuz — hepsi tek yerde.</p>
+
+<h2>Neyi farklı yapıyoruz?</h2>
+<ul>
+<li><b>Tek çatı:</b> YKS, LGS, KPSS, DGS, ALES, TUS ve DUS taban puanları ile başarı sıralamaları aynı platformda.</li>
+<li><b>Akıllı tercih robotu:</b> Sıralamanıza ve puanınıza göre uygun bölüm ve üniversiteleri saniyeler içinde listeleyin.</li>
+<li><b>Yıllara göre trend:</b> Taban puanı ve başarı sırasının geçmiş yıllara göre değişimini tek bakışta görün.</li>
+<li><b>Ücretsiz puan hesaplama:</b> YKS, LGS, KPSS, DGS ve ALES için net–puan hesaplama araçları.</li>
+<li><b>Sade ve hızlı:</b> Kayıt gerektirmeyen, mobil uyumlu ve karanlık tema destekli, hızlı bir arayüz.</li>
+</ul>
+
+<h2>Veri Kaynağı ve Güncellik</h2>
+<p>Üniversite taban puanları ve başarı sıralamaları <b>ÖSYM</b> ve <b>YÖK Atlas</b> verilerinden; LGS lise taban puanları <b>MEB</b> merkezi yerleştirme sonuçlarından derlenir. Veriler her yeni yerleştirme dönemi açıklandığında güncellenir; sınav takvimi resmî duyurulara göre düzenli olarak yenilenir. SınavVeri resmî bir kurum değildir; sunulan bilgiler yalnızca yol gösterme amaçlıdır, kesin tercih ve başvuru işlemleri ilgili kurumların resmî sistemleri üzerinden yapılmalıdır.</p>
+
+<h2>İletişim</h2>
+<p>Görüş, öneri ve düzeltme talepleriniz için bize <a href="mailto:info@sinavveri.com">info@sinavveri.com</a> adresinden ulaşabilirsiniz.</p>
+
+<p>SınavVeri, <a href="https://www.trveri.com" target="_blank" rel="noopener noreferrer">TrVeri (Türkiye Veri Platformu)</a> ailesinin üyesidir.</p>
+</div>
+
+<div class="prose" style="margin-top:20px;text-align:center;border-left:4px solid var(--accent)">
+<p style="font-size:19px;font-weight:700;font-style:italic;color:var(--accent);margin:0;line-height:1.5">“Gücümüzü geçmişimizden, hızımızı teknolojimizden alıyoruz.”</p>
+<p style="margin-top:12px;font-style:italic;color:var(--fg-faded)">— SınavVeri Ekibi</p>
+</div>
+
+<div style="margin-top:22px">{SHARE_BAR}</div>
+"""
+    return base("hakkimizda.html", "Hakkımızda | SınavVeri.com",
+                "SınavVeri.com: YKS, LGS, KPSS, DGS ve ALES taban puanları, başarı sıralamaları ve "
+                "puan hesaplama araçlarını tek çatıda sunan bağımsız eğitim verisi platformu. "
+                "TrVeri (Türkiye Veri Platformu) ailesinin üyesidir.",
+                body, share=True)
+
+
 def main():
     print("SınavVeri.com inşa ediliyor...")
     slugs = []  # sitemap için
@@ -5135,6 +5194,7 @@ def main():
             W(slug, html)
     W("puan-hesaplama.html", page_puan_hesaplama_hub())
     W("rehberler.html", page_rehberler_hub())
+    W("hakkimizda.html", page_hakkimizda())
     W("yks.html", page_yks())
     W("lgs.html", page_lgs())
     W("kpss.html", page_kpss())
