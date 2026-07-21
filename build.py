@@ -3610,7 +3610,7 @@ KPSS_RAPORU_JS = r"""<script nonce="__NONCE__">
       +'<div class="data-table-wrap"><table class="data-table"><thead><tr><th>#</th><th>Kurum / Kadro</th><th>İl</th><th>Dönem</th><th>Taban</th><th>Şans</th></tr></thead><tbody>'+tr+'</tbody></table></div>')
       : '<div class="info-box">Bu kriterlerle uygun kadro bulunamadı. Rehberimiz seninle iletişime geçip kriterleri birlikte gözden geçirecek.</div>';
     var rehber='<div class="uk-card" style="margin-top:18px"><div class="uk-analiz" style="border:0;padding:0"><h2 style="margin-top:0">🧭 Rehber Notu</h2>'
-      +'<p>Bu liste otomatik üretilmiş <b>ön rapordur</b>. Uzman KPSS rehberimiz; puanın, önceliklerin ve güncel kontenjan eğilimlerine göre listeyi <b>tercih sırasına</b> göre optimize edip '
+      +'<p>Bu liste, puanına ve tercihlerine göre derlenmiş bir <b>ön rapordur</b>. Uzman KPSS rehberimiz; puanın, önceliklerin ve güncel kontenjan eğilimlerine göre listeyi <b>tercih sırasına</b> göre optimize edip '
       +'<b>1-2 iş günü içinde</b> seninle iletişime geçecek ve raporunu rehber hocayla birlikte hazırlayacak.</p>'
       +'<p style="font-size:11px;color:var(--fg-faded)">Kaynak: ÖSYM 2025 KPSS yerleştirme verisi. Tahmini değerlendirmedir; kesin tercih ÖSYM AİS üzerinden yapılır.</p></div></div>';
     elc.innerHTML=prof+ozet+tablo+rehber
@@ -3638,7 +3638,7 @@ def page_kpss_rapor_tesekkurler():
 <div class="crumb"><a href="/index.html">Ana Sayfa</a> / <a href="/kpss-tercih-raporu.html">Kişiye Özel KPSS Tercih Raporu</a> / Teşekkürler</div>
 <div class="page-title"><h1>✅ Ödemen alındı, teşekkürler!</h1><span class="sub">Kişiye özel ön raporun hazır</span></div>
 <div class="uk-card"><div class="uk-analiz" style="border:0;padding:0">
-<p style="font-size:15px;line-height:1.7">Ödemen başarıyla alındı ve <b>kişiye özel ön raporun otomatik hazırlandı.</b> Aşağıdaki butondan hemen görebilirsin.</p>
+<p style="font-size:15px;line-height:1.7">Ödemen başarıyla alındı ve <b>kişiye özel ön raporun hazırlandı.</b> Aşağıdaki butondan hemen görebilirsin.</p>
 <div style="text-align:center;margin:18px 0">
   <a class="btn btn-primary" id="raporBtn" href="/kpss-tercih-raporu.html" style="font-size:17px;padding:14px 32px">📄 Ön Raporunu Gör</a>
 </div>
@@ -4834,7 +4834,7 @@ def _two_section_calc(slug, exam, guide_slug, title, desc, s1name, s1count, s2na
 <div class="calc-wrap">
   <div class="calc-card">
     <h2>{exam} — Testler</h2>
-    <div class="calc-hint">Doğru ve yanlış sayılarını gir; net otomatik hesaplanır.</div>
+    <div class="calc-hint">Doğru ve yanlış sayılarını gir; net hesaplanır.</div>
     <div class="calc-block" id="calc">{calc_subj_rows(sub)}</div>
     <div class="calc-actions"><button type="button" class="btn btn-primary" id="calcBtn">Hesapla</button><button type="button" class="btn btn-ghost" id="resetBtn">Temizle</button></div>
   </div>
