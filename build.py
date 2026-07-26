@@ -5114,6 +5114,13 @@ def write_arama(g_by_slug, u_by_slug, il_slugs):
 
 
 # ───────────────────────── ÇALIŞTIR ─────────────────────────
+# AboutPage JSON-LD (SEO) — mevcut Organization/WebPage @graph LD'sine EK ayrı blok.
+# ld+json bir veri bloğudur (yürütülmez) → CSP script-src'e takılmaz, nonce gerekmez.
+HAKKIMIZDA_ABOUTPAGE_LD = """<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"AboutPage","name":"Hakkımızda — SınavVeri","url":"https://sinavveri.com/hakkimizda.html","inLanguage":"tr-TR","isPartOf":{"@type":"WebSite","name":"SınavVeri","url":"https://sinavveri.com/"},"about":{"@type":"Organization","name":"SınavVeri","url":"https://sinavveri.com/","email":"info@sinavveri.com","memberOf":{"@type":"Organization","name":"TrVeri (Türkiye Veri Platformu)","url":"https://www.trveri.com/"}}}
+</script>"""
+
+
 def page_hakkimizda():
     body = f"""
 <div class="hero">
@@ -5158,7 +5165,7 @@ def page_hakkimizda():
                 "SınavVeri.com: YKS, LGS, KPSS, DGS ve ALES taban puanları, başarı sıralamaları ve "
                 "puan hesaplama araçlarını tek çatıda sunan bağımsız eğitim verisi platformu. "
                 "TrVeri (Türkiye Veri Platformu) ailesinin üyesidir.",
-                body, share=True)
+                body, share=True, extra_head=HAKKIMIZDA_ABOUTPAGE_LD)
 
 
 def main():
