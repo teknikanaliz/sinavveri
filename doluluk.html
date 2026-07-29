@@ -249,6 +249,8 @@
   };
 })();
 </script>
+<script src="/assets/pager.js?v=20260719a" nonce="__NONCE__"></script>
+<script src="/assets/table.js?v=20260719a" nonce="__NONCE__"></script>
 <link rel="stylesheet" href="/assets/style.css?v=20260719a">
 <link rel="manifest" href="/manifest.json">
 <script nonce="__NONCE__" src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
@@ -291,7 +293,7 @@
 <div class="chart-card"><h3>Doluluk Oranı Karşılaştırması</h3><div id="dchart" style="width:100%"></div></div><script nonce="__NONCE__">Plotly.newPlot("dchart",[{"x": ["Devlet", "Vak\u0131f", "Lisans", "\u00d6nlisans"], "y": [0, 0, 0, 0], "type": "bar", "marker": {"color": ["#1e3a8a", "#b45309", "#0891b2", "#7c3aed"]}, "text": ["%0", "%0", "%0", "%0"], "textposition": "outside"}],{"margin": {"l": 44, "r": 16, "t": 10, "b": 30}, "height": 280, "yaxis": {"title": {"text": "Doluluk %"}, "range": [0, 105], "gridcolor": "rgba(128,128,128,.15)"}, "xaxis": {"gridcolor": "rgba(128,128,128,.15)"}, "paper_bgcolor": "rgba(0,0,0,0)", "plot_bgcolor": "rgba(0,0,0,0)", "font": {"family": "Segoe UI, Arial, sans-serif", "size": 12}},{"displayModeBar":false,"responsive":true});</script>
 <div class="section"><h2>Türe ve Düzeye Göre Doluluk</h2>
 <div class="data-table-wrap"><table class="data-table">
-<thead><tr><th>Kategori</th><th>Kontenjan</th><th>Yerleşen</th><th>Doluluk</th></tr></thead>
+<thead><tr><th data-tip="Üniversite türü veya öğrenim düzeyi kategorisi." data-type="text">Kategori</th><th data-tip="Kategorideki toplam kontenjan." data-type="num">Kontenjan</th><th data-tip="Kategoriye yerleşen toplam öğrenci sayısı." data-type="num">Yerleşen</th><th data-tip="Doluluk = yerleşen ÷ kontenjan." data-type="num">Doluluk</th></tr></thead>
 <tbody><tr><td><strong>Lisans (4 yıllık)</strong></td><td>—</td><td>—</td><td><strong>%0</strong></td></tr><tr><td><strong>Önlisans (2 yıllık)</strong></td><td>—</td><td>—</td><td><strong>%0</strong></td></tr></tbody></table></div></div>
 
 <div class="section"><h2>Boş Kalan / Tam Dolmayan Bölümler</h2>
@@ -306,17 +308,13 @@
   <div id="bstatus" style="margin-top:12px;font-size:13px;color:var(--accent);font-weight:700">Yükleniyor…</div>
 </div>
 <div class="data-table-wrap"><table class="data-table" data-live="1">
-<thead><tr><th>Program / Üniversite</th><th>İl</th><th>Tür</th><th>Düzey</th><th>Kont.</th><th>Yerleşen</th><th>Boş</th><th>Doluluk</th></tr></thead>
+<thead><tr><th data-tip="Programın adı ve bağlı olduğu üniversite." data-type="text">Program / Üniversite</th><th data-tip="Programın bulunduğu il." data-type="text">İl</th><th data-tip="Üniversite türü: Devlet, Vakıf, KKTC veya özel kontenjan türü." data-type="text">Tür</th><th data-tip="Öğrenim düzeyi: Lisans (4 yıl) veya Önlisans (2 yıl)." data-type="text">Düzey</th><th data-tip="2025 genel kontenjanı: programa alınacak öğrenci sayısı." data-type="num">Kont.</th><th data-tip="Kontenjana yerleşen öğrenci sayısı." data-type="num">Yerleşen</th><th data-tip="Dolmayan kontenjan (kontenjan − yerleşen)." data-type="num">Boş</th><th data-tip="Doluluk = yerleşen ÷ kontenjan." data-type="num">Doluluk</th></tr></thead>
 <tbody id="bbody"></tbody></table></div>
-<div style="display:flex;justify-content:center;align-items:center;gap:14px;margin-top:14px">
-  <button type="button" class="btn btn-ghost" id="bprev">← Geri</button>
-  <span id="bpginfo" style="font-size:13px;color:var(--fg-faded);min-width:180px;text-align:center"></span>
-  <button type="button" class="btn btn-ghost" id="bnext">İleri →</button>
-</div></div>
+<nav id="bPager"></nav></div>
 <script nonce="__NONCE__">
 (function(){
   var TUR={D:'Devlet',V:'Özel (Vakıf)',K:'KKTC',DK:'Devlet (KKTC Kampüs)',DU:'Devlet (Ücretli)',DKU:'Devlet (KKTC Uyruklu)','?':'—'},DUZ={L:'Lisans',O:'Önlisans'};
-  var data=[],page=0,PAGE=20,sortI=null,sortD=1;
+  var data=[],pgr=null,sortI=null,sortD=1;   // sayfalama: TrVeri STANDART pager.js (rule 3.17)
   var SCOLS=[[1,0],[2,0],[3,0],[4,0],[5,1],[6,1],['bos',1],[7,1]];
   function el(i){return document.getElementById(i);}
   var nf=function(n){return n==null?'—':Number(n).toLocaleString('tr-TR');};
@@ -341,23 +339,19 @@
   }
   function render(){
     var rows=sortRows(filtered());
-    var total=rows.length,pages=Math.max(1,Math.ceil(total/PAGE));
-    if(page>=pages)page=pages-1; if(page<0)page=0;
-    el('bstatus').textContent=total.toLocaleString('tr-TR')+' boş kalan program bulundu';
-    var start=page*PAGE,tb=el('bbody');tb.innerHTML='';
-    rows.slice(start,start+PAGE).forEach(function(r){
-      var tr=document.createElement('tr');
-      tr.innerHTML='<td><strong>'+(r[1]||'')+'</strong><br><small>'+(r[0]||'')+'</small></td>'+
+    el('bstatus').textContent=rows.length.toLocaleString('tr-TR')+' boş kalan program bulundu';
+    var tb=el('bbody'),out=[];
+    rows.forEach(function(r){
+      out.push('<tr><td><strong>'+(r[1]||'')+'</strong><br><small>'+(r[0]||'')+'</small></td>'+
         '<td>'+(r[2]||'—')+'</td><td>'+(TUR[r[3]]||'—')+'</td><td>'+(DUZ[r[4]]||'—')+'</td>'+
         '<td>'+nf(r[5])+'</td><td>'+nf(r[6])+'</td><td><strong>'+nf(r[5]-r[6])+'</strong></td>'+
-        '<td><span class="tag tag-other">%'+r[7]+'</span></td>';
-      tb.appendChild(tr);
+        '<td><span class="tag tag-other">%'+r[7]+'</span></td></tr>');
     });
-    el('bpginfo').textContent=total?((start+1)+'–'+Math.min(start+PAGE,total)+' / '+total.toLocaleString('tr-TR')+' · sayfa '+(page+1)+'/'+pages):'sonuç yok';
-    el('bprev').disabled=page<=0; el('bnext').disabled=page>=pages-1;
-    el('bprev').style.opacity=page<=0?'.45':'1'; el('bnext').style.opacity=page>=pages-1?'.45':'1';
+    tb.innerHTML=out.join('');
+    if(!pgr&&window.TVPager)pgr=window.TVPager.attach({grid:tb.parentNode,per:25,mount:el('bPager')});
+    else if(pgr)pgr.reset();
   }
-  function reset(){page=0;render();}
+  function reset(){render();}
   fetch('/veri/doluluk_bos.json').then(function(r){return r.json();}).then(function(j){
     data=j;
     var set={};data.forEach(function(r){if(r[2])set[r[2]]=1;});
@@ -366,12 +360,11 @@
     render();
   }).catch(function(){el('bstatus').textContent='Veri yüklenemedi.';});
   ['bq','bil','btur','bduz'].forEach(function(id){el(id).addEventListener('input',reset);el(id).addEventListener('change',reset);});
-  el('bprev').addEventListener('click',function(){page--;render();});
-  el('bnext').addEventListener('click',function(){page++;render();});
   var hs=document.querySelectorAll('.section table[data-live] thead th');
   hs.forEach(function(th,i){th.style.cursor='pointer';th.title='Sıralamak için tıklayın';
     th.addEventListener('click',function(){sortD=(sortI===i)?-sortD:1;sortI=i;
-      hs.forEach(function(o){var a=o.querySelector('.s-arrow');if(a)a.remove();});
+      hs.forEach(function(o){o.removeAttribute('aria-sort');var a=o.querySelector('.s-arrow');if(a)a.remove();});
+      th.setAttribute('aria-sort',sortD>0?'ascending':'descending');
       var ar=document.createElement('span');ar.className='s-arrow';ar.textContent=sortD>0?' ▲':' ▼';th.appendChild(ar);reset();});});
 })();
 </script>
@@ -379,12 +372,12 @@
 <div class="section"><h2>En Düşük Doluluklu Bölümler</h2>
 <div class="section-sub">En az 30 programı olan bölüm grupları · doluluk artan sıra</div>
 <div class="data-table-wrap"><table class="data-table">
-<thead><tr><th>Bölüm</th><th>Program</th><th>Kontenjan</th><th>Doluluk</th></tr></thead>
+<thead><tr><th data-tip="Bölüm grubu adı." data-type="text">Bölüm</th><th data-tip="Bu bölüm grubundaki program sayısı." data-type="num">Program</th><th data-tip="Bölüm grubunun toplam kontenjanı." data-type="num">Kontenjan</th><th data-tip="Doluluk = yerleşen ÷ kontenjan." data-type="num">Doluluk</th></tr></thead>
 <tbody></tbody></table></div></div>
 
 <div class="section"><h2>En Yüksek Doluluklu Bölümler</h2>
 <div class="data-table-wrap"><table class="data-table">
-<thead><tr><th>Bölüm</th><th>Program</th><th>Kontenjan</th><th>Doluluk</th></tr></thead>
+<thead><tr><th data-tip="Bölüm grubu adı." data-type="text">Bölüm</th><th data-tip="Bu bölüm grubundaki program sayısı." data-type="num">Program</th><th data-tip="Bölüm grubunun toplam kontenjanı." data-type="num">Kontenjan</th><th data-tip="Doluluk = yerleşen ÷ kontenjan." data-type="num">Doluluk</th></tr></thead>
 <tbody></tbody></table></div></div>
 
 <div class="notice"><b>Kaynak:</b> YÖK Atlas 2025. Doluluk, genel kontenjana yerleşen sayısının oranıdır; ek yerleştirme/dikey
@@ -435,8 +428,9 @@ geçiş hariçtir. Düşük doluluk talebin az olduğunu, yüksek doluluk progra
       th.style.cursor='pointer'; th.title='Sıralamak için tıklayın'; th.dataset.dir='0';
       th.addEventListener('click',function(){
         var dir=th.dataset.dir==='1'?-1:1;
-        ths.forEach(function(o){o.dataset.dir='0';var a=o.querySelector('.s-arrow');if(a)a.remove();});
+        ths.forEach(function(o){o.dataset.dir='0';o.removeAttribute('aria-sort');var a=o.querySelector('.s-arrow');if(a)a.remove();});
         th.dataset.dir=dir>0?'1':'-1';
+        th.setAttribute('aria-sort',dir>0?'ascending':'descending');
         sortBody(tb,i,dir);
         var ar=document.createElement('span');ar.className='s-arrow';ar.textContent=dir>0?' ▲':' ▼';th.appendChild(ar);
       });

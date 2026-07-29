@@ -48,6 +48,73 @@ NAV = [
 SHARE_BAR = '<div class="share-bar"></div>'
 SHARE_JS = f'<script src="/assets/share.js?v={ASSET_VER}" nonce="__NONCE__" defer></script>'
 
+# TrVeri STANDART veri tablosu bileşenleri (rule 3.17) — servermimari/assets/{pager,table}.js kopyası.
+# ⚠️ defer YOK: sayfa gövdesindeki inline script'ler (DETAIL_TOOLS_JS, SEARCH_JS…) senkron olarak
+# window.TVPager çağırır; defer'li yüklemede bu script'ler TVPager tanımlanmadan çalışırdı.
+TABLE_JS = (f'<script src="/assets/pager.js?v={ASSET_VER}" nonce="__NONCE__"></script>\n'
+            f'<script src="/assets/table.js?v={ASSET_VER}" nonce="__NONCE__"></script>')
+
+
+# ───────── KOLON BAŞLIĞI AÇIKLAMALARI (TrVeri rule 3.17) ─────────
+# th[data-tip] → masaüstünde hover, mobilde ⓘ ile görünür (assets/table.js).
+# Yalnız sütunun GERÇEK anlamına göre yazılır; bilinmeyen başlığa açıklama üretilmez.
+TH_TIPS = {
+    "Kurum": ("Kadronun/kontenjanın ait olduğu kurum (üniversite, hastane, bakanlık vb.).", "text"),
+    "Üniversite": ("Programın açıldığı üniversite.", "text"),
+    "Program": ("Programın ÖSYM/YÖK Atlas kılavuzundaki tam adı.", "text"),
+    "Bölüm": ("Bölüm/program adı.", "text"),
+    "Bölüm Grubu": ("Programın bağlı olduğu genel bölüm grubu.", "text"),
+    "Uzmanlık Dalı": ("Uzmanlık dalı; parantez içi kadro türüdür (ÜNİ, SBA, EAH…).", "text"),
+    "Kadro": ("Atama yapılan kadro/pozisyon unvanı; parantezdeki kod ÖSYM kadro kodudur.", "text"),
+    "Ad": ("Kayıt adı.", "text"),
+    "İl": ("Kurumun/programın bulunduğu il.", "text"),
+    "İlçe": ("Okulun bulunduğu ilçe.", "text"),
+    "İl / İlçe": ("Okulun bulunduğu il ve ilçe.", "text"),
+    "Şehir": ("Üniversitenin bulunduğu şehir.", "text"),
+    "Tür": ("Kurum/kontenjan türü.", "text"),
+    "Kontenjan Türü": ("ÖSYM kontenjan türü (ÜNİ, SBA, EAH, MSB, KKTC…).", "text"),
+    "Düzey": ("Kadronun istediği öğrenim düzeyi: Lisans, Önlisans veya Ortaöğretim.", "text"),
+    "Dönem": ("Kadronun yer aldığı ÖSYM yerleştirme dönemi (ör. KPSS-2025/1).", "text"),
+    "Puan Türü": ("Programın tercih edildiği puan türü (Sayısal, Eşit Ağırlık, Sözel, Dil, TYT).", "text"),
+    "Kont.": ("İlan edilen kontenjan (alınacak öğrenci/personel sayısı).", "num"),
+    "Kontenjan": ("İlan edilen kontenjan (alınacak öğrenci/personel sayısı).", "num"),
+    "Yerleşen": ("Kontenjana yerleşen kişi sayısı.", "num"),
+    "Boş": ("Dolmayan kontenjan sayısı (kontenjan − yerleşen).", "num"),
+    "Doluluk": ("Doluluk = yerleşen ÷ kontenjan. %100 kontenjanın tamamen dolduğunu gösterir.", "num"),
+    "Taban": ("Yerleşen son adayın puanı (en düşük yerleşme puanı).", "num"),
+    "Tavan": ("Yerleşen ilk adayın puanı (en yüksek yerleşme puanı).", "num"),
+    "2025 Taban": ("2025'te yerleşen son adayın puanı (en düşük yerleşme puanı).", "num"),
+    "2024": ("2024 yılı taban puanı; yıllar arası değişimi görmek için.", "num"),
+    "2023": ("2023 yılı taban puanı; yıllar arası değişimi görmek için.", "num"),
+    "2025": ("2025 yılı taban puanı.", "num"),
+    "Trend": ("2025 tabanının bir önceki yıla göre değişimi (↑ yükseldi, ↓ düştü, → aynı).", "text"),
+    "Şans": ("Girdiğin puana göre yerleşme şansı: Rahat (güvenli), Olası, Sınırda (riskli).", "text"),
+    "Başarı Sırası": ("Yerleşen son adayın başarı sırası. Küçük sıra = daha yüksek başarı.", "num"),
+    "Sıra": ("Yerleşen son adayın başarı sırası. Küçük sıra = daha yüksek başarı.", "num"),
+    "Yüzdelik": ("Yerleşen son öğrencinin LGS yüzdelik dilimi. Küçük yüzdelik = daha başarılı.", "num"),
+    "Lise": ("Sınavla öğrenci alan lisenin resmî adı.", "text"),
+    "Yabancı Dil": ("Lisede okutulan birinci yabancı dil.", "text"),
+    "2025 Taban Puan": ("2025'te liseye yerleşen son öğrencinin LGS puanı.", "num"),
+    "Vakıf Prog.": ("Bu bölümün vakıf üniversitelerindeki program sayısı.", "num"),
+    "Ücret Aralığı": ("Bölümün vakıf üniversitelerindeki en düşük – en yüksek yıllık öğrenim ücreti.", "num"),
+    "Yıllık Ücret Aralığı": ("Üniversitenin programlarındaki en düşük – en yüksek yıllık öğrenim ücreti.", "num"),
+    "Medyan": ("Bölümün vakıf üniversitelerindeki ortanca (medyan) yıllık öğrenim ücreti.", "num"),
+    "Burs": ("Üniversitede burslu (tam/kısmi) program bulunup bulunmadığı.", "text"),
+    "Sınav": ("Sınavın resmî adı.", "text"),
+    "Başvuru": ("Sınav başvurularının alındığı tarih aralığı.", "text"),
+    "Sınav Tarihi": ("Sınavın yapılacağı resmî tarih.", "date"),
+    "Sonuç": ("Sonuçların açıklanacağı resmî tarih.", "date"),
+}
+
+
+def th_html(label, extra=""):
+    """<th> üretir; başlık TH_TIPS'te tanımlıysa data-tip + data-type ekler (rule 3.17)."""
+    t = TH_TIPS.get(label)
+    if not t:
+        return f"<th{(' ' + extra) if extra else ''}>{label}</th>"
+    tip = t[0].replace('"', "&quot;")
+    return f'<th data-tip="{tip}" data-type="{t[1]}"{(" " + extra) if extra else ""}>{label}</th>'
+
 
 def jsonld(title, desc, slug, extra=None):
     url = SITE + "/" + (slug if slug != "index.html" else "")
@@ -386,6 +453,7 @@ def base(slug, title, desc, body, *, extra_head="", extra_ld=None, og_image=None
   (function(){{ try {{ if (localStorage.getItem('sinavveri-theme') === 'dark') document.documentElement.setAttribute('data-theme','dark'); }} catch(e){{}} }})();
 </script>
 {SV_HELPER_JS}
+{TABLE_JS}
 <link rel="stylesheet" href="/assets/style.css?v={ASSET_VER}">
 <link rel="manifest" href="/manifest.json">
 {extra_head}
@@ -453,8 +521,9 @@ def base(slug, title, desc, body, *, extra_head="", extra_ld=None, og_image=None
       th.style.cursor='pointer'; th.title='Sıralamak için tıklayın'; th.dataset.dir='0';
       th.addEventListener('click',function(){{
         var dir=th.dataset.dir==='1'?-1:1;
-        ths.forEach(function(o){{o.dataset.dir='0';var a=o.querySelector('.s-arrow');if(a)a.remove();}});
+        ths.forEach(function(o){{o.dataset.dir='0';o.removeAttribute('aria-sort');var a=o.querySelector('.s-arrow');if(a)a.remove();}});
         th.dataset.dir=dir>0?'1':'-1';
+        th.setAttribute('aria-sort',dir>0?'ascending':'descending');
         sortBody(tb,i,dir);
         var ar=document.createElement('span');ar.className='s-arrow';ar.textContent=dir>0?' ▲':' ▼';th.appendChild(ar);
       }});
@@ -1186,7 +1255,7 @@ def page_takvim():
 <div class="page-title"><h1>2026 Sınav Takvimi</h1><span class="sub">ÖSYM ve MEB resmî takvimine göre · Güncelleme: {fmt_date(CAL['guncelleme'])}</span></div>
 <div class="data-table-wrap">
 <table class="data-table">
-<thead><tr><th>Tür</th><th>Sınav</th><th>Başvuru</th><th>Sınav Tarihi</th><th>Sonuç</th></tr></thead>
+<thead><tr><th data-tip="Sınavı düzenleyen kurum / sınav ailesi." data-type="text">Tür</th><th data-tip="Sınavın resmî adı." data-type="text">Sınav</th><th data-tip="Sınav başvurularının alındığı tarih aralığı." data-type="text">Başvuru</th><th data-tip="Sınavın yapılacağı resmî tarih." data-type="date">Sınav Tarihi</th><th data-tip="Sonuçların açıklanacağı resmî tarih." data-type="date">Sonuç</th></tr></thead>
 <tbody>
 {rows}
 </tbody>
@@ -2108,7 +2177,7 @@ SEARCH_JS = r"""<script nonce="__NONCE__">
   var PTL={say:'Sayısal',ea:'Eşit Ağırlık',soz:'Sözel',dil:'Dil',tyt:'TYT (Önlisans)'};
   var SV=window.SV||{};
   function doluluk(r){var k=r[IDX.kont],y=r[IDX.yer];if(!k||y==null)return '—';var p=Math.round(y/k*100);var c=p>=100?'tag-lgs':(p>=70?'tag-kpss':'tag-other');return '<span class="tag '+c+'">%'+p+'</span>';}
-  var data=[], shown=0, PAGE=50, cache={};
+  var data=[], cache={}, pgr=null;   // sayfalama: TrVeri STANDART pager.js (rule 3.17)
   var nf=function(n){return n==null?'—':n.toLocaleString('tr-TR');};
   var pf=function(n){return n==null?'—':n.toLocaleString('tr-TR',{minimumFractionDigits:2,maximumFractionDigits:2});};
   function el(id){return document.getElementById(id);}
@@ -2221,29 +2290,28 @@ SEARCH_JS = r"""<script nonce="__NONCE__">
     return rows;
   }
   function render(reset){
-    if(reset!==false){shown=0;syncQS();}
+    if(reset!==false){syncQS();}
     var rows=applySort(filtered());
     el('status').textContent=rows.length.toLocaleString('tr-TR')+' program bulundu';
-    if(!rows.length){if(SV.empty)SV.empty('tbody',8);el('moreWrap').style.display='none';return;}
-    shown=Math.min(shown+PAGE,rows.length); if(shown===0&&rows.length)shown=Math.min(PAGE,rows.length);
-    var tb=el('tbody'); tb.innerHTML=''; byKey={};
-    rows.slice(0,shown||PAGE).forEach(function(r){
+    var tb=el('tbody'); byKey={};
+    if(!rows.length){if(SV.empty)SV.empty('tbody',8);if(pgr)pgr.reset();return;}
+    var out=[];
+    rows.forEach(function(r){
       var k=rkey(r); byKey[k]=r;
-      var tr=document.createElement('tr');
       var kc=nf(r[IDX.kont]),kk=r[IDX.kont],yy=r[IDX.yer];
       if(kk!=null&&yy!=null&&yy<kk)kc=nf(kk)+' <small style="color:var(--fg-faded)">/ '+nf(yy)+' yerleşti</small>';
-      tr.innerHTML='<td><strong>'+(r[IDX.b]||'')+'</strong><br><small>'+(r[IDX.u]||'')+'</small></td>'+
+      out.push('<tr><td><strong>'+(r[IDX.b]||'')+'</strong><br><small>'+(r[IDX.u]||'')+'</small></td>'+
         '<td>'+(r[IDX.il]||'—')+'</td>'+
         '<td><span class="tag tag-other">'+(TUR[r[IDX.t]]||'—')+'</span></td>'+
         '<td>'+kc+'</td>'+
         '<td><strong>'+pf(r[IDX.tp])+'</strong></td>'+
         '<td>'+nf(r[IDX.sira])+(SV.spark?SV.spark([r[IDX.s23],r[IDX.s24],r[IDX.sira]],true):'')+'</td>'+
         '<td>'+doluluk(r)+'</td>'+
-        '<td style="text-align:center"><input type="checkbox" class="cmp-cb" aria-label="Karşılaştır" data-k="'+k.replace(/"/g,'&quot;')+'"'+(cmp[k]?' checked':'')+'></td>';
-      tb.appendChild(tr);
+        '<td style="text-align:center"><input type="checkbox" class="cmp-cb" aria-label="Karşılaştır" data-k="'+k.replace(/"/g,'&quot;')+'"'+(cmp[k]?' checked':'')+'></td></tr>');
     });
-    el('moreWrap').style.display = (shown<rows.length)?'block':'none';
-    el('moreInfo').textContent=shown+' / '+rows.length.toLocaleString('tr-TR');
+    tb.innerHTML=out.join('');
+    if(!pgr&&window.TVPager)pgr=window.TVPager.attach({grid:tb.parentNode,per:25,mount:el('moreWrap')});
+    else if(pgr)pgr.reset();
   }
   // ── Karşılaştırma ──
   function cmpCount(){var n=0;for(var k in cmp)if(cmp.hasOwnProperty(k))n++;return n;}
@@ -2285,12 +2353,12 @@ SEARCH_JS = r"""<script nonce="__NONCE__">
   if(el('fBurs'))el('fBurs').addEventListener('change',function(){repopulate();render(true);});
   if(el('fDol'))el('fDol').addEventListener('change',function(){repopulate();render(true);});
   el('ptSel').addEventListener('change',function(){load(this.value);});
-  el('moreBtn').addEventListener('click',function(){render(false);});
   (function(){var ths=document.querySelectorAll('.data-table thead th');ths.forEach(function(th,i){
     if(th.hasAttribute('data-nosort'))return;
     th.style.cursor='pointer';th.title='Sıralamak için tıklayın';
     th.addEventListener('click',function(){sortD=(sortI===i)?-sortD:1;sortI=i;
-      ths.forEach(function(o){var a=o.querySelector('.s-arrow');if(a)a.remove();});
+      ths.forEach(function(o){o.removeAttribute('aria-sort');var a=o.querySelector('.s-arrow');if(a)a.remove();});
+      th.setAttribute('aria-sort',sortD>0?'ascending':'descending');
       var ar=document.createElement('span');ar.className='s-arrow';ar.textContent=sortD>0?' ▲':' ▼';th.appendChild(ar);render(true);});});})();
   applyQS();
   var qs0=SV.qsGet?SV.qsGet():{}; if(qs0.pt&&PTL[qs0.pt])el('ptSel').value=qs0.pt;
@@ -2330,7 +2398,7 @@ def page_taban_index():
 
 <div class="data-table-wrap">
 <table class="data-table cardify" data-live="1">
-<thead><tr><th>Program / Üniversite</th><th>İl</th><th>Tür</th><th>Kont. / Yerleşen</th><th>Taban Puan</th><th>Başarı Sırası</th><th>Doluluk</th><th data-nosort title="Karşılaştırmak için seç">Kıyas</th></tr></thead>
+<thead><tr><th data-tip="Programın YÖK Atlas'taki tam adı ve bağlı olduğu üniversite." data-type="text">Program / Üniversite</th><th data-tip="Programın bulunduğu il." data-type="text">İl</th><th data-tip="Üniversite türü: Devlet, Vakıf, KKTC veya özel kontenjan türü." data-type="text">Tür</th><th data-tip="2025 genel kontenjanı; dolmadıysa yanında yerleşen sayısı gösterilir." data-type="num">Kont. / Yerleşen</th><th data-tip="Programa en son yerleşen adayın 2025 YKS yerleştirme puanı." data-type="num">Taban Puan</th><th data-tip="En son yerleşen adayın 2025 başarı sırası. Küçük sıra = daha yüksek başarı." data-type="num">Başarı Sırası</th><th data-tip="Doluluk = yerleşen ÷ kontenjan. %100 kontenjanın tamamen dolduğunu gösterir." data-type="num">Doluluk</th><th data-nosort data-tip="En fazla 3 programı işaretleyip yan yana karşılaştırın.">Kıyas</th></tr></thead>
 <tbody id="tbody"></tbody>
 </table>
 </div>
@@ -2339,10 +2407,7 @@ def page_taban_index():
   <button type="button" class="fav-toggle" id="cmpBtn">Karşılaştır (0)</button>
   <button type="button" class="fchip-clear" id="cmpClear" style="margin-left:8px">Seçimi temizle</button>
 </div>
-<div id="moreWrap" style="text-align:center;margin-top:16px;display:none">
-  <button type="button" class="btn btn-primary" id="moreBtn">Daha fazla göster</button>
-  <div id="moreInfo" style="font-size:12px;color:var(--fg-faded);margin-top:6px"></div>
-</div>
+<nav id="moreWrap"></nav>
 
 <div class="notice"><b>Kaynak:</b> YÖK Atlas 2025 Tercih Kılavuzu (en güncel tamamlanmış yerleştirme). Taban puanı ve başarı sırası
 o programa <b>en son yerleşen</b> adayın verisidir. Yerleşen olmayan programlarda değer boştur (—).
@@ -2360,7 +2425,7 @@ ROBOT_JS = r"""<script nonce="__NONCE__">
   var TUR={D:'Devlet',V:'Vakıf',K:'KKTC',DK:'Devlet (KKTC Kampüs)',DU:'Devlet (Ücretli)',DKU:'Devlet (KKTC Uyruklu)',Y:'Diğer','?':'—'};
   var PTL={say:'Sayısal',ea:'Eşit Ağırlık',soz:'Sözel',dil:'Dil',tyt:'TYT (Önlisans)'};
   var SV=window.SV||{};
-  var data=[],cache={},byId={};
+  var data=[],cache={},byId={},pgr=null;   // sayfalama: TrVeri STANDART pager.js (rule 3.17)
   var fav=SV.initFav?SV.initFav({ns:'yks',barId:'favBar',panelId:'favPanel',btnId:'favBtn'}):null;
   var nf=function(n){return n==null?'—':n.toLocaleString('tr-TR');};
   var pf=function(n){return n==null?'—':n.toLocaleString('tr-TR',{minimumFractionDigits:2,maximumFractionDigits:2});};
@@ -2407,22 +2472,24 @@ ROBOT_JS = r"""<script nonce="__NONCE__">
       return String(x==null?'':x).localeCompare(String(y==null?'':y),'tr')*sortD;});
   }
   function draw(){
-    var tb=el('rbody'); tb.innerHTML=''; byId={};
-    if(!lastReach.length){if(SV.empty)SV.empty('rbody',7,'Bu sıralama ve filtrelerle yerleşebileceğin program bulunamadı. Filtreyi gevşetmeyi deneyin.');el('rhint').style.display='none';return;}
-    lastReach.slice(0,200).forEach(function(r){
+    var tb=el('rbody'); byId={};
+    if(!lastReach.length){tb.innerHTML='';if(SV.empty)SV.empty('rbody',7,'Bu sıralama ve filtrelerle yerleşebileceğin program bulunamadı. Filtreyi gevşetmeyi deneyin.');el('rhint').style.display='none';if(pgr)pgr.reset();return;}
+    var out=[];
+    lastReach.forEach(function(r){
       var ratio=r[IDX.sira]/lastSira;  // taban sıra / senin sıran (>1 = taban daha geride = güvenli)
       var safe = ratio>=1.20 ? '<span class="tag tag-lgs">Rahat</span>' : (ratio>=1.0 ? '<span class="tag tag-kpss">Olası</span>' : '<span class="tag tag-other">Sınırda</span>');
       var k=rkey(r); byId[k]={id:k,name:r[IDX.b]||'',sub:r[IDX.u]||'',meta:'taban sıra '+nf(r[IDX.sira])};
       var on=fav&&fav.has(k);
-      var tr=document.createElement('tr');
-      tr.innerHTML='<td><strong>'+(r[IDX.b]||'')+'</strong><br><small>'+(r[IDX.u]||'')+'</small></td>'+
+      out.push('<tr><td><strong>'+(r[IDX.b]||'')+'</strong><br><small>'+(r[IDX.u]||'')+'</small></td>'+
         '<td>'+(r[IDX.il]||'—')+'</td>'+'<td>'+(TUR[r[IDX.t]]||'—')+'</td>'+
         '<td><strong>'+pf(r[IDX.tp])+'</strong></td>'+'<td>'+nf(r[IDX.sira])+'</td>'+'<td>'+safe+'</td>'+
-        '<td style="text-align:center"><button type="button" class="fav-star'+(on?' on':'')+'" data-fid="'+k.replace(/"/g,'&quot;')+'" aria-label="Tercih listeme ekle">'+(on?'★':'☆')+'</button></td>';
-      tb.appendChild(tr);
+        '<td style="text-align:center"><button type="button" class="fav-star'+(on?' on':'')+'" data-fid="'+k.replace(/"/g,'&quot;')+'" aria-label="Tercih listeme ekle">'+(on?'★':'☆')+'</button></td></tr>');
     });
-    el('rhint').style.display = lastReach.length>200 ? 'block':'none';
-    el('rhint').textContent='İlk 200 program gösteriliyor. Sütun başlığına tıklayarak sıralayın; il/tür ile daraltın.';
+    tb.innerHTML=out.join('');
+    if(!pgr&&window.TVPager)pgr=window.TVPager.attach({grid:tb.parentNode,per:25,mount:el('rPager')});
+    else if(pgr)pgr.reset();
+    el('rhint').style.display='block';
+    el('rhint').textContent='Sütun başlığına tıklayarak sıralayabilir, il/tür/dil filtreleriyle listeyi daraltabilirsiniz.';
   }
   function run(){
     var pt=el('rPt').value;
@@ -2461,7 +2528,8 @@ ROBOT_JS = r"""<script nonce="__NONCE__">
     if(th.hasAttribute('data-nosort'))return;
     th.style.cursor='pointer';th.title='Sıralamak için tıklayın';
     th.addEventListener('click',function(){if(!lastReach.length)return;sortD=(sortI===i)?-sortD:1;sortI=i;
-      ths.forEach(function(o){var a=o.querySelector('.s-arrow');if(a)a.remove();});
+      ths.forEach(function(o){o.removeAttribute('aria-sort');var a=o.querySelector('.s-arrow');if(a)a.remove();});
+      th.setAttribute('aria-sort',sortD>0?'ascending':'descending');
       var ar=document.createElement('span');ar.className='s-arrow';ar.textContent=sortD>0?' ▲':' ▼';th.appendChild(ar);sortReach();draw();});});})();
   (function(){
     var qs=SV.qsGet?SV.qsGet():{};
@@ -2511,10 +2579,11 @@ def page_tercih_robotu():
 
 <div class="data-table-wrap">
 <table class="data-table" data-live="1">
-<thead><tr><th>Program / Üniversite</th><th>İl</th><th>Tür</th><th>Taban Puan</th><th>Başarı Sırası</th><th>Şans</th><th data-nosort title="Tercih listene ekle">⭐</th></tr></thead>
+<thead><tr><th data-tip="Programın YÖK Atlas'taki tam adı ve bağlı olduğu üniversite." data-type="text">Program / Üniversite</th><th data-tip="Programın bulunduğu il." data-type="text">İl</th><th data-tip="Üniversite türü: Devlet, Vakıf, KKTC veya özel kontenjan türü." data-type="text">Tür</th><th data-tip="Programa 2025'te en son yerleşen adayın YKS yerleştirme puanı." data-type="num">Taban Puan</th><th data-tip="Programın 2025 taban başarı sırası. Küçük sıra = daha yüksek başarı." data-type="num">Başarı Sırası</th><th data-tip="Girdiğin sıraya göre yerleşme şansı: Rahat (güvenli), Olası (sıraya yakın), Sınırda (riskli)." data-type="text">Şans</th><th data-nosort data-tip="Programı ⭐ ile tercih listene ekle.">⭐</th></tr></thead>
 <tbody id="rbody"></tbody>
 </table>
 </div>
+<nav id="rPager"></nav>
 <div id="rhint" style="display:none;font-size:12px;color:var(--fg-faded);margin-top:10px;text-align:center"></div>
 
 <div class="notice"><b>Nasıl çalışır?</b> Sıranı girdiğinde hem rahat yerleşeceğin hem de <b>şansın olan</b> programlar listelenir.
@@ -2606,7 +2675,7 @@ PUAN_ROBOT_JS = r"""<script nonce="__NONCE__">
       initFilters();run();
     });
   }
-  var lastReach=[],userP=0,sortI=null,sortD=1;
+  var lastReach=[],userP=0,sortI=null,sortD=1,pgr=null;   // sayfalama: pager.js (rule 3.17)
   var SCOLS=[[CFG.nb,0]];CFG.show.forEach(function(c){SCOLS.push([c[0],0]);});SCOLS.push([CFG.taban,1]);
   function sortReach(){
     if(sortI==null||sortI>=SCOLS.length){lastReach.sort(function(a,b){return (b[CFG.taban]||0)-(a[CFG.taban]||0);});return;}
@@ -2617,9 +2686,10 @@ PUAN_ROBOT_JS = r"""<script nonce="__NONCE__">
   }
   function rkey(r){return String(r[CFG.nb])+'|'+(CFG.ns!=null?String(r[CFG.ns]):'')+'|'+String(r[CFG.taban]);}
   function draw(){
-    var tb=el('rbody');tb.innerHTML='';byId={};
-    if(!lastReach.length){if(SV.empty)SV.empty('rbody',NCOL,'Bu puan ve filtrelerle yerleşebileceğin sonuç bulunamadı. Puanı veya filtreleri gözden geçirin.');el('rhint').style.display='none';return;}
-    lastReach.slice(0,200).forEach(function(r){
+    var tb=el('rbody');byId={};
+    if(!lastReach.length){tb.innerHTML='';if(SV.empty)SV.empty('rbody',NCOL,'Bu puan ve filtrelerle yerleşebileceğin sonuç bulunamadı. Puanı veya filtreleri gözden geçirin.');el('rhint').style.display='none';if(pgr)pgr.reset();return;}
+    var out=[];
+    lastReach.forEach(function(r){
       var m=userP-r[CFG.taban];
       var safe=m>=CFG.t1?'<span class="tag tag-lgs">Rahat</span>':(m>=0?'<span class="tag tag-kpss">Olası</span>':'<span class="tag tag-other">Sınırda</span>');
       var name='<td><strong>'+(r[CFG.nb]||'')+'</strong>'+(CFG.ns!=null?'<br><small>'+(r[CFG.ns]||'')+'</small>':'')+'</td>';
@@ -2627,12 +2697,13 @@ PUAN_ROBOT_JS = r"""<script nonce="__NONCE__">
       var k=rkey(r);byId[k]={id:k,name:String(r[CFG.nb]||''),sub:(CFG.ns!=null?String(r[CFG.ns]||''):''),meta:'taban '+pf(r[CFG.taban])};
       var on=fav&&fav.has(k);
       var star='<td style="text-align:center"><button type="button" class="fav-star'+(on?' on':'')+'" data-fid="'+k.replace(/"/g,'&quot;')+'" aria-label="Tercih listeme ekle">'+(on?'★':'☆')+'</button></td>';
-      var tr=document.createElement('tr');
-      tr.innerHTML=name+show+'<td><strong>'+pf(r[CFG.taban])+'</strong></td><td>'+safe+'</td>'+star;
-      tb.appendChild(tr);
+      out.push('<tr>'+name+show+'<td><strong>'+pf(r[CFG.taban])+'</strong></td><td>'+safe+'</td>'+star+'</tr>');
     });
-    el('rhint').style.display=lastReach.length>200?'block':'none';
-    el('rhint').textContent='İlk 200 sonuç gösteriliyor. Daha hassas için filtre/sıralama kullanın.';
+    tb.innerHTML=out.join('');
+    if(!pgr&&window.TVPager)pgr=window.TVPager.attach({grid:tb.parentNode,per:25,mount:el('rPager')});
+    else if(pgr)pgr.reset();
+    el('rhint').style.display='block';
+    el('rhint').textContent='Sütun başlığına tıklayarak sıralayabilir, filtrelerle listeyi daraltabilirsiniz.';
   }
   function run(){
     syncQS();
@@ -2666,7 +2737,8 @@ PUAN_ROBOT_JS = r"""<script nonce="__NONCE__">
       th.addEventListener('click',function(){
         if(!lastReach.length)return;
         sortD=(sortI===i)?-sortD:1; sortI=i;
-        ths.forEach(function(o){var a=o.querySelector('.s-arrow');if(a)a.remove();});
+        ths.forEach(function(o){o.removeAttribute('aria-sort');var a=o.querySelector('.s-arrow');if(a)a.remove();});
+        th.setAttribute('aria-sort',sortD>0?'ascending':'descending');
         var ar=document.createElement('span');ar.className='s-arrow';ar.textContent=sortD>0?' ▲':' ▼';th.appendChild(ar);
         sortReach();draw();
       });
@@ -2698,7 +2770,9 @@ def puan_robot_page(slug, title, desc, h1, sub, veri_file, nb, ns, show, taban, 
         fhtml += (f'<div><label style="font-size:12px;color:var(--fg-faded);font-weight:700">{label}</label>'
                   f'<select id="rf{n}" class="btn btn-ghost" style="text-align:left;width:100%;margin-top:4px">'
                   f'<option value="">Tümü</option></select></div>')
-    thead = "<th>" + ("Program" if ns is not None else "Ad") + "</th>" + "".join(f"<th>{l}</th>" for _, l in show) + '<th>Taban</th><th>Şans</th><th data-nosort title="Tercih listene ekle">⭐</th>'
+    thead = (th_html("Program" if ns is not None else "Ad") + "".join(th_html(l) for _, l in show)
+             + th_html("Taban") + th_html("Şans")
+             + '<th data-nosort data-tip="Kaydı ⭐ ile tercih listene ekle.">⭐</th>')
     ns_key = slug.replace("-tercih-robotu.html", "").replace(".html", "")
     cfg = {"file": veri_file, "nb": nb, "ns": ns, "show": [[i, l] for i, l in show],
            "taban": taban, "filters": [[i, l] for i, l in filters], "noun": noun, "t1": t1, "t2": t2, "ns_key": ns_key}
@@ -2723,6 +2797,7 @@ def puan_robot_page(slug, title, desc, h1, sub, veri_file, nb, ns, show, taban, 
 <div class="data-table-wrap">
 <table class="data-table" data-live="1"><thead><tr>{thead}</tr></thead><tbody id="rbody"></tbody></table>
 </div>
+<nav id="rPager"></nav>
 <div id="rhint" style="display:none;font-size:12px;color:var(--fg-faded);margin-top:10px;text-align:center"></div>
 <div class="notice"><b>Nasıl çalışır?</b> Puanın bir programın/kadronun taban puanından <b>yüksek veya eşitse</b> oraya yerleşebilirsin.
 "Şans" payı güvenliği gösterir: <b>Rahat</b> (geniş pay), <b>Olası</b>, <b>Sınırda</b>. Bu bir tahmindir; gelecek yıl taban puanları
@@ -2869,12 +2944,10 @@ DETAIL_BAR = f"""
   <div id="dStatus" style="margin-top:8px;font-size:12px;color:var(--fg-faded)"></div>
 </div>"""
 
+# TrVeri STANDART sayfalama montaj noktası (rule 3.17) — pager.js navigasyonu buraya çizer.
+# data-table-wrap DIŞINDA olmalı (wrap overflow-x:auto → nav yatay kaydırmaya takılmasın).
 DETAIL_PAGER = """
-<div id="dPager" style="display:none;justify-content:center;align-items:center;gap:14px;margin-top:14px">
-  <button type="button" class="btn btn-ghost" id="dPrev">← Geri</button>
-  <span id="dPageInfo" style="font-size:13px;color:var(--fg-faded);min-width:90px;text-align:center"></span>
-  <button type="button" class="btn btn-ghost" id="dNext">İleri →</button>
-</div>"""
+<nav id="dPager"></nav>"""
 
 DETAIL_CMP = """
 <div class="fav-panel" id="dCmpPanel"></div>
@@ -2895,17 +2968,38 @@ DETAIL_TOOLS_JS = r"""<script nonce="__NONCE__">
   var tbl=document.querySelector('table.detail-table'); if(!tbl)return;
   var tb=tbl.querySelector('tbody'); if(!tb)return;
   var rows=Array.prototype.slice.call(tb.querySelectorAll(':scope>tr')).filter(function(r){return !r.classList.contains('pdet-row');});
-  var ths=Array.prototype.slice.call(tbl.querySelectorAll('thead th')).map(function(h){return h.textContent.trim();});
-  var ncol=ths.length, PAGE=50, page=0, filtered=rows;
+  var thEls=Array.prototype.slice.call(tbl.querySelectorAll('thead th'));
+  // Başlık metni: table.js'in eklediği ⓘ/↕ düğmeleri ve sıralama oku hariç (karşılaştırma etiketleri için)
+  function thLabel(h){var c=h.cloneNode(true);
+    Array.prototype.forEach.call(c.querySelectorAll('.tv-th__i,.tv-th__ind,.s-arrow'),function(x){x.parentNode.removeChild(x);});
+    return c.textContent.trim();}
+  var ths=thEls.map(thLabel);
+  var ncol=ths.length;
   var DIMS=[['dIl','data-il','İl'],['dTur','data-tur','Tür'],['dDil','data-dil','Dil'],['dUni','data-uni','Üni']];
   function el(i){return document.getElementById(i);}
   function num(s){s=(s||'').replace(/[^0-9,.\-]/g,'').replace(/\./g,'').replace(',','.');return s===''||s==='-'?NaN:parseFloat(s);}
-  function clearPdet(){Array.prototype.forEach.call(tb.querySelectorAll('.pdet-row'),function(x){x.parentNode.removeChild(x);});}
+  function esc(s){return (''+(s==null?'':s)).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+  function nf(n){return Number(n).toLocaleString('tr-TR');}
   var PH={dIl:'Tüm iller',dTur:'Tüm türler',dDil:'Tüm diller',dUni:'Tüm üniversiteler'};
+
+  // ── Program detayı (ℹ️) satırları ÖNCEDEN ve GİZLİ oluşturulur ────────────────────────────
+  // Neden: pager.js MutationObserver ile tbody childList'i dinler. Detay satırı tıklama anında
+  // EKLENSEYDİ observer tetiklenir → sayfa 1'e sıçrar + açılan detay kaybolurdu. Boş satırlar
+  // baştan var olduğu için tıklama yalnız style.display + innerHTML değiştirir (childList sabit).
+  rows.forEach(function(r){
+    if(!r.querySelector('.pdet'))return;
+    var d=document.createElement('tr'); d.className='pdet-row'; d.style.display='none';
+    var td=document.createElement('td'); td.colSpan=ncol; d.appendChild(td);
+    r.parentNode.insertBefore(d,r.nextSibling);
+    r.__pdet=d;
+  });
+  function closeAllPdet(){rows.forEach(function(r){var d=r.__pdet;if(d){d.style.display='none';d.firstChild.innerHTML='';}});}
+
   // tek değerli boyutu (ör. üni sayfasında il/tür/üni) gizle
   var dimActive={};
   DIMS.forEach(function(dm){var c={};rows.forEach(function(r){var v=r.getAttribute(dm[1]);if(v)c[v]=1;});dimActive[dm[0]]=Object.keys(c).length>=2;var w=el(dm[0]+'W');if(w&&!dimActive[dm[0]])w.style.display='none';});
   function rowPass(r,exceptId){for(var i=0;i<DIMS.length;i++){var dm=DIMS[i];if(dm[0]===exceptId)continue;var s=el(dm[0]);if(s&&s.value&&r.getAttribute(dm[1])!==s.value)return false;}return true;}
+  function dimPass(r){return rowPass(r,null);}
   function repopD(){
     DIMS.forEach(function(dm){if(!dimActive[dm[0]])return;var sel=el(dm[0]);if(!sel)return;var cur=sel.value;
       var cnt={};rows.forEach(function(r){if(!rowPass(r,dm[0]))return;var v=r.getAttribute(dm[1]);if(v)cnt[v]=(cnt[v]||0)+1;});
@@ -2915,70 +3009,80 @@ DETAIL_TOOLS_JS = r"""<script nonce="__NONCE__">
       if(cur&&!hasCur){var o2=document.createElement('option');o2.value=cur;o2.textContent=cur+' (0)';o2.selected=true;sel.appendChild(o2);}
     });
   }
-  DIMS.forEach(function(dm){var sel=el(dm[0]);if(sel)sel.addEventListener('change',function(){page=0;repopD();render();});});
-  repopD();
-  function render(){
-    clearPdet();
-    filtered=rows.filter(function(r){for(var i=0;i<DIMS.length;i++){var s=el(DIMS[i][0]);if(s&&s.value&&r.getAttribute(DIMS[i][1])!==s.value)return false;}return true;});
-    var pages=Math.max(1,Math.ceil(filtered.length/PAGE));if(page>=pages)page=pages-1;if(page<0)page=0;
-    rows.forEach(function(r){r.style.display='none';});
-    filtered.slice(page*PAGE,(page+1)*PAGE).forEach(function(r){r.style.display='';});
-    var st=el('dStatus');if(st)st.textContent=filtered.length.toLocaleString('tr-TR')+' / '+rows.length.toLocaleString('tr-TR')+' program'+(filtered.length>PAGE?(' · sayfa '+(page+1)+'/'+pages):'');
-    var pg=el('dPager');if(pg)pg.style.display=filtered.length>PAGE?'flex':'none';
-    var pi=el('dPageInfo');if(pi)pi.textContent=(page+1)+' / '+pages;
-    if(SV.chips){var items=DIMS.filter(function(dm){var s=el(dm[0]);return s&&s.value;}).map(function(dm){return {key:dm[0],label:dm[2]+': '+el(dm[0]).value};});
-      SV.chips('dChips',items,function(key){if(key==='__all__'){DIMS.forEach(function(dm){var s=el(dm[0]);if(s)s.value='';});}else{var s=el(key);if(s)s.value='';}page=0;repopD();render();});}
+  // TrVeri STANDART sayfalama (rule 3.17): 25/sayfa · numaralı nav + İlk/Son + "Sayfa __ Git" + kayıt/sayfa.
+  // ≤100 kayıtta pager kendini gizler (kural). JS yoksa tüm satırlar görünür (progressive enhancement).
+  var pgr = window.TVPager ? window.TVPager.attach({
+    grid: tbl, per: 25, mount: el('dPager'),
+    match: function(r){ return !r.classList.contains('pdet-row') && dimPass(r); }
+  }) : null;
+  function drawStatus(){
+    var n=0; rows.forEach(function(r){ if(dimPass(r))n++; });
+    var st=el('dStatus'); if(st)st.textContent=n.toLocaleString('tr-TR')+' / '+rows.length.toLocaleString('tr-TR')+' program';
   }
-  var pv=el('dPrev');if(pv)pv.addEventListener('click',function(){if(page>0){page--;render();try{tbl.scrollIntoView({block:'start'});}catch(e){}}});
-  var nx=el('dNext');if(nx)nx.addEventListener('click',function(){if(page<Math.ceil(filtered.length/PAGE)-1){page++;render();try{tbl.scrollIntoView({block:'start'});}catch(e){}}});
+  function apply(){
+    closeAllPdet();
+    if(pgr)pgr.reset();
+    else rows.forEach(function(r){r.style.display=dimPass(r)?'':'none';});
+    drawStatus();
+    if(SV.chips){var items=DIMS.filter(function(dm){var s=el(dm[0]);return s&&s.value;}).map(function(dm){return {key:dm[0],label:dm[2]+': '+el(dm[0]).value};});
+      SV.chips('dChips',items,function(key){if(key==='__all__'){DIMS.forEach(function(dm){var s=el(dm[0]);if(s)s.value='';});}else{var s=el(key);if(s)s.value='';}repopD();apply();});}
+  }
+  DIMS.forEach(function(dm){var sel=el(dm[0]);if(sel)sel.addEventListener('change',function(){repopD();apply();});});
+  repopD();
+  apply();
   var sortI=null,sortD=1;
-  Array.prototype.forEach.call(tbl.querySelectorAll('thead th'),function(th,i){
+  thEls.forEach(function(th,i){
     if(th.hasAttribute('data-nosort'))return;
     th.style.cursor='pointer';th.title='Sıralamak için tıklayın';
     th.addEventListener('click',function(){
       sortD=(sortI===i)?-sortD:1;sortI=i;
-      Array.prototype.forEach.call(tbl.querySelectorAll('thead th'),function(o){var a=o.querySelector('.s-arrow');if(a)a.remove();});
+      thEls.forEach(function(o){o.removeAttribute('aria-sort');var a=o.querySelector('.s-arrow');if(a)a.remove();});
+      th.setAttribute('aria-sort',sortD>0?'ascending':'descending');
       var ar=document.createElement('span');ar.className='s-arrow';ar.textContent=sortD>0?' ▲':' ▼';th.appendChild(ar);
+      closeAllPdet();
       rows.sort(function(a,b){var x=a.children[i],y=b.children[i];if(!x||!y)return 0;
         var xt=x.textContent.trim(),yt=y.textContent.trim(),xn=num(xt),yn=num(yt);
         if(!isNaN(xn)&&!isNaN(yn))return (xn-yn)*sortD;
         if(isNaN(xn)&&isNaN(yn))return xt.localeCompare(yt,'tr')*sortD;
         return isNaN(xn)?1:-1;});
-      clearPdet();rows.forEach(function(r){tb.appendChild(r);});page=0;render();
+      // detay satırı ana satırıyla BİRLİKTE taşınır (eşleşme bozulmasın)
+      var frag=document.createDocumentFragment();
+      rows.forEach(function(r){frag.appendChild(r);if(r.__pdet)frag.appendChild(r.__pdet);});
+      tb.appendChild(frag);
+      if(pgr)pgr.reset(); else rows.forEach(function(r){r.style.display=dimPass(r)?'':'none';});
+      drawStatus();
     });
   });
-  render();
-  var cmp={},order=[];
+  var order=[];
   function refreshBar(){var bar=document.getElementById('dCmpBar');if(bar)bar.classList.toggle('show',order.length>0);var b=document.getElementById('dCmpBtn');if(b)b.textContent='Karşılaştır ('+order.length+')';}
   function buildPanel(){
     var p=document.getElementById('dCmpPanel');if(!p)return;
     if(!order.length){p.classList.remove('open');p.innerHTML='';return;}
     var h='<div class="cmp-grid">';
-    order.forEach(function(idx){var c=cmp[idx].children;
-      h+='<div class="cmp-col"><h4>'+(c[0]?c[0].textContent.trim():'')+'</h4><dl>';
-      for(var i=1;i<ncol-1;i++){h+='<dt>'+ths[i]+'</dt><dd>'+(c[i]?c[i].textContent.trim():'—')+'</dd>';}
+    order.forEach(function(tr){var c=tr.children;
+      h+='<div class="cmp-col"><h4>'+esc(c[0]?c[0].textContent.trim():'')+'</h4><dl>';
+      for(var i=1;i<ncol-1;i++){h+='<dt>'+esc(ths[i])+'</dt><dd>'+esc(c[i]?c[i].textContent.trim():'—')+'</dd>';}
       h+='</dl></div>';});
     p.innerHTML=h+'</div>';p.classList.add('open');
     try{p.scrollIntoView({behavior:'smooth',block:'center'});}catch(e){}
   }
+  // Satır ELEMENTİ ile eşle (indeks DEĞİL): sıralama/sayfalama sonrası indeks kayması olmaz.
   tb.addEventListener('change',function(e){var cb=e.target;if(!cb.classList||!cb.classList.contains('dcmp'))return;
-    var idx=rows.indexOf(cb.closest('tr'));
-    if(cb.checked){if(order.length>=3){cb.checked=false;return;}cmp[idx]=cb.closest('tr');order.push(idx);}
-    else{delete cmp[idx];order=order.filter(function(x){return x!==idx;});}
+    var tr=cb.closest('tr');
+    if(cb.checked){if(order.length>=3){cb.checked=false;return;}if(order.indexOf(tr)<0)order.push(tr);}
+    else{order=order.filter(function(x){return x!==tr;});}
     refreshBar();if(document.getElementById('dCmpPanel').classList.contains('open'))buildPanel();});
   var b1=document.getElementById('dCmpBtn');if(b1)b1.addEventListener('click',function(){var p=document.getElementById('dCmpPanel');if(p.classList.contains('open'))p.classList.remove('open');else buildPanel();});
-  var b2=document.getElementById('dCmpClear');if(b2)b2.addEventListener('click',function(){cmp={};order=[];document.getElementById('dCmpPanel').classList.remove('open');refreshBar();tb.querySelectorAll('.dcmp').forEach(function(c){c.checked=false;});});
+  var b2=document.getElementById('dCmpClear');if(b2)b2.addEventListener('click',function(){order=[];document.getElementById('dCmpPanel').classList.remove('open');refreshBar();tb.querySelectorAll('.dcmp').forEach(function(c){c.checked=false;});});
   // Program detayı (ℹ️): akademik kadro / akreditasyon / süre / ücret / koşullar
   var KOSUL=null, KLAB=['Profesör','Doçent','Dr. Öğr. Üyesi','Araştırma Gör.','Öğretim Gör.'];
-  function esc(s){return (''+(s==null?'':s)).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
-  function nf(n){return Number(n).toLocaleString('tr-TR');}
   if(tb.querySelector('.pdet')){
     fetch('/veri/kosul_map.json').then(function(r){return r.json();}).then(function(j){KOSUL=j;}).catch(function(){KOSUL={};});
     tb.addEventListener('click',function(e){
       var btn=e.target; if(!btn.classList||!btn.classList.contains('pdet'))return;
       var tr=btn.closest('tr');
-      var nx=tr.nextElementSibling;
-      if(nx&&nx.classList.contains('pdet-row')){ nx.parentNode.removeChild(nx); return; }
+      var drow=tr.__pdet; if(!drow)return;
+      if(drow.style.display!=='none'){ drow.style.display='none'; drow.firstChild.innerHTML=''; return; }
       var kadro=(btn.getAttribute('data-kadro')||'').split(',').map(function(x){return parseInt(x,10)||0;});
       var parts=[];
       var hraw=(btn.getAttribute('data-hist')||'').split(';').filter(Boolean);
@@ -2988,7 +3092,7 @@ DETAIL_TOOLS_JS = r"""<script nonce="__NONCE__">
         var hr=hraw.map(function(c){var p=c.split(':');
           return '<tr><td><b>'+esc(p[0])+'</b></td><td>'+pf(p[1])+'</td><td>'+nf2(p[2])+'</td><td>'+nf2(p[3])+'</td></tr>';}).join('');
         parts.push('<div><b>Yıllara göre (taban / başarı sırası / yerleşen):</b>'
-          +'<table class="pdet-hist"><thead><tr><th>Yıl</th><th>Taban</th><th>Başarı Sırası</th><th>Yerleşen</th></tr></thead><tbody>'+hr+'</tbody></table></div>');
+          +'<table class="pdet-hist"><thead><tr><th data-tip="Yerleştirme yılı.">Yıl</th><th data-tip="O yıl programa en son yerleşen adayın puanı.">Taban</th><th data-tip="O yıl en son yerleşen adayın başarı sırası.">Başarı Sırası</th><th data-tip="O yıl programa yerleşen toplam öğrenci sayısı.">Yerleşen</th></tr></thead><tbody>'+hr+'</tbody></table></div>');
       }
       // Yerleşen profili (demografi) — yıl tablosunun hemen altında
       var dm=(btn.getAttribute('data-demo')||'').split('|');
@@ -3022,9 +3126,8 @@ DETAIL_TOOLS_JS = r"""<script nonce="__NONCE__">
       if(ks.length&&KOSUL){ var li=ks.map(function(c){return KOSUL[c]?'<li>'+esc(KOSUL[c])+'</li>':'';}).filter(Boolean).join('');
         if(li)parts.push('<div style="margin-top:6px"><b>Özel koşullar:</b><ul style="margin:4px 0 0 18px">'+li+'</ul></div>'); }
       if(!parts.length)parts.push('<div style="color:var(--fg-faded)">Ek detay bulunmuyor.</div>');
-      var row=document.createElement('tr'); row.className='pdet-row';
-      row.innerHTML='<td colspan="'+ncol+'"><div class="pdet-box">'+parts.join('')+'</div></td>';
-      tr.parentNode.insertBefore(row,tr.nextSibling);
+      drow.firstChild.innerHTML='<div class="pdet-box">'+parts.join('')+'</div>';
+      drow.style.display='';
     });
   }
 })();
@@ -3109,7 +3212,7 @@ def gen_bolum_pages(programs):
 {DETAIL_BAR}
 <div class="data-table-wrap">
 <table class="data-table detail-table" data-live="1">
-<thead><tr><th>Üniversite</th><th>Program</th><th>İl</th><th>Tür</th><th>Kont.</th><th>Doluluk</th><th>Taban 2025</th><th>Taban 2024</th><th>Taban 2023</th><th>Sıra 2025</th><th data-nosort title="Karşılaştır">Kıyas</th></tr></thead>
+<thead><tr><th data-tip="Programın açıldığı üniversite. ℹ️ düğmesi program detayını (kadro, koşul, ücret) açar." data-type="text">Üniversite</th><th data-tip="YÖK Atlas'taki tam program adı; öğretim türü, öğrenim dili ve burs bilgisini içerir." data-type="text">Program</th><th data-tip="Programın bulunduğu il." data-type="text">İl</th><th data-tip="Üniversite türü: Devlet, Vakıf, KKTC veya özel kontenjan türü." data-type="text">Tür</th><th data-tip="2025 genel kontenjanı: programa alınacak öğrenci sayısı." data-type="num">Kont.</th><th data-tip="Doluluk = yerleşen ÷ kontenjan. %100 kontenjanın tamamen dolduğunu gösterir." data-type="num">Doluluk</th><th data-tip="2025'te programa en son yerleşen adayın YKS yerleştirme puanı (taban puan)." data-type="num">Taban 2025</th><th data-tip="2024 yılı taban puanı; yıllar arası değişimi görmek için." data-type="num">Taban 2024</th><th data-tip="2023 yılı taban puanı; yıllar arası değişimi görmek için." data-type="num">Taban 2023</th><th data-tip="2025'te en son yerleşen adayın başarı sırası. Küçük sıra = daha yüksek başarı." data-type="num">Sıra 2025</th><th data-nosort data-tip="En fazla 3 programı işaretleyip yan yana karşılaştırın.">Kıyas</th></tr></thead>
 <tbody>{rows}</tbody>
 </table>
 </div>
@@ -3166,7 +3269,7 @@ def gen_universite_pages(programs):
 {DETAIL_BAR}
 <div class="data-table-wrap">
 <table class="data-table detail-table" data-live="1">
-<thead><tr><th>Program</th><th>Bölüm Grubu</th><th>Puan Türü</th><th>Kont.</th><th>Doluluk</th><th>Taban 2025</th><th>Taban 2024</th><th>Başarı Sırası</th><th data-nosort title="Karşılaştır">Kıyas</th></tr></thead>
+<thead><tr><th data-tip="Bu üniversitedeki programın YÖK Atlas'taki tam adı; öğretim türü, dil ve burs bilgisini içerir. ℹ️ program detayını açar." data-type="text">Program</th><th data-tip="Programın bağlı olduğu genel bölüm grubu (ör. Bilgisayar Mühendisliği)." data-type="text">Bölüm Grubu</th><th data-tip="Programın tercih edildiği YKS puan türü: Sayısal, Eşit Ağırlık, Sözel, Dil veya TYT." data-type="text">Puan Türü</th><th data-tip="2025 genel kontenjanı: programa alınacak öğrenci sayısı." data-type="num">Kont.</th><th data-tip="Doluluk = yerleşen ÷ kontenjan. %100 kontenjanın tamamen dolduğunu gösterir." data-type="num">Doluluk</th><th data-tip="2025'te programa en son yerleşen adayın YKS yerleştirme puanı (taban puan)." data-type="num">Taban 2025</th><th data-tip="2024 yılı taban puanı; yıllar arası değişimi görmek için." data-type="num">Taban 2024</th><th data-tip="2025'te en son yerleşen adayın başarı sırası. Küçük sıra = daha yüksek başarı." data-type="num">Başarı Sırası</th><th data-nosort data-tip="En fazla 3 programı işaretleyip yan yana karşılaştırın.">Kıyas</th></tr></thead>
 <tbody>{rows}</tbody>
 </table>
 </div>
@@ -3200,13 +3303,17 @@ def page_bolumler(g_by_slug, programs):
 <div class="tool-row" id="bList">
 {cards}
 </div>
+<nav id="bPagerNav"></nav>
 <script nonce="__NONCE__">
 (function(){{
-  var q=document.getElementById('bSearch'),list=document.getElementById('bList');
-  var items=Array.prototype.slice.call(list.children);
+  // Arama + TrVeri STANDART sayfalama (rule 3.17) — kart ızgarası: 24 kart/sayfa.
+  var q=document.getElementById('bSearch'),list=document.getElementById('bList'),term='';
+  function match(a){{return !term||a.textContent.toLocaleLowerCase('tr').indexOf(term)>=0;}}
+  var p=window.TVPager?window.TVPager.attach({{grid:list,per:24,mount:document.getElementById('bPagerNav'),match:match}}):null;
   q.addEventListener('input',function(){{
-    var v=this.value.toLocaleLowerCase('tr').trim();
-    items.forEach(function(a){{a.style.display = a.textContent.toLocaleLowerCase('tr').indexOf(v)>=0?'':'none';}});
+    term=this.value.toLocaleLowerCase('tr').trim();
+    if(p)p.reset();
+    else Array.prototype.forEach.call(list.children,function(a){{a.style.display=match(a)?'':'none';}});
   }});
 }})();
 </script>
@@ -3235,13 +3342,17 @@ def page_universiteler(u_by_slug, programs):
 <div class="tool-row" id="uList">
 {cards}
 </div>
+<nav id="uPagerNav"></nav>
 <script nonce="__NONCE__">
 (function(){{
-  var q=document.getElementById('uSearch'),list=document.getElementById('uList');
-  var items=Array.prototype.slice.call(list.children);
+  // Arama + TrVeri STANDART sayfalama (rule 3.17) — kart ızgarası: 24 kart/sayfa.
+  var q=document.getElementById('uSearch'),list=document.getElementById('uList'),term='';
+  function match(a){{return !term||a.textContent.toLocaleLowerCase('tr').indexOf(term)>=0;}}
+  var p=window.TVPager?window.TVPager.attach({{grid:list,per:24,mount:document.getElementById('uPagerNav'),match:match}}):null;
   q.addEventListener('input',function(){{
-    var v=this.value.toLocaleLowerCase('tr').trim();
-    items.forEach(function(a){{a.style.display = a.textContent.toLocaleLowerCase('tr').indexOf(v)>=0?'':'none';}});
+    term=this.value.toLocaleLowerCase('tr').trim();
+    if(p)p.reset();
+    else Array.prototype.forEach.call(list.children,function(a){{a.style.display=match(a)?'':'none';}});
   }});
 }})();
 </script>
@@ -3411,7 +3522,7 @@ def page_kpss_rapor():
     no = '<span style="color:#e03131">✕</span>'
     karsilastirma = f"""
 <div class="data-table-wrap"><table class="data-table">
-<thead><tr><th>Özellik</th><th style="text-align:center">SınavVeri Raporu</th><th style="text-align:center">Tipik Hizmetler</th></tr></thead>
+<thead><tr><th data-tip="Karşılaştırılan hizmet özelliği." data-type="text">Özellik</th><th data-tip="Kişiye Özel KPSS Tercih Raporumuzda bu özellik var mı?" data-type="text" style="text-align:center">SınavVeri Raporu</th><th data-tip="Piyasadaki tipik tercih danışmanlığı hizmetlerinde bu özellik var mı?" data-type="text" style="text-align:center">Tipik Hizmetler</th></tr></thead>
 <tbody>
 <tr><td>Puanına göre sıralı kadro listesi</td><td style="text-align:center">{yes}</td><td style="text-align:center">{yes}</td></tr>
 <tr><td>Atama taban puanı <b>+ son yıllar trendi</b> (başarı sırası bazlı)</td><td style="text-align:center">{yes}</td><td style="text-align:center">{no}</td></tr>
@@ -3538,7 +3649,7 @@ def page_kpss_rapor_ornek():
 <div class="info-box">Aşağıdaki liste puanına en uygun kadrolardan, <b>tercih sırası</b> mantığıyla dizilmiştir: üstte yüksek-şans/yüksek-değer kadrolar.
 Şans bandı son 3 yılın taban puanı oynaklığına göre hesaplanır.</div>
 <div class="data-table-wrap"><table class="data-table">
-<thead><tr><th>Kurum / Kadro</th><th>İl</th><th style="text-align:center">Kont.</th><th style="text-align:center">Doluluk</th><th style="text-align:right">Taban 2025</th><th style="text-align:right">2024</th><th style="text-align:right">2023</th><th style="text-align:center">Şans</th></tr></thead>
+<thead><tr><th data-tip="Kadronun ait olduğu kurum ve kadro unvanı." data-type="text">Kurum / Kadro</th><th data-tip="Kadronun bulunduğu il." data-type="text">İl</th><th data-tip="İlan edilen kadro sayısı." data-type="num" style="text-align:center">Kont.</th><th data-tip="Doluluk = yerleşen ÷ kontenjan." data-type="num" style="text-align:center">Doluluk</th><th data-tip="2025'te kadroya atanan son adayın KPSS puanı." data-type="num" style="text-align:right">Taban 2025</th><th data-tip="2024 atama taban puanı." data-type="num" style="text-align:right">2024</th><th data-tip="2023 atama taban puanı." data-type="num" style="text-align:right">2023</th><th data-tip="Puanına göre atanma şansı: Rahat (güvenli), Olası, Sınırda (riskli)." data-type="text" style="text-align:center">Şans</th></tr></thead>
 <tbody>{tr}</tbody></table></div>
 
 <h2 style="margin:24px 0 10px">🧭 Rehber Yorumu</h2>
@@ -3607,7 +3718,7 @@ KPSS_RAPORU_JS = r"""<script nonce="__NONCE__">
       +'<div class="uk-stat"><span class="uk-val" style="color:#f59e0b">'+olasi+'</span><span class="uk-lbl">Olası</span></div>'
       +'<div class="uk-stat"><span class="uk-val" style="color:#e8590c">'+sinir+'</span><span class="uk-lbl">Sınırda</span></div></div>';
     var tablo= rows.length? ('<h2 style="margin:18px 0 10px">🎯 Sana Önerilen Tercih Sırası <small style="font-weight:400;color:var(--fg-faded)">(en yüksek değerli/güvenli kadrolar üstte · ilk 60)</small></h2>'
-      +'<div class="data-table-wrap"><table class="data-table"><thead><tr><th>#</th><th>Kurum / Kadro</th><th>İl</th><th>Dönem</th><th>Taban</th><th>Şans</th></tr></thead><tbody>'+tr+'</tbody></table></div>')
+      +'<div class="data-table-wrap"><table class="data-table"><thead><tr><th data-nosort data-tip="Önerilen tercih sırası.">#</th><th data-tip="Kadronun ait olduğu kurum ve kadro unvanı.">Kurum / Kadro</th><th data-tip="Kadronun bulunduğu il.">İl</th><th data-tip="Kadronun yer aldığı KPSS yerleştirme dönemi.">Dönem</th><th data-tip="Kadroya atanan son adayın KPSS taban puanı.">Taban</th><th data-tip="Puanına göre atanma şansı: Rahat, Olası, Sınırda.">Şans</th></tr></thead><tbody>'+tr+'</tbody></table></div>')
       : '<div class="info-box">Bu kriterlerle uygun kadro bulunamadı. Rehberimiz seninle iletişime geçip kriterleri birlikte gözden geçirecek.</div>';
     var rehber='<div class="uk-card" style="margin-top:18px"><div class="uk-analiz" style="border:0;padding:0"><h2 style="margin-top:0">🧭 Rehber Notu</h2>'
       +'<p>Bu liste, puanına ve tercihlerine göre derlenmiş bir <b>ön rapordur</b>. Uzman KPSS rehberimiz; puanın, önceliklerin ve güncel kontenjan eğilimlerine göre listeyi <b>tercih sırasına</b> göre optimize edip '
@@ -3788,21 +3899,23 @@ def page_universite_ucretleri(programs, u_by_slug):
 <div class="info-box">Vakıf üniversitelerinin 2026 yıllık öğrenim ücreti aralıkları (en düşük – en yüksek program ücreti) ve burslu (tam/kısmi) program imkânı. Ücretler programa göre değişir; kesin tutar için üniversite ile teyit ediniz.</div>
 <input id="ufS" type="text" placeholder="Üniversite veya şehir ara…" style="width:100%;max-width:460px;padding:9px 12px;border:1px solid var(--border);border-radius:9px;background:var(--bg-card-alt);color:var(--fg);font-family:inherit;font-size:14px;margin-bottom:14px">
 <div class="data-table-wrap"><table class="data-table" id="ufT">
-<thead><tr><th>Üniversite</th><th>Şehir</th><th style="text-align:right">Yıllık Ücret Aralığı</th><th style="text-align:center">Burs</th></tr></thead>
+<thead><tr><th data-tip="Vakıf üniversitesinin resmî adı." data-type="text">Üniversite</th><th data-tip="Üniversitenin bulunduğu şehir." data-type="text">Şehir</th><th data-tip="Üniversitenin programlarındaki en düşük – en yüksek yıllık öğrenim ücreti (₺)." data-type="num" style="text-align:right">Yıllık Ücret Aralığı</th><th data-tip="Üniversitede burslu (tam/kısmi) program bulunup bulunmadığı." data-type="text" style="text-align:center">Burs</th></tr></thead>
 <tbody>{rows}</tbody></table></div>
+<nav id="ufPager"></nav>
 <div class="notice"><b>Kaynak:</b> YÖK Atlas 2025 program ücretleri. <a href="/bolum-ucretleri.html">Bölüm bazında ücretler</a> · <a href="/universiteler.html">tüm üniversiteler</a>.</div>
 <script nonce="__NONCE__">
 (function(){{
-  var q=document.getElementById('ufS'),t=document.getElementById('ufT');
-  var rows=Array.prototype.slice.call(t.querySelectorAll('tbody tr'));
-  q.addEventListener('input',function(){{var v=this.value.toLocaleLowerCase('tr').trim();
-    rows.forEach(function(r){{r.style.display=r.textContent.toLocaleLowerCase('tr').indexOf(v)>=0?'':'none';}});}});
-  t.querySelectorAll('thead th').forEach(function(th,i){{th.style.cursor='pointer';th.addEventListener('click',function(){{
-    var asc=th.dataset.a!=='1';th.dataset.a=asc?'1':'';
-    rows.sort(function(a,b){{var x=a.children[i].textContent,y=b.children[i].textContent;
-      var nx=parseFloat(x.replace(/[^0-9]/g,'')),ny=parseFloat(y.replace(/[^0-9]/g,''));
-      if(!isNaN(nx)&&!isNaN(ny))return asc?nx-ny:ny-nx;return asc?x.localeCompare(y,'tr'):y.localeCompare(x,'tr');}});
-    var tb=t.querySelector('tbody');rows.forEach(function(r){{tb.appendChild(r);}});}});}});
+  // Arama + TrVeri STANDART sayfalama (rule 3.17). Sıralama: base() içindeki global
+  // .data-table sorter tarafından yapılır (çift-bağlama olmasın diye burada tekrarlanmaz);
+  // sıralama tbody'yi yeniden dizince pager MutationObserver ile 1. sayfaya döner.
+  var q=document.getElementById('ufS'),t=document.getElementById('ufT'),term='';
+  function match(r){{return !term||r.textContent.toLocaleLowerCase('tr').indexOf(term)>=0;}}
+  var p=window.TVPager?window.TVPager.attach({{grid:t,per:25,mount:document.getElementById('ufPager'),match:match}}):null;
+  q.addEventListener('input',function(){{
+    term=this.value.toLocaleLowerCase('tr').trim();
+    if(p)p.reset();
+    else Array.prototype.forEach.call(t.querySelectorAll('tbody tr'),function(r){{r.style.display=match(r)?'':'none';}});
+  }});
 }})();
 </script>
 """
@@ -3837,21 +3950,23 @@ def page_bolum_ucretleri(programs, g_by_slug):
 <div class="info-box">Her bölüm grubunun vakıf üniversitelerindeki yıllık ücret aralığı ve medyan ücreti. Bölüme tıklayarak üniversite bazında ücret ve taban puanlarını görebilirsiniz.</div>
 <input id="bfS" type="text" placeholder="Bölüm ara… (örn. tıp, hukuk, bilgisayar)" style="width:100%;max-width:460px;padding:9px 12px;border:1px solid var(--border);border-radius:9px;background:var(--bg-card-alt);color:var(--fg);font-family:inherit;font-size:14px;margin-bottom:14px">
 <div class="data-table-wrap"><table class="data-table" id="bfT">
-<thead><tr><th>Bölüm</th><th style="text-align:center">Vakıf Prog.</th><th style="text-align:right">Ücret Aralığı</th><th style="text-align:right">Medyan</th></tr></thead>
+<thead><tr><th data-tip="Bölüm grubunun adı; tıklayınca üniversite bazında ücret ve taban puanlarına gider." data-type="text">Bölüm</th><th data-tip="Bu bölümün vakıf üniversitelerindeki program sayısı." data-type="num" style="text-align:center">Vakıf Prog.</th><th data-tip="Bölümün vakıf üniversitelerindeki en düşük – en yüksek yıllık öğrenim ücreti (₺)." data-type="num" style="text-align:right">Ücret Aralığı</th><th data-tip="Bölümün vakıf üniversitelerindeki ortanca (medyan) yıllık öğrenim ücreti (₺)." data-type="num" style="text-align:right">Medyan</th></tr></thead>
 <tbody>{rows}</tbody></table></div>
+<nav id="bfPager"></nav>
 <div class="notice"><b>Kaynak:</b> YÖK Atlas 2025. <a href="/universite-ucretleri.html">Üniversite bazında ücretler</a>.</div>
 <script nonce="__NONCE__">
 (function(){{
-  var q=document.getElementById('bfS'),t=document.getElementById('bfT');
-  var rows=Array.prototype.slice.call(t.querySelectorAll('tbody tr'));
-  q.addEventListener('input',function(){{var v=this.value.toLocaleLowerCase('tr').trim();
-    rows.forEach(function(r){{r.style.display=r.textContent.toLocaleLowerCase('tr').indexOf(v)>=0?'':'none';}});}});
-  t.querySelectorAll('thead th').forEach(function(th,i){{th.style.cursor='pointer';th.addEventListener('click',function(){{
-    var asc=th.dataset.a!=='1';th.dataset.a=asc?'1':'';
-    rows.sort(function(a,b){{var x=a.children[i].textContent,y=b.children[i].textContent;
-      var nx=parseFloat(x.replace(/[^0-9]/g,'')),ny=parseFloat(y.replace(/[^0-9]/g,''));
-      if(!isNaN(nx)&&!isNaN(ny))return asc?nx-ny:ny-nx;return asc?x.localeCompare(y,'tr'):y.localeCompare(x,'tr');}});
-    var tb=t.querySelector('tbody');rows.forEach(function(r){{tb.appendChild(r);}});}});}});
+  // Arama + TrVeri STANDART sayfalama (rule 3.17). Sıralama: base() içindeki global
+  // .data-table sorter tarafından yapılır (çift-bağlama olmasın diye burada tekrarlanmaz);
+  // sıralama tbody'yi yeniden dizince pager MutationObserver ile 1. sayfaya döner.
+  var q=document.getElementById('bfS'),t=document.getElementById('bfT'),term='';
+  function match(r){{return !term||r.textContent.toLocaleLowerCase('tr').indexOf(term)>=0;}}
+  var p=window.TVPager?window.TVPager.attach({{grid:t,per:25,mount:document.getElementById('bfPager'),match:match}}):null;
+  q.addEventListener('input',function(){{
+    term=this.value.toLocaleLowerCase('tr').trim();
+    if(p)p.reset();
+    else Array.prototype.forEach.call(t.querySelectorAll('tbody tr'),function(r){{r.style.display=match(r)?'':'none';}});
+  }});
 }})();
 </script>
 """
@@ -3939,7 +4054,7 @@ def write_lgs_veri(lgs):
 LISE_SEARCH_JS = r"""<script nonce="__NONCE__">
 (function(){
   var TUR={F:'Fen Lisesi',S:'Sosyal Bilimler L.',A:'Anadolu Lisesi',I:'Anadolu İmam Hatip L.',M:'Mesleki ve Teknik',G:'Güzel Sanatlar L.',P:'Spor Lisesi',D:'Diğer'};
-  var data=[],shown=0,PAGE=50,SV=window.SV||{};
+  var data=[],pgr=null,SV=window.SV||{};   // sayfalama: TrVeri STANDART pager.js (rule 3.17)
   var nf=function(n){return n==null?'—':n.toLocaleString('tr-TR');};
   var pf=function(n){return n==null?'—':n.toLocaleString('tr-TR',{minimumFractionDigits:2,maximumFractionDigits:2});};
   function el(id){return document.getElementById(id);}
@@ -3995,31 +4110,30 @@ LISE_SEARCH_JS = r"""<script nonce="__NONCE__">
     return rows;
   }
   function render(reset){
-    if(reset!==false){shown=0;syncQS();}
+    if(reset!==false){syncQS();}
     var rows=applySort(filtered());
     el('status').textContent=rows.length.toLocaleString('tr-TR')+' lise bulundu';
-    if(!rows.length){if(SV.empty)SV.empty('tbody',9);el('moreWrap').style.display='none';return;}
-    shown=Math.min(shown+PAGE,rows.length);if(shown===0&&rows.length)shown=Math.min(PAGE,rows.length);
-    var tb=el('tbody');tb.innerHTML='';
-    rows.slice(0,shown||PAGE).forEach(function(r){
-      var tr=document.createElement('tr');
-      tr.innerHTML='<td><strong>'+(r[2]||'')+'</strong></td><td>'+(r[0]||'')+(r[1]?' / '+r[1]:'')+'</td>'+
+    var tb=el('tbody');
+    if(!rows.length){tb.innerHTML='';if(SV.empty)SV.empty('tbody',9);if(pgr)pgr.reset();return;}
+    var out=[];
+    rows.forEach(function(r){
+      out.push('<tr><td><strong>'+(r[2]||'')+'</strong></td><td>'+(r[0]||'')+(r[1]?' / '+r[1]:'')+'</td>'+
         '<td><span class="tag tag-other">'+(TUR[r[3]]||'—')+'</span></td>'+
         '<td>'+nf(r[4])+'</td><td><strong>'+pf(r[5])+'</strong>'+(SV.spark?SV.spark([r[8],r[7],r[5]]):'')+'</td>'+
         '<td>'+pf(r[7])+'</td><td>'+pf(r[8])+'</td><td>'+(r[9]||'')+'</td>'+
-        '<td>'+(r[6]==null?'—':'%'+pf(r[6]))+'</td>';
-      tb.appendChild(tr);
+        '<td>'+(r[6]==null?'—':'%'+pf(r[6]))+'</td></tr>');
     });
-    el('moreWrap').style.display=(shown<rows.length)?'block':'none';
-    el('moreInfo').textContent=shown+' / '+rows.length.toLocaleString('tr-TR');
+    tb.innerHTML=out.join('');
+    if(!pgr&&window.TVPager)pgr=window.TVPager.attach({grid:tb.parentNode,per:25,mount:el('moreWrap')});
+    else if(pgr)pgr.reset();
   }
   if(el('fQ'))el('fQ').addEventListener('input',function(){render(true);});
   ['fIl','fTur','fDil'].forEach(function(id){var e=el(id);if(e)e.addEventListener('change',function(){repopulate();render(true);});});
-  el('moreBtn').addEventListener('click',function(){render(false);});
   (function(){var ths=document.querySelectorAll('.data-table thead th');ths.forEach(function(th,i){
     th.style.cursor='pointer';th.title='Sıralamak için tıklayın';
     th.addEventListener('click',function(){sortD=(sortI===i)?-sortD:1;sortI=i;
-      ths.forEach(function(o){var a=o.querySelector('.s-arrow');if(a)a.remove();});
+      ths.forEach(function(o){o.removeAttribute('aria-sort');var a=o.querySelector('.s-arrow');if(a)a.remove();});
+      th.setAttribute('aria-sort',sortD>0?'ascending':'descending');
       var ar=document.createElement('span');ar.className='s-arrow';ar.textContent=sortD>0?' ▲':' ▼';th.appendChild(ar);render(true);});});})();
 })();
 </script>"""
@@ -4047,14 +4161,11 @@ def page_lise_taban_index(lgs, il_slugs):
 </div>
 <div class="data-table-wrap">
 <table class="data-table" data-live="1">
-<thead><tr><th>Lise</th><th>İl / İlçe</th><th>Tür</th><th>Kont.</th><th>2025 Taban</th><th>2024</th><th>2023</th><th>Trend</th><th>Yüzdelik</th></tr></thead>
+<thead><tr><th data-tip="Sınavla öğrenci alan lisenin resmî adı." data-type="text">Lise</th><th data-tip="Lisenin bulunduğu il ve ilçe." data-type="text">İl / İlçe</th><th data-tip="Lise türü: Fen, Sosyal Bilimler, Anadolu, İmam Hatip, Mesleki ve Teknik vb." data-type="text">Tür</th><th data-tip="Liseye alınacak öğrenci sayısı (kontenjan)." data-type="num">Kont.</th><th data-tip="2025'te liseye yerleşen son öğrencinin LGS merkezi sınav puanı." data-type="num">2025 Taban</th><th data-tip="2024 LGS taban puanı; yıllar arası değişimi görmek için." data-type="num">2024</th><th data-tip="2023 LGS taban puanı; yıllar arası değişimi görmek için." data-type="num">2023</th><th data-tip="2025 tabanının bir önceki yıla göre değişimi (↑ yükseldi, ↓ düştü, → aynı)." data-type="text">Trend</th><th data-tip="Yerleşen son öğrencinin LGS yüzdelik dilimi. Küçük yüzdelik = daha başarılı." data-type="num">Yüzdelik</th></tr></thead>
 <tbody id="tbody"></tbody>
 </table>
 </div>
-<div id="moreWrap" style="text-align:center;margin-top:16px;display:none">
-  <button type="button" class="btn btn-primary" id="moreBtn">Daha fazla göster</button>
-  <div id="moreInfo" style="font-size:12px;color:var(--fg-faded);margin-top:6px"></div>
-</div>
+<nav id="moreWrap"></nav>
 <div class="notice"><b>Kaynak:</b> MEB 2025 LGS merkezi yerleştirme verileri. Taban puanı ve yüzdelik dilim,
 o liseye <b>en son yerleşen</b> öğrencinin değeridir. Yalnızca <b>sınavla öğrenci alan</b> liseler listelenir.
 Resmî kayıt için <a href="https://www.meb.gov.tr" target="_blank" rel="noopener">MEB</a>/e-Okul esastır.</div>
@@ -4099,8 +4210,8 @@ def gen_lise_il_pages(lgs):
 <div class="info-box">{summary} 2024/2023 sütunları geçmiş yıl tabanı, Trend sütunu 2025'in bir önceki yıla göre değişimidir. Tablo 2025 tabanına göre sıralıdır; başlığa tıklayarak yeniden sıralayabilirsiniz.</div>
 {SHARE_BAR}
 <div class="data-table-wrap">
-<table class="data-table">
-<thead><tr><th>Lise</th><th>İlçe</th><th>Tür</th><th>Kont.</th><th>2025 Taban</th><th>2024</th><th>2023</th><th>Trend</th><th>Yüzdelik</th></tr></thead>
+<table class="data-table" data-tvpager>
+<thead><tr><th data-tip="Sınavla öğrenci alan lisenin resmî adı." data-type="text">Lise</th><th data-tip="Lisenin bulunduğu ilçe." data-type="text">İlçe</th><th data-tip="Lise türü: Fen, Sosyal Bilimler, Anadolu, İmam Hatip, Mesleki ve Teknik vb." data-type="text">Tür</th><th data-tip="Liseye alınacak öğrenci sayısı (kontenjan)." data-type="num">Kont.</th><th data-tip="2025'te liseye yerleşen son öğrencinin LGS merkezi sınav puanı." data-type="num">2025 Taban</th><th data-tip="2024 LGS taban puanı; yıllar arası değişimi görmek için." data-type="num">2024</th><th data-tip="2023 LGS taban puanı; yıllar arası değişimi görmek için." data-type="num">2023</th><th data-tip="2025 tabanının bir önceki yıla göre değişimi (↑ yükseldi, ↓ düştü, → aynı)." data-type="text">Trend</th><th data-tip="Yerleşen son öğrencinin LGS yüzdelik dilimi. Küçük yüzdelik = daha başarılı." data-type="num">Yüzdelik</th></tr></thead>
 <tbody>{rows}</tbody>
 </table>
 </div>
@@ -4167,7 +4278,7 @@ Kaynaklar: YÖK Atlas (üniversite), MEB (LGS), <strong>ÖSYM resmî 'En Küçü
 GENERIC_SEARCH_JS = r"""<script nonce="__NONCE__">
 (function(){
   var CFG=__CFG__, NCOL=CFG.cols.length, SV=window.SV||{};
-  var data=[],shown=0,PAGE=50;
+  var data=[],pgr=null;   // sayfalama: TrVeri STANDART pager.js (rule 3.17)
   function el(id){return document.getElementById(id);}
   var nf=function(n){return n==null?'—':Number(n).toLocaleString('tr-TR');};
   var pf=function(n){return n==null?'—':Number(n).toLocaleString('tr-TR',{minimumFractionDigits:2,maximumFractionDigits:2});};
@@ -4232,13 +4343,13 @@ GENERIC_SEARCH_JS = r"""<script nonce="__NONCE__">
     return rows;
   }
   function render(reset){
-    if(reset!==false){shown=0;syncQS();}
+    if(reset!==false){syncQS();}
     var rows=applySort(filtered());
     el('status').textContent=rows.length.toLocaleString('tr-TR')+' sonuç bulundu';
-    if(!rows.length){if(SV.empty)SV.empty('tbody',NCOL);el('moreWrap').style.display='none';return;}
-    shown=Math.min(shown+PAGE,rows.length);if(shown===0&&rows.length)shown=Math.min(PAGE,rows.length);
-    var tb=el('tbody');tb.innerHTML='';
-    rows.slice(0,shown||PAGE).forEach(function(r){
+    var tb=el('tbody');
+    if(!rows.length){tb.innerHTML='';if(SV.empty)SV.empty('tbody',NCOL);if(pgr)pgr.reset();return;}
+    var out=[];
+    rows.forEach(function(r){
       var html='';
       CFG.cols.forEach(function(c){
         var v=r[c[0]],cell;
@@ -4249,21 +4360,22 @@ GENERIC_SEARCH_JS = r"""<script nonce="__NONCE__">
         else cell=(v==null?'—':v);
         html+='<td>'+cell+'</td>';
       });
-      var tr=document.createElement('tr');tr.innerHTML=html;tb.appendChild(tr);
+      out.push('<tr>'+html+'</tr>');
     });
-    el('moreWrap').style.display=(shown<rows.length)?'block':'none';
-    el('moreInfo').textContent=shown+' / '+rows.length.toLocaleString('tr-TR');
+    tb.innerHTML=out.join('');
+    if(!pgr&&window.TVPager)pgr=window.TVPager.attach({grid:tb.parentNode,per:25,mount:el('moreWrap')});
+    else if(pgr)pgr.reset();
   }
   el('fQ').addEventListener('input',function(){render(true);});
   CFG.filters.forEach(function(f){var s=el('fil'+f[1]);if(s)s.addEventListener('change',function(){initFilters();render(true);});});
-  el('moreBtn').addEventListener('click',function(){render(false);});
   (function(){
     var ths=document.querySelectorAll('.data-table thead th');
     ths.forEach(function(th,i){
       th.style.cursor='pointer'; th.title='Sıralamak için tıklayın';
       th.addEventListener('click',function(){
         sortD=(sortI===i)?-sortD:1; sortI=i;
-        ths.forEach(function(o){var a=o.querySelector('.s-arrow');if(a)a.remove();});
+        ths.forEach(function(o){o.removeAttribute('aria-sort');var a=o.querySelector('.s-arrow');if(a)a.remove();});
+        th.setAttribute('aria-sort',sortD>0?'ascending':'descending');
         var ar=document.createElement('span');ar.className='s-arrow';ar.textContent=sortD>0?' ▲':' ▼';th.appendChild(ar);
         render(true);
       });
@@ -4278,7 +4390,7 @@ def minmax_page(slug, title, desc, h1, sub, file, cols, filters, search_idx, int
     cols: [(dataIdx, label, kind)] kind: b=kalın metin, t=metin, n=tamsayı, p=taban(kalın), pv=tavan
     filters: [(dataIdx, label)] → dropdown
     """
-    thead = "".join(f"<th>{c[1]}</th>" for c in cols)
+    thead = "".join(th_html(c[1]) for c in cols)
     fhtml = (f'<input id="fQ" type="text" placeholder="{ph}" style="padding:9px 10px;border:1px solid var(--border);'
              'border-radius:8px;background:var(--bg-card-alt);color:var(--fg);font-family:inherit;font-size:13px">')
     for n, (idx, label) in enumerate(filters):
@@ -4298,10 +4410,7 @@ def minmax_page(slug, title, desc, h1, sub, file, cols, filters, search_idx, int
 <div class="data-table-wrap">
 <table class="data-table" data-live="1"><thead><tr>{thead}</tr></thead><tbody id="tbody"></tbody></table>
 </div>
-<div id="moreWrap" style="text-align:center;margin-top:16px;display:none">
-  <button type="button" class="btn btn-primary" id="moreBtn">Daha fazla göster</button>
-  <div id="moreInfo" style="font-size:12px;color:var(--fg-faded);margin-top:6px"></div>
-</div>
+<nav id="moreWrap"></nav>
 <div class="notice"><b>Kaynak:</b> {kaynak} Taban = o programa/kadroya yerleşen <b>en düşük</b>, tavan = <b>en yüksek</b> puan.
 Yerleşen olmayan satırlarda değer boştur (—). Resmî bilgi için <a href="https://www.osym.gov.tr" target="_blank" rel="noopener">ÖSYM</a> esastır.</div>
 {hub_html}
@@ -4541,7 +4650,7 @@ def gen_osym_hub_pages():
             if len(recs) < mink:
                 continue
             recs = sorted(recs, key=lambda r: (r.get("tp") is None, -(r.get("tp") or 0)))
-            thead = "".join(f"<th>{h}</th>" for h, _, _ in cols)
+            thead = "".join(th_html(h) for h, _, _ in cols)
             rws = ""
             for r in recs:
                 rws += "<tr>" + "".join(f"<td>{_hub_cell(r, f, k)}</td>" for _, f, k in cols) + "</tr>"
@@ -4556,7 +4665,7 @@ def gen_osym_hub_pages():
 <div class="page-title"><h1>{g} {EX} Taban Puanları 2025</h1><span class="sub">{sinav} · {len(recs)} {'kadro' if exam=='kpss' else 'kurum'} · ÖSYM resmî{'' if exam=='kpss' else ' · 3 yıllık trend (2023-2025)'}</span></div>
 <div class="info-box">{ozet} Tablo 2025 tabanına göre yüksekten düşüğe sıralıdır.{'' if exam=='kpss' else ' Trend sütunu 2025 tabanının bir önceki yıla göre değişimini gösterir (↑/↓).'}</div>
 <div class="data-table-wrap">
-<table class="data-table"><thead><tr>{thead}</tr></thead><tbody>{rws}</tbody></table>
+<table class="data-table" data-tvpager><thead><tr>{thead}</tr></thead><tbody>{rws}</tbody></table>
 </div>
 <div class="notice"><b>Kaynak:</b> ÖSYM resmî 'En Küçük ve En Büyük Puanlar' yayını (dokuman.osym.gov.tr).
 Tüm {EX} verisi için <a href="/{main}">{EX} taban puanları arama</a> · <a href="/taban-puanlari.html">tüm taban puanları</a>.</div>
@@ -4670,7 +4779,7 @@ def page_doluluk(programs):
 {chart}
 <div class="section"><h2>Türe ve Düzeye Göre Doluluk</h2>
 <div class="data-table-wrap"><table class="data-table">
-<thead><tr><th>Kategori</th><th>Kontenjan</th><th>Yerleşen</th><th>Doluluk</th></tr></thead>
+<thead><tr><th data-tip="Üniversite türü veya öğrenim düzeyi kategorisi." data-type="text">Kategori</th><th data-tip="Kategorideki toplam kontenjan." data-type="num">Kontenjan</th><th data-tip="Kategoriye yerleşen toplam öğrenci sayısı." data-type="num">Yerleşen</th><th data-tip="Doluluk = yerleşen ÷ kontenjan." data-type="num">Doluluk</th></tr></thead>
 <tbody>{tur_rows}{duzey_rows}</tbody></table></div></div>
 
 <div class="section"><h2>Boş Kalan / Tam Dolmayan Bölümler</h2>
@@ -4685,17 +4794,13 @@ def page_doluluk(programs):
   <div id="bstatus" style="margin-top:12px;font-size:13px;color:var(--accent);font-weight:700">Yükleniyor…</div>
 </div>
 <div class="data-table-wrap"><table class="data-table" data-live="1">
-<thead><tr><th>Program / Üniversite</th><th>İl</th><th>Tür</th><th>Düzey</th><th>Kont.</th><th>Yerleşen</th><th>Boş</th><th>Doluluk</th></tr></thead>
+<thead><tr><th data-tip="Programın adı ve bağlı olduğu üniversite." data-type="text">Program / Üniversite</th><th data-tip="Programın bulunduğu il." data-type="text">İl</th><th data-tip="Üniversite türü: Devlet, Vakıf, KKTC veya özel kontenjan türü." data-type="text">Tür</th><th data-tip="Öğrenim düzeyi: Lisans (4 yıl) veya Önlisans (2 yıl)." data-type="text">Düzey</th><th data-tip="2025 genel kontenjanı: programa alınacak öğrenci sayısı." data-type="num">Kont.</th><th data-tip="Kontenjana yerleşen öğrenci sayısı." data-type="num">Yerleşen</th><th data-tip="Dolmayan kontenjan (kontenjan − yerleşen)." data-type="num">Boş</th><th data-tip="Doluluk = yerleşen ÷ kontenjan." data-type="num">Doluluk</th></tr></thead>
 <tbody id="bbody"></tbody></table></div>
-<div style="display:flex;justify-content:center;align-items:center;gap:14px;margin-top:14px">
-  <button type="button" class="btn btn-ghost" id="bprev">← Geri</button>
-  <span id="bpginfo" style="font-size:13px;color:var(--fg-faded);min-width:180px;text-align:center"></span>
-  <button type="button" class="btn btn-ghost" id="bnext">İleri →</button>
-</div></div>
+<nav id="bPager"></nav></div>
 <script nonce="__NONCE__">
 (function(){{
   var TUR={{D:'Devlet',V:'Özel (Vakıf)',K:'KKTC',DK:'Devlet (KKTC Kampüs)',DU:'Devlet (Ücretli)',DKU:'Devlet (KKTC Uyruklu)','?':'—'}},DUZ={{L:'Lisans',O:'Önlisans'}};
-  var data=[],page=0,PAGE=20,sortI=null,sortD=1;
+  var data=[],pgr=null,sortI=null,sortD=1;   // sayfalama: TrVeri STANDART pager.js (rule 3.17)
   var SCOLS=[[1,0],[2,0],[3,0],[4,0],[5,1],[6,1],['bos',1],[7,1]];
   function el(i){{return document.getElementById(i);}}
   var nf=function(n){{return n==null?'—':Number(n).toLocaleString('tr-TR');}};
@@ -4720,23 +4825,19 @@ def page_doluluk(programs):
   }}
   function render(){{
     var rows=sortRows(filtered());
-    var total=rows.length,pages=Math.max(1,Math.ceil(total/PAGE));
-    if(page>=pages)page=pages-1; if(page<0)page=0;
-    el('bstatus').textContent=total.toLocaleString('tr-TR')+' boş kalan program bulundu';
-    var start=page*PAGE,tb=el('bbody');tb.innerHTML='';
-    rows.slice(start,start+PAGE).forEach(function(r){{
-      var tr=document.createElement('tr');
-      tr.innerHTML='<td><strong>'+(r[1]||'')+'</strong><br><small>'+(r[0]||'')+'</small></td>'+
+    el('bstatus').textContent=rows.length.toLocaleString('tr-TR')+' boş kalan program bulundu';
+    var tb=el('bbody'),out=[];
+    rows.forEach(function(r){{
+      out.push('<tr><td><strong>'+(r[1]||'')+'</strong><br><small>'+(r[0]||'')+'</small></td>'+
         '<td>'+(r[2]||'—')+'</td><td>'+(TUR[r[3]]||'—')+'</td><td>'+(DUZ[r[4]]||'—')+'</td>'+
         '<td>'+nf(r[5])+'</td><td>'+nf(r[6])+'</td><td><strong>'+nf(r[5]-r[6])+'</strong></td>'+
-        '<td><span class="tag tag-other">%'+r[7]+'</span></td>';
-      tb.appendChild(tr);
+        '<td><span class="tag tag-other">%'+r[7]+'</span></td></tr>');
     }});
-    el('bpginfo').textContent=total?((start+1)+'–'+Math.min(start+PAGE,total)+' / '+total.toLocaleString('tr-TR')+' · sayfa '+(page+1)+'/'+pages):'sonuç yok';
-    el('bprev').disabled=page<=0; el('bnext').disabled=page>=pages-1;
-    el('bprev').style.opacity=page<=0?'.45':'1'; el('bnext').style.opacity=page>=pages-1?'.45':'1';
+    tb.innerHTML=out.join('');
+    if(!pgr&&window.TVPager)pgr=window.TVPager.attach({{grid:tb.parentNode,per:25,mount:el('bPager')}});
+    else if(pgr)pgr.reset();
   }}
-  function reset(){{page=0;render();}}
+  function reset(){{render();}}
   fetch('/veri/doluluk_bos.json').then(function(r){{return r.json();}}).then(function(j){{
     data=j;
     var set={{}};data.forEach(function(r){{if(r[2])set[r[2]]=1;}});
@@ -4745,12 +4846,11 @@ def page_doluluk(programs):
     render();
   }}).catch(function(){{el('bstatus').textContent='Veri yüklenemedi.';}});
   ['bq','bil','btur','bduz'].forEach(function(id){{el(id).addEventListener('input',reset);el(id).addEventListener('change',reset);}});
-  el('bprev').addEventListener('click',function(){{page--;render();}});
-  el('bnext').addEventListener('click',function(){{page++;render();}});
   var hs=document.querySelectorAll('.section table[data-live] thead th');
   hs.forEach(function(th,i){{th.style.cursor='pointer';th.title='Sıralamak için tıklayın';
     th.addEventListener('click',function(){{sortD=(sortI===i)?-sortD:1;sortI=i;
-      hs.forEach(function(o){{var a=o.querySelector('.s-arrow');if(a)a.remove();}});
+      hs.forEach(function(o){{o.removeAttribute('aria-sort');var a=o.querySelector('.s-arrow');if(a)a.remove();}});
+      th.setAttribute('aria-sort',sortD>0?'ascending':'descending');
       var ar=document.createElement('span');ar.className='s-arrow';ar.textContent=sortD>0?' ▲':' ▼';th.appendChild(ar);reset();}});}});
 }})();
 </script>
@@ -4758,12 +4858,12 @@ def page_doluluk(programs):
 <div class="section"><h2>En Düşük Doluluklu Bölümler</h2>
 <div class="section-sub">En az 30 programı olan bölüm grupları · doluluk artan sıra</div>
 <div class="data-table-wrap"><table class="data-table">
-<thead><tr><th>Bölüm</th><th>Program</th><th>Kontenjan</th><th>Doluluk</th></tr></thead>
+<thead><tr><th data-tip="Bölüm grubu adı." data-type="text">Bölüm</th><th data-tip="Bu bölüm grubundaki program sayısı." data-type="num">Program</th><th data-tip="Bölüm grubunun toplam kontenjanı." data-type="num">Kontenjan</th><th data-tip="Doluluk = yerleşen ÷ kontenjan." data-type="num">Doluluk</th></tr></thead>
 <tbody>{grp_table(bos)}</tbody></table></div></div>
 
 <div class="section"><h2>En Yüksek Doluluklu Bölümler</h2>
 <div class="data-table-wrap"><table class="data-table">
-<thead><tr><th>Bölüm</th><th>Program</th><th>Kontenjan</th><th>Doluluk</th></tr></thead>
+<thead><tr><th data-tip="Bölüm grubu adı." data-type="text">Bölüm</th><th data-tip="Bu bölüm grubundaki program sayısı." data-type="num">Program</th><th data-tip="Bölüm grubunun toplam kontenjanı." data-type="num">Kontenjan</th><th data-tip="Doluluk = yerleşen ÷ kontenjan." data-type="num">Doluluk</th></tr></thead>
 <tbody>{grp_table(dolu)}</tbody></table></div></div>
 
 <div class="notice"><b>Kaynak:</b> YÖK Atlas 2025. Doluluk, genel kontenjana yerleşen sayısının oranıdır; ek yerleştirme/dikey
@@ -4952,8 +5052,11 @@ def page_listeler(programs):
                     f"<td>{r.get('il') or '—'}</td><td><strong>{fmt_puan(r.get('tp'))}</strong></td><td>{fmt_sira(r.get('sira'))}</td></tr>")
             if pt == "SAY" and i <= 10:
                 item_list.append({"@type": "ListItem", "position": i, "name": f"{r.get('b')} — {r.get('u')}"})
-        table = ('<div class="data-table-wrap"><table class="data-table"><thead><tr><th data-nosort>#</th>'
-                 '<th>Program / Üniversite</th><th>İl</th><th>Taban</th><th>Sıra</th></tr></thead>'
+        table = ('<div class="data-table-wrap"><table class="data-table"><thead><tr><th data-nosort data-tip="Listedeki sıra numarası.">#</th>'
+                 '<th data-tip="Programın adı ve bağlı olduğu üniversite." data-type="text">Program / Üniversite</th>'
+                 '<th data-tip="Programın bulunduğu il." data-type="text">İl</th>'
+                 '<th data-tip="Programa en son yerleşen adayın 2025 taban puanı." data-type="num">Taban</th>'
+                 '<th data-tip="En son yerleşen adayın 2025 başarı sırası." data-type="num">Sıra</th></tr></thead>'
                  f'<tbody>{trs}</tbody></table></div>')
         tabs.append((pt.lower().replace("ö", "o").replace("i̇", "i"), f"En Yüksek Taban — {PTL[pt]}", table))
     konts = sorted([r for r in programs if r.get("kont")], key=lambda r: -r["kont"])[:25]
@@ -4962,8 +5065,11 @@ def page_listeler(programs):
                       f"<td>{r.get('il') or '—'}</td><td><strong>{fmt_sira(r.get('kont'))}</strong></td><td>{fmt_puan(r.get('tp'))}</td></tr>"
                       for i, r in enumerate(konts, 1))
         tabs.append(("kont", "En Çok Kontenjan",
-                     '<div class="data-table-wrap"><table class="data-table"><thead><tr><th data-nosort>#</th>'
-                     '<th>Program / Üniversite</th><th>İl</th><th>Kontenjan</th><th>Taban</th></tr></thead>'
+                     '<div class="data-table-wrap"><table class="data-table"><thead><tr><th data-nosort data-tip="Listedeki sıra numarası.">#</th>'
+                     '<th data-tip="Programın adı ve bağlı olduğu üniversite." data-type="text">Program / Üniversite</th>'
+                     '<th data-tip="Programın bulunduğu il." data-type="text">İl</th>'
+                     '<th data-tip="2025 genel kontenjanı: programa alınacak öğrenci sayısı." data-type="num">Kontenjan</th>'
+                     '<th data-tip="Programa en son yerleşen adayın 2025 taban puanı." data-type="num">Taban</th></tr></thead>'
                      f'<tbody>{trs}</tbody></table></div>'))
     SHORT = {"SAY": "Sayısal", "EA": "Eşit Ağırlık", "SÖZ": "Sözel", "DİL": "Dil"}
     btns = "".join(

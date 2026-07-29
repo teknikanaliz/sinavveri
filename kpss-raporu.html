@@ -249,6 +249,8 @@
   };
 })();
 </script>
+<script src="/assets/pager.js?v=20260719a" nonce="__NONCE__"></script>
+<script src="/assets/table.js?v=20260719a" nonce="__NONCE__"></script>
 <link rel="stylesheet" href="/assets/style.css?v=20260719a">
 <link rel="manifest" href="/manifest.json">
 <meta name="robots" content="noindex,nofollow">
@@ -327,7 +329,7 @@
       +'<div class="uk-stat"><span class="uk-val" style="color:#f59e0b">'+olasi+'</span><span class="uk-lbl">Olası</span></div>'
       +'<div class="uk-stat"><span class="uk-val" style="color:#e8590c">'+sinir+'</span><span class="uk-lbl">Sınırda</span></div></div>';
     var tablo= rows.length? ('<h2 style="margin:18px 0 10px">🎯 Sana Önerilen Tercih Sırası <small style="font-weight:400;color:var(--fg-faded)">(en yüksek değerli/güvenli kadrolar üstte · ilk 60)</small></h2>'
-      +'<div class="data-table-wrap"><table class="data-table"><thead><tr><th>#</th><th>Kurum / Kadro</th><th>İl</th><th>Dönem</th><th>Taban</th><th>Şans</th></tr></thead><tbody>'+tr+'</tbody></table></div>')
+      +'<div class="data-table-wrap"><table class="data-table"><thead><tr><th data-nosort data-tip="Önerilen tercih sırası.">#</th><th data-tip="Kadronun ait olduğu kurum ve kadro unvanı.">Kurum / Kadro</th><th data-tip="Kadronun bulunduğu il.">İl</th><th data-tip="Kadronun yer aldığı KPSS yerleştirme dönemi.">Dönem</th><th data-tip="Kadroya atanan son adayın KPSS taban puanı.">Taban</th><th data-tip="Puanına göre atanma şansı: Rahat, Olası, Sınırda.">Şans</th></tr></thead><tbody>'+tr+'</tbody></table></div>')
       : '<div class="info-box">Bu kriterlerle uygun kadro bulunamadı. Rehberimiz seninle iletişime geçip kriterleri birlikte gözden geçirecek.</div>';
     var rehber='<div class="uk-card" style="margin-top:18px"><div class="uk-analiz" style="border:0;padding:0"><h2 style="margin-top:0">🧭 Rehber Notu</h2>'
       +'<p>Bu liste, puanına ve tercihlerine göre derlenmiş bir <b>ön rapordur</b>. Uzman KPSS rehberimiz; puanın, önceliklerin ve güncel kontenjan eğilimlerine göre listeyi <b>tercih sırasına</b> göre optimize edip '
@@ -383,8 +385,9 @@
       th.style.cursor='pointer'; th.title='Sıralamak için tıklayın'; th.dataset.dir='0';
       th.addEventListener('click',function(){
         var dir=th.dataset.dir==='1'?-1:1;
-        ths.forEach(function(o){o.dataset.dir='0';var a=o.querySelector('.s-arrow');if(a)a.remove();});
+        ths.forEach(function(o){o.dataset.dir='0';o.removeAttribute('aria-sort');var a=o.querySelector('.s-arrow');if(a)a.remove();});
         th.dataset.dir=dir>0?'1':'-1';
+        th.setAttribute('aria-sort',dir>0?'ascending':'descending');
         sortBody(tb,i,dir);
         var ar=document.createElement('span');ar.className='s-arrow';ar.textContent=dir>0?' ▲':' ▼';th.appendChild(ar);
       });

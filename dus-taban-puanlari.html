@@ -271,6 +271,8 @@
   };
 })();
 </script>
+<script src="/assets/pager.js?v=20260719a" nonce="__NONCE__"></script>
+<script src="/assets/table.js?v=20260719a" nonce="__NONCE__"></script>
 <link rel="stylesheet" href="/assets/style.css?v=20260719a">
 <link rel="manifest" href="/manifest.json">
 
@@ -311,19 +313,16 @@
   <div id="status" style="margin-top:12px;font-size:13px;color:var(--accent);font-weight:700">Yükleniyor…</div>
 </div>
 <div class="data-table-wrap">
-<table class="data-table" data-live="1"><thead><tr><th>Uzmanlık Dalı</th><th>Kurum</th><th>Kont.</th><th>2025 Taban</th><th>2024</th><th>2023</th><th>Trend</th><th>Tavan</th></tr></thead><tbody id="tbody"></tbody></table>
+<table class="data-table" data-live="1"><thead><tr><th data-tip="Uzmanlık dalı; parantez içi kadro türüdür (ÜNİ, SBA, EAH…)." data-type="text">Uzmanlık Dalı</th><th data-tip="Kadronun/kontenjanın ait olduğu kurum (üniversite, hastane, bakanlık vb.)." data-type="text">Kurum</th><th data-tip="İlan edilen kontenjan (alınacak öğrenci/personel sayısı)." data-type="num">Kont.</th><th data-tip="2025'te yerleşen son adayın puanı (en düşük yerleşme puanı)." data-type="num">2025 Taban</th><th data-tip="2024 yılı taban puanı; yıllar arası değişimi görmek için." data-type="num">2024</th><th data-tip="2023 yılı taban puanı; yıllar arası değişimi görmek için." data-type="num">2023</th><th data-tip="2025 tabanının bir önceki yıla göre değişimi (↑ yükseldi, ↓ düştü, → aynı)." data-type="text">Trend</th><th data-tip="Yerleşen ilk adayın puanı (en yüksek yerleşme puanı)." data-type="num">Tavan</th></tr></thead><tbody id="tbody"></tbody></table>
 </div>
-<div id="moreWrap" style="text-align:center;margin-top:16px;display:none">
-  <button type="button" class="btn btn-primary" id="moreBtn">Daha fazla göster</button>
-  <div id="moreInfo" style="font-size:12px;color:var(--fg-faded);margin-top:6px"></div>
-</div>
+<nav id="moreWrap"></nav>
 <div class="notice"><b>Kaynak:</b> ÖSYM 2023, 2024 ve 2025 DUS 'En Küçük ve En Büyük Puanlar' resmî yayınları (dokuman.osym.gov.tr). Taban = o programa/kadroya yerleşen <b>en düşük</b>, tavan = <b>en yüksek</b> puan.
 Yerleşen olmayan satırlarda değer boştur (—). Resmî bilgi için <a href="https://www.osym.gov.tr" target="_blank" rel="noopener">ÖSYM</a> esastır.</div>
 <div class="info-box" style="margin-top:14px"><b>DUS uzmanlık dallarına göre göz atın (8):</b> <div style="margin-top:8px;line-height:2;font-size:13px"><a href="/dus-taban/agiz-dis-ve-cene-cerrahisi.html">AĞIZ, DİŞ VE ÇENE CERRAHİSİ</a> <span style="color:var(--fg-faded)">(50)</span> · <a href="/dus-taban/agiz-dis-ve-cene-radyolojisi.html">AĞIZ, DİŞ VE ÇENE RADYOLOJİSİ</a> <span style="color:var(--fg-faded)">(13)</span> · <a href="/dus-taban/cocuk-dis-hekimligi.html">ÇOCUK DİŞ HEKİMLİĞİ</a> <span style="color:var(--fg-faded)">(52)</span> · <a href="/dus-taban/endodonti.html">ENDODONTİ</a> <span style="color:var(--fg-faded)">(50)</span> · <a href="/dus-taban/ortodonti.html">ORTODONTİ</a> <span style="color:var(--fg-faded)">(49)</span> · <a href="/dus-taban/periodontoloji.html">PERİODONTOLOJİ</a> <span style="color:var(--fg-faded)">(50)</span> · <a href="/dus-taban/protetik-dis-tedavisi.html">PROTETİK DİŞ TEDAVİSİ</a> <span style="color:var(--fg-faded)">(57)</span> · <a href="/dus-taban/restoratif-dis-tedavisi.html">RESTORATİF DİŞ TEDAVİSİ</a> <span style="color:var(--fg-faded)">(16)</span></div></div>
 <script nonce="__NONCE__">
 (function(){
   var CFG={"file": "/veri/dus.json", "cols": [[1, "b"], [0, "t"], [3, "n"], [4, "p"], [6, "pv"], [7, "pv"], [8, "t"], [5, "pv"]], "filters": [[9, 0, "Uzmanlık Dalı"]], "search": [0, 1], "spark": [7, 6, 4]}, NCOL=CFG.cols.length, SV=window.SV||{};
-  var data=[],shown=0,PAGE=50;
+  var data=[],pgr=null;   // sayfalama: TrVeri STANDART pager.js (rule 3.17)
   function el(id){return document.getElementById(id);}
   var nf=function(n){return n==null?'—':Number(n).toLocaleString('tr-TR');};
   var pf=function(n){return n==null?'—':Number(n).toLocaleString('tr-TR',{minimumFractionDigits:2,maximumFractionDigits:2});};
@@ -388,13 +387,13 @@ Yerleşen olmayan satırlarda değer boştur (—). Resmî bilgi için <a href="
     return rows;
   }
   function render(reset){
-    if(reset!==false){shown=0;syncQS();}
+    if(reset!==false){syncQS();}
     var rows=applySort(filtered());
     el('status').textContent=rows.length.toLocaleString('tr-TR')+' sonuç bulundu';
-    if(!rows.length){if(SV.empty)SV.empty('tbody',NCOL);el('moreWrap').style.display='none';return;}
-    shown=Math.min(shown+PAGE,rows.length);if(shown===0&&rows.length)shown=Math.min(PAGE,rows.length);
-    var tb=el('tbody');tb.innerHTML='';
-    rows.slice(0,shown||PAGE).forEach(function(r){
+    var tb=el('tbody');
+    if(!rows.length){tb.innerHTML='';if(SV.empty)SV.empty('tbody',NCOL);if(pgr)pgr.reset();return;}
+    var out=[];
+    rows.forEach(function(r){
       var html='';
       CFG.cols.forEach(function(c){
         var v=r[c[0]],cell;
@@ -405,21 +404,22 @@ Yerleşen olmayan satırlarda değer boştur (—). Resmî bilgi için <a href="
         else cell=(v==null?'—':v);
         html+='<td>'+cell+'</td>';
       });
-      var tr=document.createElement('tr');tr.innerHTML=html;tb.appendChild(tr);
+      out.push('<tr>'+html+'</tr>');
     });
-    el('moreWrap').style.display=(shown<rows.length)?'block':'none';
-    el('moreInfo').textContent=shown+' / '+rows.length.toLocaleString('tr-TR');
+    tb.innerHTML=out.join('');
+    if(!pgr&&window.TVPager)pgr=window.TVPager.attach({grid:tb.parentNode,per:25,mount:el('moreWrap')});
+    else if(pgr)pgr.reset();
   }
   el('fQ').addEventListener('input',function(){render(true);});
   CFG.filters.forEach(function(f){var s=el('fil'+f[1]);if(s)s.addEventListener('change',function(){initFilters();render(true);});});
-  el('moreBtn').addEventListener('click',function(){render(false);});
   (function(){
     var ths=document.querySelectorAll('.data-table thead th');
     ths.forEach(function(th,i){
       th.style.cursor='pointer'; th.title='Sıralamak için tıklayın';
       th.addEventListener('click',function(){
         sortD=(sortI===i)?-sortD:1; sortI=i;
-        ths.forEach(function(o){var a=o.querySelector('.s-arrow');if(a)a.remove();});
+        ths.forEach(function(o){o.removeAttribute('aria-sort');var a=o.querySelector('.s-arrow');if(a)a.remove();});
+        th.setAttribute('aria-sort',sortD>0?'ascending':'descending');
         var ar=document.createElement('span');ar.className='s-arrow';ar.textContent=sortD>0?' ▲':' ▼';th.appendChild(ar);
         render(true);
       });
@@ -473,8 +473,9 @@ Yerleşen olmayan satırlarda değer boştur (—). Resmî bilgi için <a href="
       th.style.cursor='pointer'; th.title='Sıralamak için tıklayın'; th.dataset.dir='0';
       th.addEventListener('click',function(){
         var dir=th.dataset.dir==='1'?-1:1;
-        ths.forEach(function(o){o.dataset.dir='0';var a=o.querySelector('.s-arrow');if(a)a.remove();});
+        ths.forEach(function(o){o.dataset.dir='0';o.removeAttribute('aria-sort');var a=o.querySelector('.s-arrow');if(a)a.remove();});
         th.dataset.dir=dir>0?'1':'-1';
+        th.setAttribute('aria-sort',dir>0?'ascending':'descending');
         sortBody(tb,i,dir);
         var ar=document.createElement('span');ar.className='s-arrow';ar.textContent=dir>0?' ▲':' ▼';th.appendChild(ar);
       });

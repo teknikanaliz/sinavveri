@@ -265,6 +265,8 @@
   };
 })();
 </script>
+<script src="/assets/pager.js?v=20260719a" nonce="__NONCE__"></script>
+<script src="/assets/table.js?v=20260719a" nonce="__NONCE__"></script>
 <link rel="stylesheet" href="/assets/style.css?v=20260719a">
 <link rel="manifest" href="/manifest.json">
 
@@ -329,10 +331,11 @@
 
 <div class="data-table-wrap">
 <table class="data-table" data-live="1">
-<thead><tr><th>Program / Üniversite</th><th>İl</th><th>Tür</th><th>Taban Puan</th><th>Başarı Sırası</th><th>Şans</th><th data-nosort title="Tercih listene ekle">⭐</th></tr></thead>
+<thead><tr><th data-tip="Programın YÖK Atlas'taki tam adı ve bağlı olduğu üniversite." data-type="text">Program / Üniversite</th><th data-tip="Programın bulunduğu il." data-type="text">İl</th><th data-tip="Üniversite türü: Devlet, Vakıf, KKTC veya özel kontenjan türü." data-type="text">Tür</th><th data-tip="Programa 2025'te en son yerleşen adayın YKS yerleştirme puanı." data-type="num">Taban Puan</th><th data-tip="Programın 2025 taban başarı sırası. Küçük sıra = daha yüksek başarı." data-type="num">Başarı Sırası</th><th data-tip="Girdiğin sıraya göre yerleşme şansı: Rahat (güvenli), Olası (sıraya yakın), Sınırda (riskli)." data-type="text">Şans</th><th data-nosort data-tip="Programı ⭐ ile tercih listene ekle.">⭐</th></tr></thead>
 <tbody id="rbody"></tbody>
 </table>
 </div>
+<nav id="rPager"></nav>
 <div id="rhint" style="display:none;font-size:12px;color:var(--fg-faded);margin-top:10px;text-align:center"></div>
 
 <div class="notice"><b>Nasıl çalışır?</b> Sıranı girdiğinde hem rahat yerleşeceğin hem de <b>şansın olan</b> programlar listelenir.
@@ -345,7 +348,7 @@ Bu bir tahmindir; 2026 taban sıraları kontenjan ve tercih yoğunluğuna göre 
   var TUR={D:'Devlet',V:'Vakıf',K:'KKTC',DK:'Devlet (KKTC Kampüs)',DU:'Devlet (Ücretli)',DKU:'Devlet (KKTC Uyruklu)',Y:'Diğer','?':'—'};
   var PTL={say:'Sayısal',ea:'Eşit Ağırlık',soz:'Sözel',dil:'Dil',tyt:'TYT (Önlisans)'};
   var SV=window.SV||{};
-  var data=[],cache={},byId={};
+  var data=[],cache={},byId={},pgr=null;   // sayfalama: TrVeri STANDART pager.js (rule 3.17)
   var fav=SV.initFav?SV.initFav({ns:'yks',barId:'favBar',panelId:'favPanel',btnId:'favBtn'}):null;
   var nf=function(n){return n==null?'—':n.toLocaleString('tr-TR');};
   var pf=function(n){return n==null?'—':n.toLocaleString('tr-TR',{minimumFractionDigits:2,maximumFractionDigits:2});};
@@ -392,22 +395,24 @@ Bu bir tahmindir; 2026 taban sıraları kontenjan ve tercih yoğunluğuna göre 
       return String(x==null?'':x).localeCompare(String(y==null?'':y),'tr')*sortD;});
   }
   function draw(){
-    var tb=el('rbody'); tb.innerHTML=''; byId={};
-    if(!lastReach.length){if(SV.empty)SV.empty('rbody',7,'Bu sıralama ve filtrelerle yerleşebileceğin program bulunamadı. Filtreyi gevşetmeyi deneyin.');el('rhint').style.display='none';return;}
-    lastReach.slice(0,200).forEach(function(r){
+    var tb=el('rbody'); byId={};
+    if(!lastReach.length){tb.innerHTML='';if(SV.empty)SV.empty('rbody',7,'Bu sıralama ve filtrelerle yerleşebileceğin program bulunamadı. Filtreyi gevşetmeyi deneyin.');el('rhint').style.display='none';if(pgr)pgr.reset();return;}
+    var out=[];
+    lastReach.forEach(function(r){
       var ratio=r[IDX.sira]/lastSira;  // taban sıra / senin sıran (>1 = taban daha geride = güvenli)
       var safe = ratio>=1.20 ? '<span class="tag tag-lgs">Rahat</span>' : (ratio>=1.0 ? '<span class="tag tag-kpss">Olası</span>' : '<span class="tag tag-other">Sınırda</span>');
       var k=rkey(r); byId[k]={id:k,name:r[IDX.b]||'',sub:r[IDX.u]||'',meta:'taban sıra '+nf(r[IDX.sira])};
       var on=fav&&fav.has(k);
-      var tr=document.createElement('tr');
-      tr.innerHTML='<td><strong>'+(r[IDX.b]||'')+'</strong><br><small>'+(r[IDX.u]||'')+'</small></td>'+
+      out.push('<tr><td><strong>'+(r[IDX.b]||'')+'</strong><br><small>'+(r[IDX.u]||'')+'</small></td>'+
         '<td>'+(r[IDX.il]||'—')+'</td>'+'<td>'+(TUR[r[IDX.t]]||'—')+'</td>'+
         '<td><strong>'+pf(r[IDX.tp])+'</strong></td>'+'<td>'+nf(r[IDX.sira])+'</td>'+'<td>'+safe+'</td>'+
-        '<td style="text-align:center"><button type="button" class="fav-star'+(on?' on':'')+'" data-fid="'+k.replace(/"/g,'&quot;')+'" aria-label="Tercih listeme ekle">'+(on?'★':'☆')+'</button></td>';
-      tb.appendChild(tr);
+        '<td style="text-align:center"><button type="button" class="fav-star'+(on?' on':'')+'" data-fid="'+k.replace(/"/g,'&quot;')+'" aria-label="Tercih listeme ekle">'+(on?'★':'☆')+'</button></td></tr>');
     });
-    el('rhint').style.display = lastReach.length>200 ? 'block':'none';
-    el('rhint').textContent='İlk 200 program gösteriliyor. Sütun başlığına tıklayarak sıralayın; il/tür ile daraltın.';
+    tb.innerHTML=out.join('');
+    if(!pgr&&window.TVPager)pgr=window.TVPager.attach({grid:tb.parentNode,per:25,mount:el('rPager')});
+    else if(pgr)pgr.reset();
+    el('rhint').style.display='block';
+    el('rhint').textContent='Sütun başlığına tıklayarak sıralayabilir, il/tür/dil filtreleriyle listeyi daraltabilirsiniz.';
   }
   function run(){
     var pt=el('rPt').value;
@@ -446,7 +451,8 @@ Bu bir tahmindir; 2026 taban sıraları kontenjan ve tercih yoğunluğuna göre 
     if(th.hasAttribute('data-nosort'))return;
     th.style.cursor='pointer';th.title='Sıralamak için tıklayın';
     th.addEventListener('click',function(){if(!lastReach.length)return;sortD=(sortI===i)?-sortD:1;sortI=i;
-      ths.forEach(function(o){var a=o.querySelector('.s-arrow');if(a)a.remove();});
+      ths.forEach(function(o){o.removeAttribute('aria-sort');var a=o.querySelector('.s-arrow');if(a)a.remove();});
+      th.setAttribute('aria-sort',sortD>0?'ascending':'descending');
       var ar=document.createElement('span');ar.className='s-arrow';ar.textContent=sortD>0?' ▲':' ▼';th.appendChild(ar);sortReach();draw();});});})();
   (function(){
     var qs=SV.qsGet?SV.qsGet():{};
@@ -533,8 +539,9 @@ Bu bir tahmindir; 2026 taban sıraları kontenjan ve tercih yoğunluğuna göre 
       th.style.cursor='pointer'; th.title='Sıralamak için tıklayın'; th.dataset.dir='0';
       th.addEventListener('click',function(){
         var dir=th.dataset.dir==='1'?-1:1;
-        ths.forEach(function(o){o.dataset.dir='0';var a=o.querySelector('.s-arrow');if(a)a.remove();});
+        ths.forEach(function(o){o.dataset.dir='0';o.removeAttribute('aria-sort');var a=o.querySelector('.s-arrow');if(a)a.remove();});
         th.dataset.dir=dir>0?'1':'-1';
+        th.setAttribute('aria-sort',dir>0?'ascending':'descending');
         sortBody(tb,i,dir);
         var ar=document.createElement('span');ar.className='s-arrow';ar.textContent=dir>0?' ▲':' ▼';th.appendChild(ar);
       });

@@ -249,6 +249,8 @@
   };
 })();
 </script>
+<script src="/assets/pager.js?v=20260719a" nonce="__NONCE__"></script>
+<script src="/assets/table.js?v=20260719a" nonce="__NONCE__"></script>
 <link rel="stylesheet" href="/assets/style.css?v=20260719a">
 <link rel="manifest" href="/manifest.json">
 
@@ -303,7 +305,7 @@ değişmiş — hepsi gerçek YÖK/ÖSYM verisiyle. Üstüne <b>rehber hocayla b
 <h2 style="margin:28px 0 12px">Neden SınavVeri raporu?</h2>
 
 <div class="data-table-wrap"><table class="data-table">
-<thead><tr><th>Özellik</th><th style="text-align:center">SınavVeri Raporu</th><th style="text-align:center">Tipik Hizmetler</th></tr></thead>
+<thead><tr><th data-tip="Karşılaştırılan hizmet özelliği." data-type="text">Özellik</th><th data-tip="Kişiye Özel KPSS Tercih Raporumuzda bu özellik var mı?" data-type="text" style="text-align:center">SınavVeri Raporu</th><th data-tip="Piyasadaki tipik tercih danışmanlığı hizmetlerinde bu özellik var mı?" data-type="text" style="text-align:center">Tipik Hizmetler</th></tr></thead>
 <tbody>
 <tr><td>Puanına göre sıralı kadro listesi</td><td style="text-align:center"><span style="color:#2f9e44;font-weight:700">✓</span></td><td style="text-align:center"><span style="color:#2f9e44;font-weight:700">✓</span></td></tr>
 <tr><td>Atama taban puanı <b>+ son yıllar trendi</b> (başarı sırası bazlı)</td><td style="text-align:center"><span style="color:#2f9e44;font-weight:700">✓</span></td><td style="text-align:center"><span style="color:#e03131">✕</span></td></tr>
@@ -453,8 +455,9 @@ Resmî tercih işlemi <a href="https://www.osym.gov.tr" target="_blank" rel="noo
       th.style.cursor='pointer'; th.title='Sıralamak için tıklayın'; th.dataset.dir='0';
       th.addEventListener('click',function(){
         var dir=th.dataset.dir==='1'?-1:1;
-        ths.forEach(function(o){o.dataset.dir='0';var a=o.querySelector('.s-arrow');if(a)a.remove();});
+        ths.forEach(function(o){o.dataset.dir='0';o.removeAttribute('aria-sort');var a=o.querySelector('.s-arrow');if(a)a.remove();});
         th.dataset.dir=dir>0?'1':'-1';
+        th.setAttribute('aria-sort',dir>0?'ascending':'descending');
         sortBody(tb,i,dir);
         var ar=document.createElement('span');ar.className='s-arrow';ar.textContent=dir>0?' ▲':' ▼';th.appendChild(ar);
       });

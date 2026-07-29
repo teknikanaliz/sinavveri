@@ -249,6 +249,8 @@
   };
 })();
 </script>
+<script src="/assets/pager.js?v=20260719a" nonce="__NONCE__"></script>
+<script src="/assets/table.js?v=20260719a" nonce="__NONCE__"></script>
 <link rel="stylesheet" href="/assets/style.css?v=20260719a">
 <link rel="manifest" href="/manifest.json">
 
@@ -293,7 +295,7 @@
 <div class="info-box">Aşağıdaki liste puanına en uygun kadrolardan, <b>tercih sırası</b> mantığıyla dizilmiştir: üstte yüksek-şans/yüksek-değer kadrolar.
 Şans bandı son 3 yılın taban puanı oynaklığına göre hesaplanır.</div>
 <div class="data-table-wrap"><table class="data-table">
-<thead><tr><th>Kurum / Kadro</th><th>İl</th><th style="text-align:center">Kont.</th><th style="text-align:center">Doluluk</th><th style="text-align:right">Taban 2025</th><th style="text-align:right">2024</th><th style="text-align:right">2023</th><th style="text-align:center">Şans</th></tr></thead>
+<thead><tr><th data-tip="Kadronun ait olduğu kurum ve kadro unvanı." data-type="text">Kurum / Kadro</th><th data-tip="Kadronun bulunduğu il." data-type="text">İl</th><th data-tip="İlan edilen kadro sayısı." data-type="num" style="text-align:center">Kont.</th><th data-tip="Doluluk = yerleşen ÷ kontenjan." data-type="num" style="text-align:center">Doluluk</th><th data-tip="2025'te kadroya atanan son adayın KPSS puanı." data-type="num" style="text-align:right">Taban 2025</th><th data-tip="2024 atama taban puanı." data-type="num" style="text-align:right">2024</th><th data-tip="2023 atama taban puanı." data-type="num" style="text-align:right">2023</th><th data-tip="Puanına göre atanma şansı: Rahat (güvenli), Olası, Sınırda (riskli)." data-type="text" style="text-align:center">Şans</th></tr></thead>
 <tbody><tr><td><b>Çevre, Şehircilik ve İklim Değişikliği Bakanlığı</b><br><small style='color:var(--fg-faded)'>Tekniker (301245112)</small></td><td>Ankara</td><td style='text-align:center'>4</td><td style='text-align:center'>70/70 (%100)</td><td style='text-align:right'><b>72,4</b></td><td style='text-align:right'>71,1 ↑</td><td style='text-align:right'>70,2 ↑</td><td style='text-align:center'><span style="display:inline-block;background:#2f9e44;color:#fff;font-size:11px;font-weight:700;padding:2px 9px;border-radius:999px">RAHAT</span></td></tr><tr><td><b>Sağlık Bakanlığı</b><br><small style='color:var(--fg-faded)'>Sağlık Teknikeri (301188204)</small></td><td>İstanbul</td><td style='text-align:center'>12</td><td style='text-align:center'>12/12 (%100)</td><td style='text-align:right'><b>74,8</b></td><td style='text-align:right'>73,9 ↑</td><td style='text-align:right'>72,0 ↑</td><td style='text-align:center'><span style="display:inline-block;background:#f59e0b;color:#fff;font-size:11px;font-weight:700;padding:2px 9px;border-radius:999px">OLASI</span></td></tr><tr><td><b>Karayolları Genel Müdürlüğü</b><br><small style='color:var(--fg-faded)'>Tekniker (301250431)</small></td><td>İzmir</td><td style='text-align:center'>3</td><td style='text-align:center'>3/3 (%100)</td><td style='text-align:right'><b>75,6</b></td><td style='text-align:right'>74,2 ↑</td><td style='text-align:right'>73,8 ~</td><td style='text-align:center'><span style="display:inline-block;background:#e8590c;color:#fff;font-size:11px;font-weight:700;padding:2px 9px;border-radius:999px">SINIRDA</span></td></tr><tr><td><b>Bir Belediye (Ankara)</b><br><small style='color:var(--fg-faded)'>Büro Personeli (301301077)</small></td><td>Ankara</td><td style='text-align:center'>5</td><td style='text-align:center'>5/5 (%100)</td><td style='text-align:right'><b>71,2</b></td><td style='text-align:right'>69,8 ↑</td><td style='text-align:right'>68,1 ↑</td><td style='text-align:center'><span style="display:inline-block;background:#2f9e44;color:#fff;font-size:11px;font-weight:700;padding:2px 9px;border-radius:999px">RAHAT</span></td></tr><tr><td><b>Bir Üniversite</b><br><small style='color:var(--fg-faded)'>Tekniker (301277905)</small></td><td>Ankara</td><td style='text-align:center'>2</td><td style='text-align:center'>2/2 (%100)</td><td style='text-align:right'><b>76,1</b></td><td style='text-align:right'>75,0 ↑</td><td style='text-align:right'>—</td><td style='text-align:center'><span style="display:inline-block;background:#e8590c;color:#fff;font-size:11px;font-weight:700;padding:2px 9px;border-radius:999px">SINIRDA</span></td></tr></tbody></table></div>
 
 <h2 style="margin:24px 0 10px">🧭 Rehber Yorumu</h2>
@@ -357,8 +359,9 @@ Detaylı sıralama ve alternatifler rehber hocayla hazırlık aşamasında netle
       th.style.cursor='pointer'; th.title='Sıralamak için tıklayın'; th.dataset.dir='0';
       th.addEventListener('click',function(){
         var dir=th.dataset.dir==='1'?-1:1;
-        ths.forEach(function(o){o.dataset.dir='0';var a=o.querySelector('.s-arrow');if(a)a.remove();});
+        ths.forEach(function(o){o.dataset.dir='0';o.removeAttribute('aria-sort');var a=o.querySelector('.s-arrow');if(a)a.remove();});
         th.dataset.dir=dir>0?'1':'-1';
+        th.setAttribute('aria-sort',dir>0?'ascending':'descending');
         sortBody(tb,i,dir);
         var ar=document.createElement('span');ar.className='s-arrow';ar.textContent=dir>0?' ▲':' ▼';th.appendChild(ar);
       });

@@ -265,6 +265,8 @@
   };
 })();
 </script>
+<script src="/assets/pager.js?v=20260719a" nonce="__NONCE__"></script>
+<script src="/assets/table.js?v=20260719a" nonce="__NONCE__"></script>
 <link rel="stylesheet" href="/assets/style.css?v=20260719a">
 <link rel="manifest" href="/manifest.json">
 
@@ -313,14 +315,11 @@
 </div>
 <div class="data-table-wrap">
 <table class="data-table" data-live="1">
-<thead><tr><th>Lise</th><th>İl / İlçe</th><th>Tür</th><th>Kont.</th><th>2025 Taban</th><th>2024</th><th>2023</th><th>Trend</th><th>Yüzdelik</th></tr></thead>
+<thead><tr><th data-tip="Sınavla öğrenci alan lisenin resmî adı." data-type="text">Lise</th><th data-tip="Lisenin bulunduğu il ve ilçe." data-type="text">İl / İlçe</th><th data-tip="Lise türü: Fen, Sosyal Bilimler, Anadolu, İmam Hatip, Mesleki ve Teknik vb." data-type="text">Tür</th><th data-tip="Liseye alınacak öğrenci sayısı (kontenjan)." data-type="num">Kont.</th><th data-tip="2025'te liseye yerleşen son öğrencinin LGS merkezi sınav puanı." data-type="num">2025 Taban</th><th data-tip="2024 LGS taban puanı; yıllar arası değişimi görmek için." data-type="num">2024</th><th data-tip="2023 LGS taban puanı; yıllar arası değişimi görmek için." data-type="num">2023</th><th data-tip="2025 tabanının bir önceki yıla göre değişimi (↑ yükseldi, ↓ düştü, → aynı)." data-type="text">Trend</th><th data-tip="Yerleşen son öğrencinin LGS yüzdelik dilimi. Küçük yüzdelik = daha başarılı." data-type="num">Yüzdelik</th></tr></thead>
 <tbody id="tbody"></tbody>
 </table>
 </div>
-<div id="moreWrap" style="text-align:center;margin-top:16px;display:none">
-  <button type="button" class="btn btn-primary" id="moreBtn">Daha fazla göster</button>
-  <div id="moreInfo" style="font-size:12px;color:var(--fg-faded);margin-top:6px"></div>
-</div>
+<nav id="moreWrap"></nav>
 <div class="notice"><b>Kaynak:</b> MEB 2025 LGS merkezi yerleştirme verileri. Taban puanı ve yüzdelik dilim,
 o liseye <b>en son yerleşen</b> öğrencinin değeridir. Yalnızca <b>sınavla öğrenci alan</b> liseler listelenir.
 Resmî kayıt için <a href="https://www.meb.gov.tr" target="_blank" rel="noopener">MEB</a>/e-Okul esastır.</div>
@@ -330,7 +329,7 @@ Resmî kayıt için <a href="https://www.meb.gov.tr" target="_blank" rel="noopen
 <script nonce="__NONCE__">
 (function(){
   var TUR={F:'Fen Lisesi',S:'Sosyal Bilimler L.',A:'Anadolu Lisesi',I:'Anadolu İmam Hatip L.',M:'Mesleki ve Teknik',G:'Güzel Sanatlar L.',P:'Spor Lisesi',D:'Diğer'};
-  var data=[],shown=0,PAGE=50,SV=window.SV||{};
+  var data=[],pgr=null,SV=window.SV||{};   // sayfalama: TrVeri STANDART pager.js (rule 3.17)
   var nf=function(n){return n==null?'—':n.toLocaleString('tr-TR');};
   var pf=function(n){return n==null?'—':n.toLocaleString('tr-TR',{minimumFractionDigits:2,maximumFractionDigits:2});};
   function el(id){return document.getElementById(id);}
@@ -386,31 +385,30 @@ Resmî kayıt için <a href="https://www.meb.gov.tr" target="_blank" rel="noopen
     return rows;
   }
   function render(reset){
-    if(reset!==false){shown=0;syncQS();}
+    if(reset!==false){syncQS();}
     var rows=applySort(filtered());
     el('status').textContent=rows.length.toLocaleString('tr-TR')+' lise bulundu';
-    if(!rows.length){if(SV.empty)SV.empty('tbody',9);el('moreWrap').style.display='none';return;}
-    shown=Math.min(shown+PAGE,rows.length);if(shown===0&&rows.length)shown=Math.min(PAGE,rows.length);
-    var tb=el('tbody');tb.innerHTML='';
-    rows.slice(0,shown||PAGE).forEach(function(r){
-      var tr=document.createElement('tr');
-      tr.innerHTML='<td><strong>'+(r[2]||'')+'</strong></td><td>'+(r[0]||'')+(r[1]?' / '+r[1]:'')+'</td>'+
+    var tb=el('tbody');
+    if(!rows.length){tb.innerHTML='';if(SV.empty)SV.empty('tbody',9);if(pgr)pgr.reset();return;}
+    var out=[];
+    rows.forEach(function(r){
+      out.push('<tr><td><strong>'+(r[2]||'')+'</strong></td><td>'+(r[0]||'')+(r[1]?' / '+r[1]:'')+'</td>'+
         '<td><span class="tag tag-other">'+(TUR[r[3]]||'—')+'</span></td>'+
         '<td>'+nf(r[4])+'</td><td><strong>'+pf(r[5])+'</strong>'+(SV.spark?SV.spark([r[8],r[7],r[5]]):'')+'</td>'+
         '<td>'+pf(r[7])+'</td><td>'+pf(r[8])+'</td><td>'+(r[9]||'')+'</td>'+
-        '<td>'+(r[6]==null?'—':'%'+pf(r[6]))+'</td>';
-      tb.appendChild(tr);
+        '<td>'+(r[6]==null?'—':'%'+pf(r[6]))+'</td></tr>');
     });
-    el('moreWrap').style.display=(shown<rows.length)?'block':'none';
-    el('moreInfo').textContent=shown+' / '+rows.length.toLocaleString('tr-TR');
+    tb.innerHTML=out.join('');
+    if(!pgr&&window.TVPager)pgr=window.TVPager.attach({grid:tb.parentNode,per:25,mount:el('moreWrap')});
+    else if(pgr)pgr.reset();
   }
   if(el('fQ'))el('fQ').addEventListener('input',function(){render(true);});
   ['fIl','fTur','fDil'].forEach(function(id){var e=el(id);if(e)e.addEventListener('change',function(){repopulate();render(true);});});
-  el('moreBtn').addEventListener('click',function(){render(false);});
   (function(){var ths=document.querySelectorAll('.data-table thead th');ths.forEach(function(th,i){
     th.style.cursor='pointer';th.title='Sıralamak için tıklayın';
     th.addEventListener('click',function(){sortD=(sortI===i)?-sortD:1;sortI=i;
-      ths.forEach(function(o){var a=o.querySelector('.s-arrow');if(a)a.remove();});
+      ths.forEach(function(o){o.removeAttribute('aria-sort');var a=o.querySelector('.s-arrow');if(a)a.remove();});
+      th.setAttribute('aria-sort',sortD>0?'ascending':'descending');
       var ar=document.createElement('span');ar.className='s-arrow';ar.textContent=sortD>0?' ▲':' ▼';th.appendChild(ar);render(true);});});})();
 })();
 </script>
@@ -459,8 +457,9 @@ Resmî kayıt için <a href="https://www.meb.gov.tr" target="_blank" rel="noopen
       th.style.cursor='pointer'; th.title='Sıralamak için tıklayın'; th.dataset.dir='0';
       th.addEventListener('click',function(){
         var dir=th.dataset.dir==='1'?-1:1;
-        ths.forEach(function(o){o.dataset.dir='0';var a=o.querySelector('.s-arrow');if(a)a.remove();});
+        ths.forEach(function(o){o.dataset.dir='0';o.removeAttribute('aria-sort');var a=o.querySelector('.s-arrow');if(a)a.remove();});
         th.dataset.dir=dir>0?'1':'-1';
+        th.setAttribute('aria-sort',dir>0?'ascending':'descending');
         sortBody(tb,i,dir);
         var ar=document.createElement('span');ar.className='s-arrow';ar.textContent=dir>0?' ▲':' ▼';th.appendChild(ar);
       });

@@ -271,6 +271,8 @@
   };
 })();
 </script>
+<script src="/assets/pager.js?v=20260719a" nonce="__NONCE__"></script>
+<script src="/assets/table.js?v=20260719a" nonce="__NONCE__"></script>
 <link rel="stylesheet" href="/assets/style.css?v=20260719a">
 <link rel="manifest" href="/manifest.json">
 
@@ -331,7 +333,7 @@
 
 <div class="data-table-wrap">
 <table class="data-table cardify" data-live="1">
-<thead><tr><th>Program / Üniversite</th><th>İl</th><th>Tür</th><th>Kont. / Yerleşen</th><th>Taban Puan</th><th>Başarı Sırası</th><th>Doluluk</th><th data-nosort title="Karşılaştırmak için seç">Kıyas</th></tr></thead>
+<thead><tr><th data-tip="Programın YÖK Atlas'taki tam adı ve bağlı olduğu üniversite." data-type="text">Program / Üniversite</th><th data-tip="Programın bulunduğu il." data-type="text">İl</th><th data-tip="Üniversite türü: Devlet, Vakıf, KKTC veya özel kontenjan türü." data-type="text">Tür</th><th data-tip="2025 genel kontenjanı; dolmadıysa yanında yerleşen sayısı gösterilir." data-type="num">Kont. / Yerleşen</th><th data-tip="Programa en son yerleşen adayın 2025 YKS yerleştirme puanı." data-type="num">Taban Puan</th><th data-tip="En son yerleşen adayın 2025 başarı sırası. Küçük sıra = daha yüksek başarı." data-type="num">Başarı Sırası</th><th data-tip="Doluluk = yerleşen ÷ kontenjan. %100 kontenjanın tamamen dolduğunu gösterir." data-type="num">Doluluk</th><th data-nosort data-tip="En fazla 3 programı işaretleyip yan yana karşılaştırın.">Kıyas</th></tr></thead>
 <tbody id="tbody"></tbody>
 </table>
 </div>
@@ -340,10 +342,7 @@
   <button type="button" class="fav-toggle" id="cmpBtn">Karşılaştır (0)</button>
   <button type="button" class="fchip-clear" id="cmpClear" style="margin-left:8px">Seçimi temizle</button>
 </div>
-<div id="moreWrap" style="text-align:center;margin-top:16px;display:none">
-  <button type="button" class="btn btn-primary" id="moreBtn">Daha fazla göster</button>
-  <div id="moreInfo" style="font-size:12px;color:var(--fg-faded);margin-top:6px"></div>
-</div>
+<nav id="moreWrap"></nav>
 
 <div class="notice"><b>Kaynak:</b> YÖK Atlas 2025 Tercih Kılavuzu (en güncel tamamlanmış yerleştirme). Taban puanı ve başarı sırası
 o programa <b>en son yerleşen</b> adayın verisidir. Yerleşen olmayan programlarda değer boştur (—).
@@ -355,7 +354,7 @@ o programa <b>en son yerleşen</b> adayın verisidir. Yerleşen olmayan programl
   var PTL={say:'Sayısal',ea:'Eşit Ağırlık',soz:'Sözel',dil:'Dil',tyt:'TYT (Önlisans)'};
   var SV=window.SV||{};
   function doluluk(r){var k=r[IDX.kont],y=r[IDX.yer];if(!k||y==null)return '—';var p=Math.round(y/k*100);var c=p>=100?'tag-lgs':(p>=70?'tag-kpss':'tag-other');return '<span class="tag '+c+'">%'+p+'</span>';}
-  var data=[], shown=0, PAGE=50, cache={};
+  var data=[], cache={}, pgr=null;   // sayfalama: TrVeri STANDART pager.js (rule 3.17)
   var nf=function(n){return n==null?'—':n.toLocaleString('tr-TR');};
   var pf=function(n){return n==null?'—':n.toLocaleString('tr-TR',{minimumFractionDigits:2,maximumFractionDigits:2});};
   function el(id){return document.getElementById(id);}
@@ -468,29 +467,28 @@ o programa <b>en son yerleşen</b> adayın verisidir. Yerleşen olmayan programl
     return rows;
   }
   function render(reset){
-    if(reset!==false){shown=0;syncQS();}
+    if(reset!==false){syncQS();}
     var rows=applySort(filtered());
     el('status').textContent=rows.length.toLocaleString('tr-TR')+' program bulundu';
-    if(!rows.length){if(SV.empty)SV.empty('tbody',8);el('moreWrap').style.display='none';return;}
-    shown=Math.min(shown+PAGE,rows.length); if(shown===0&&rows.length)shown=Math.min(PAGE,rows.length);
-    var tb=el('tbody'); tb.innerHTML=''; byKey={};
-    rows.slice(0,shown||PAGE).forEach(function(r){
+    var tb=el('tbody'); byKey={};
+    if(!rows.length){if(SV.empty)SV.empty('tbody',8);if(pgr)pgr.reset();return;}
+    var out=[];
+    rows.forEach(function(r){
       var k=rkey(r); byKey[k]=r;
-      var tr=document.createElement('tr');
       var kc=nf(r[IDX.kont]),kk=r[IDX.kont],yy=r[IDX.yer];
       if(kk!=null&&yy!=null&&yy<kk)kc=nf(kk)+' <small style="color:var(--fg-faded)">/ '+nf(yy)+' yerleşti</small>';
-      tr.innerHTML='<td><strong>'+(r[IDX.b]||'')+'</strong><br><small>'+(r[IDX.u]||'')+'</small></td>'+
+      out.push('<tr><td><strong>'+(r[IDX.b]||'')+'</strong><br><small>'+(r[IDX.u]||'')+'</small></td>'+
         '<td>'+(r[IDX.il]||'—')+'</td>'+
         '<td><span class="tag tag-other">'+(TUR[r[IDX.t]]||'—')+'</span></td>'+
         '<td>'+kc+'</td>'+
         '<td><strong>'+pf(r[IDX.tp])+'</strong></td>'+
         '<td>'+nf(r[IDX.sira])+(SV.spark?SV.spark([r[IDX.s23],r[IDX.s24],r[IDX.sira]],true):'')+'</td>'+
         '<td>'+doluluk(r)+'</td>'+
-        '<td style="text-align:center"><input type="checkbox" class="cmp-cb" aria-label="Karşılaştır" data-k="'+k.replace(/"/g,'&quot;')+'"'+(cmp[k]?' checked':'')+'></td>';
-      tb.appendChild(tr);
+        '<td style="text-align:center"><input type="checkbox" class="cmp-cb" aria-label="Karşılaştır" data-k="'+k.replace(/"/g,'&quot;')+'"'+(cmp[k]?' checked':'')+'></td></tr>');
     });
-    el('moreWrap').style.display = (shown<rows.length)?'block':'none';
-    el('moreInfo').textContent=shown+' / '+rows.length.toLocaleString('tr-TR');
+    tb.innerHTML=out.join('');
+    if(!pgr&&window.TVPager)pgr=window.TVPager.attach({grid:tb.parentNode,per:25,mount:el('moreWrap')});
+    else if(pgr)pgr.reset();
   }
   // ── Karşılaştırma ──
   function cmpCount(){var n=0;for(var k in cmp)if(cmp.hasOwnProperty(k))n++;return n;}
@@ -532,12 +530,12 @@ o programa <b>en son yerleşen</b> adayın verisidir. Yerleşen olmayan programl
   if(el('fBurs'))el('fBurs').addEventListener('change',function(){repopulate();render(true);});
   if(el('fDol'))el('fDol').addEventListener('change',function(){repopulate();render(true);});
   el('ptSel').addEventListener('change',function(){load(this.value);});
-  el('moreBtn').addEventListener('click',function(){render(false);});
   (function(){var ths=document.querySelectorAll('.data-table thead th');ths.forEach(function(th,i){
     if(th.hasAttribute('data-nosort'))return;
     th.style.cursor='pointer';th.title='Sıralamak için tıklayın';
     th.addEventListener('click',function(){sortD=(sortI===i)?-sortD:1;sortI=i;
-      ths.forEach(function(o){var a=o.querySelector('.s-arrow');if(a)a.remove();});
+      ths.forEach(function(o){o.removeAttribute('aria-sort');var a=o.querySelector('.s-arrow');if(a)a.remove();});
+      th.setAttribute('aria-sort',sortD>0?'ascending':'descending');
       var ar=document.createElement('span');ar.className='s-arrow';ar.textContent=sortD>0?' ▲':' ▼';th.appendChild(ar);render(true);});});})();
   applyQS();
   var qs0=SV.qsGet?SV.qsGet():{}; if(qs0.pt&&PTL[qs0.pt])el('ptSel').value=qs0.pt;
@@ -589,8 +587,9 @@ o programa <b>en son yerleşen</b> adayın verisidir. Yerleşen olmayan programl
       th.style.cursor='pointer'; th.title='Sıralamak için tıklayın'; th.dataset.dir='0';
       th.addEventListener('click',function(){
         var dir=th.dataset.dir==='1'?-1:1;
-        ths.forEach(function(o){o.dataset.dir='0';var a=o.querySelector('.s-arrow');if(a)a.remove();});
+        ths.forEach(function(o){o.dataset.dir='0';o.removeAttribute('aria-sort');var a=o.querySelector('.s-arrow');if(a)a.remove();});
         th.dataset.dir=dir>0?'1':'-1';
+        th.setAttribute('aria-sort',dir>0?'ascending':'descending');
         sortBody(tb,i,dir);
         var ar=document.createElement('span');ar.className='s-arrow';ar.textContent=dir>0?' ▲':' ▼';th.appendChild(ar);
       });

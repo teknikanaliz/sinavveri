@@ -271,6 +271,8 @@
   };
 })();
 </script>
+<script src="/assets/pager.js?v=20260719a" nonce="__NONCE__"></script>
+<script src="/assets/table.js?v=20260719a" nonce="__NONCE__"></script>
 <link rel="stylesheet" href="/assets/style.css?v=20260719a">
 <link rel="manifest" href="/manifest.json">
 
@@ -319,8 +321,9 @@
   <div id="rstatus" style="margin-top:14px;font-size:14px;color:var(--accent);font-weight:700"></div>
 </div>
 <div class="data-table-wrap">
-<table class="data-table" data-live="1"><thead><tr><th>Ad</th><th>İl</th><th>İlçe</th><th>Taban</th><th>Şans</th><th data-nosort title="Tercih listene ekle">⭐</th></tr></thead><tbody id="rbody"></tbody></table>
+<table class="data-table" data-live="1"><thead><tr><th data-tip="Kayıt adı." data-type="text">Ad</th><th data-tip="Kurumun/programın bulunduğu il." data-type="text">İl</th><th data-tip="Okulun bulunduğu ilçe." data-type="text">İlçe</th><th data-tip="Yerleşen son adayın puanı (en düşük yerleşme puanı)." data-type="num">Taban</th><th data-tip="Girdiğin puana göre yerleşme şansı: Rahat (güvenli), Olası, Sınırda (riskli)." data-type="text">Şans</th><th data-nosort data-tip="Kaydı ⭐ ile tercih listene ekle.">⭐</th></tr></thead><tbody id="rbody"></tbody></table>
 </div>
+<nav id="rPager"></nav>
 <div id="rhint" style="display:none;font-size:12px;color:var(--fg-faded);margin-top:10px;text-align:center"></div>
 <div class="notice"><b>Nasıl çalışır?</b> Puanın bir programın/kadronun taban puanından <b>yüksek veya eşitse</b> oraya yerleşebilirsin.
 "Şans" payı güvenliği gösterir: <b>Rahat</b> (geniş pay), <b>Olası</b>, <b>Sınırda</b>. Bu bir tahmindir; gelecek yıl taban puanları
@@ -371,7 +374,7 @@ kontenjan ve tercih yoğunluğuna göre değişir. <b>Kaynak:</b> MEB 2025 LGS y
       initFilters();run();
     });
   }
-  var lastReach=[],userP=0,sortI=null,sortD=1;
+  var lastReach=[],userP=0,sortI=null,sortD=1,pgr=null;   // sayfalama: pager.js (rule 3.17)
   var SCOLS=[[CFG.nb,0]];CFG.show.forEach(function(c){SCOLS.push([c[0],0]);});SCOLS.push([CFG.taban,1]);
   function sortReach(){
     if(sortI==null||sortI>=SCOLS.length){lastReach.sort(function(a,b){return (b[CFG.taban]||0)-(a[CFG.taban]||0);});return;}
@@ -382,9 +385,10 @@ kontenjan ve tercih yoğunluğuna göre değişir. <b>Kaynak:</b> MEB 2025 LGS y
   }
   function rkey(r){return String(r[CFG.nb])+'|'+(CFG.ns!=null?String(r[CFG.ns]):'')+'|'+String(r[CFG.taban]);}
   function draw(){
-    var tb=el('rbody');tb.innerHTML='';byId={};
-    if(!lastReach.length){if(SV.empty)SV.empty('rbody',NCOL,'Bu puan ve filtrelerle yerleşebileceğin sonuç bulunamadı. Puanı veya filtreleri gözden geçirin.');el('rhint').style.display='none';return;}
-    lastReach.slice(0,200).forEach(function(r){
+    var tb=el('rbody');byId={};
+    if(!lastReach.length){tb.innerHTML='';if(SV.empty)SV.empty('rbody',NCOL,'Bu puan ve filtrelerle yerleşebileceğin sonuç bulunamadı. Puanı veya filtreleri gözden geçirin.');el('rhint').style.display='none';if(pgr)pgr.reset();return;}
+    var out=[];
+    lastReach.forEach(function(r){
       var m=userP-r[CFG.taban];
       var safe=m>=CFG.t1?'<span class="tag tag-lgs">Rahat</span>':(m>=0?'<span class="tag tag-kpss">Olası</span>':'<span class="tag tag-other">Sınırda</span>');
       var name='<td><strong>'+(r[CFG.nb]||'')+'</strong>'+(CFG.ns!=null?'<br><small>'+(r[CFG.ns]||'')+'</small>':'')+'</td>';
@@ -392,12 +396,13 @@ kontenjan ve tercih yoğunluğuna göre değişir. <b>Kaynak:</b> MEB 2025 LGS y
       var k=rkey(r);byId[k]={id:k,name:String(r[CFG.nb]||''),sub:(CFG.ns!=null?String(r[CFG.ns]||''):''),meta:'taban '+pf(r[CFG.taban])};
       var on=fav&&fav.has(k);
       var star='<td style="text-align:center"><button type="button" class="fav-star'+(on?' on':'')+'" data-fid="'+k.replace(/"/g,'&quot;')+'" aria-label="Tercih listeme ekle">'+(on?'★':'☆')+'</button></td>';
-      var tr=document.createElement('tr');
-      tr.innerHTML=name+show+'<td><strong>'+pf(r[CFG.taban])+'</strong></td><td>'+safe+'</td>'+star;
-      tb.appendChild(tr);
+      out.push('<tr>'+name+show+'<td><strong>'+pf(r[CFG.taban])+'</strong></td><td>'+safe+'</td>'+star+'</tr>');
     });
-    el('rhint').style.display=lastReach.length>200?'block':'none';
-    el('rhint').textContent='İlk 200 sonuç gösteriliyor. Daha hassas için filtre/sıralama kullanın.';
+    tb.innerHTML=out.join('');
+    if(!pgr&&window.TVPager)pgr=window.TVPager.attach({grid:tb.parentNode,per:25,mount:el('rPager')});
+    else if(pgr)pgr.reset();
+    el('rhint').style.display='block';
+    el('rhint').textContent='Sütun başlığına tıklayarak sıralayabilir, filtrelerle listeyi daraltabilirsiniz.';
   }
   function run(){
     syncQS();
@@ -431,7 +436,8 @@ kontenjan ve tercih yoğunluğuna göre değişir. <b>Kaynak:</b> MEB 2025 LGS y
       th.addEventListener('click',function(){
         if(!lastReach.length)return;
         sortD=(sortI===i)?-sortD:1; sortI=i;
-        ths.forEach(function(o){var a=o.querySelector('.s-arrow');if(a)a.remove();});
+        ths.forEach(function(o){o.removeAttribute('aria-sort');var a=o.querySelector('.s-arrow');if(a)a.remove();});
+        th.setAttribute('aria-sort',sortD>0?'ascending':'descending');
         var ar=document.createElement('span');ar.className='s-arrow';ar.textContent=sortD>0?' ▲':' ▼';th.appendChild(ar);
         sortReach();draw();
       });
@@ -485,8 +491,9 @@ kontenjan ve tercih yoğunluğuna göre değişir. <b>Kaynak:</b> MEB 2025 LGS y
       th.style.cursor='pointer'; th.title='Sıralamak için tıklayın'; th.dataset.dir='0';
       th.addEventListener('click',function(){
         var dir=th.dataset.dir==='1'?-1:1;
-        ths.forEach(function(o){o.dataset.dir='0';var a=o.querySelector('.s-arrow');if(a)a.remove();});
+        ths.forEach(function(o){o.dataset.dir='0';o.removeAttribute('aria-sort');var a=o.querySelector('.s-arrow');if(a)a.remove();});
         th.dataset.dir=dir>0?'1':'-1';
+        th.setAttribute('aria-sort',dir>0?'ascending':'descending');
         sortBody(tb,i,dir);
         var ar=document.createElement('span');ar.className='s-arrow';ar.textContent=dir>0?' ▲':' ▼';th.appendChild(ar);
       });
