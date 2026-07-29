@@ -34,12 +34,18 @@
     "th.tv-th{cursor:pointer;position:relative;-webkit-user-select:none;user-select:none}" +
     "th.tv-th:hover{color:var(--tvt-accent,var(--accent,#0d9488))}" +
     "th.tv-th:focus-visible{outline:2px solid var(--tvt-accent,var(--accent,#0d9488));outline-offset:-2px}" +
+    // Gösterge ve ⓘ etiketi CSS ile çizilir (::before) → th.textContent KİRLENMEZ.
+    // (Aksi halde başlık metnini okuyan kod "Tarih↕i" görür — SinavVeri'de yakalandı.)
     "th.tv-th .tv-th__ind{margin-left:.25rem;opacity:.35;font-size:.8em}" +
+    "th.tv-th .tv-th__ind::before{content:\"\\2195\"}" +                       /* ↕ */
+    "th.tv-th[aria-sort=\"ascending\"] .tv-th__ind::before{content:\"\\25B2\"}" +  /* ▲ */
+    "th.tv-th[aria-sort=\"descending\"] .tv-th__ind::before{content:\"\\25BC\"}" + /* ▼ */
     "th.tv-th[aria-sort] .tv-th__ind{opacity:1;color:var(--tvt-accent,var(--accent,#0d9488))}" +
     // --- ⓘ ipucu düğmesi (mobil) ---
     ".tv-th__i{display:none;margin-left:.3rem;width:1.05rem;height:1.05rem;line-height:1.05rem;" +
     "padding:0;border:0;border-radius:50%;background:var(--tvt-accent,var(--accent,#0d9488));color:#fff;" +
     "font-size:.72rem;font-weight:700;text-align:center;cursor:pointer;vertical-align:middle;flex:0 0 auto}" +
+    ".tv-th__i::before{content:\"i\"}" +
     // --- açıklama baloncuğu ---
     ".tv-tip{position:fixed;z-index:9999;max-width:min(20rem,88vw);padding:.5rem .65rem;" +
     "border-radius:.5rem;background:var(--tvt-tipbg,#111827);color:#f9fafb;font-size:.82rem;" +
@@ -108,8 +114,7 @@
     // Mobil: ⓘ düğmesi — dokununca ipucu açılır, SIRALAMAYI tetiklemez.
     var i = document.createElement("button");
     i.type = "button";
-    i.className = "tv-th__i";
-    i.textContent = "i";
+    i.className = "tv-th__i";        // "i" harfi CSS ::before ile çizilir (textContent kirlenmesin)
     i.setAttribute("aria-label", "Sütun açıklaması: " + text);
     i.addEventListener("click", function (e) {
       e.stopPropagation();
@@ -127,19 +132,35 @@
   }
 
   /* ---------------- Tıkla-sırala ---------------- */
-  function cellVal(td) {
-    if (!td) return "";
+  // Hücre değeri + KAYNAĞI: data-sort → HAM (İngilizce/ISO biçim), yoksa görünen METİN (TR biçim).
+  // Kaynağı bilmek "1.234" belirsizliğini çözer: ham ise 1.234, TR metin ise 1234.
+  function cell(td) {
+    if (!td) return { v: "", raw: false };
     var s = td.querySelector("[data-sort]");
-    return s ? s.getAttribute("data-sort") : (td.textContent || "").trim();
+    return s ? { v: s.getAttribute("data-sort"), raw: true }
+             : { v: (td.textContent || "").trim(), raw: false };
   }
-  function num(v) {
+  function cellVal(td) { return cell(td).v; }   // geriye uyum
+  // Sayı ayrıştırma — TR ve EN biçimlerini AYIRT EDER.
+  // ⚠️ Eski sürüm "%0.05" gibi nokta-ondalıklı değerleri binlik sanıp 5 yapıyordu (FaizVeri'de yakalandı).
+  //    Kural: virgül varsa → TR (nokta=binlik, virgül=ondalık); yalnız nokta varsa → tam binlik
+  //    gruplaması ise (1.234 / 1.234.567) binlik, değilse (0.05 / 12.5) ONDALIK.
+  // NOT: işaret metinde ▲/▼ ile taşınıyorsa (eksi yoksa) buradan anlaşılamaz →
+  //      o sütunlarda hücreye <span data-sort="ham_değer"> koyun (kanonik yol).
+  function num(v, raw) {
     if (v === null || v === undefined) return null;
     v = String(v).trim();
     if (!v || v === "—" || v === "-") return null;
-    if (/^-?\d+(\.\d+)?$/.test(v)) return parseFloat(v);
-    var t = v.replace(/[^\d.,-]/g, "").replace(/\./g, "").replace(",", ".");  // "1.234.567,89"
+    if (raw) { var r = parseFloat(v); return isNaN(r) ? null : r; }  // data-sort → ham/EN biçim
+    var neg = /^\s*[-−]/.test(v);                          // baştaki eksi (ASCII veya U+2212)
+    var t = v.replace(/[^\d.,]/g, "");
+    if (!t) return null;
+    if (t.indexOf(",") !== -1) t = t.replace(/\./g, "").replace(",", ".");  // "1.234.567,89" → TR
+    else if (/^\d{1,3}(\.\d{3})+$/.test(t)) t = t.replace(/\./g, "");       // "1.234" → binlik (TR)
+    // aksi halde nokta ONDALIK ayırıcıdır ("0.05", "12.5") → dokunma
     var f = parseFloat(t);
-    return isNaN(f) ? null : f;
+    if (isNaN(f)) return null;
+    return neg ? -f : f;
   }
   function dateVal(v) {
     v = String(v || "").trim();
@@ -156,10 +177,11 @@
     var rows = [].slice.call(tb.rows);
     var mul = dir === "descending" ? -1 : 1;
     rows.sort(function (a, b) {
-      var av = cellVal(a.cells[colIdx]), bv = cellVal(b.cells[colIdx]);
+      var ac = cell(a.cells[colIdx]), bc = cell(b.cells[colIdx]);
+      var av = ac.v, bv = bc.v;
       if (type === "num" || type === "date") {
-        var an = type === "date" ? dateVal(av) : num(av);
-        var bn = type === "date" ? dateVal(bv) : num(bv);
+        var an = type === "date" ? dateVal(av) : num(av, ac.raw);
+        var bn = type === "date" ? dateVal(bv) : num(bv, bc.raw);
         if (an === null && bn === null) return 0;
         if (an === null) return 1;     // boş → yönden bağımsız SONA
         if (bn === null) return -1;
@@ -187,20 +209,15 @@
       th.setAttribute("tabindex", "0");
       th.setAttribute("role", "columnheader");
       var ind = document.createElement("span");
-      ind.className = "tv-th__ind";
-      ind.textContent = "↕";
+      ind.className = "tv-th__ind";   // ↕/▲/▼ CSS ::before ile (aria-sort'a bağlı) → textContent temiz
+      ind.setAttribute("aria-hidden", "true");
       th.appendChild(ind);
 
       var doSort = function () {
         var cur = th.getAttribute("aria-sort");
         var dir = cur === "ascending" ? "descending" : "ascending";
-        ths.forEach(function (o) {
-          o.removeAttribute("aria-sort");
-          var oi = o.querySelector(".tv-th__ind");
-          if (oi) oi.textContent = "↕";
-        });
-        th.setAttribute("aria-sort", dir);
-        ind.textContent = dir === "ascending" ? "▲" : "▼";
+        ths.forEach(function (o) { o.removeAttribute("aria-sort"); });
+        th.setAttribute("aria-sort", dir);   // gösterge CSS ile aria-sort'tan türetilir
         sortTable(table, idx, th.getAttribute("data-type") || "text", dir);
       };
       th.addEventListener("click", doSort);
