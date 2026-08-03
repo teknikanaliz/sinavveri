@@ -511,158 +511,191 @@
   </div>
 </header>
 <main>
-
+<style>
+.sn-durum{display:inline-flex;align-items:center;gap:5px;padding:3px 9px;border-radius:999px;font-size:12.5px;font-weight:700;white-space:nowrap}
+.sn-durum.gecti{background:color-mix(in srgb, #16a34a 16%, transparent);color:#16a34a}
+.sn-durum.yakin{background:color-mix(in srgb, var(--accent) 18%, transparent);color:var(--accent)}
+.sn-durum.uzak{background:var(--bg-card-alt);color:var(--fg-faded);border:1px solid var(--border)}
+.sn-durum.belirsiz{background:var(--bg-card-alt);color:var(--fg-faded);border:1px dashed var(--border)}
+.sn-tarih{display:block;font-size:12px;color:var(--fg-faded);margin-top:2px}
+</style>
 <div class="crumb"><a href="index.html">Ana Sayfa</a> / Sınav Takvimi</div>
 <div class="page-title"><h1>2026 Sınav Takvimi</h1><span class="sub">ÖSYM ve MEB resmî takvimine göre · Güncelleme: 3 Haziran 2026</span></div>
 <div class="data-table-wrap">
 <table class="data-table">
-<thead><tr><th data-tip="Sınavı düzenleyen kurum / sınav ailesi." data-type="text">Tür</th><th data-tip="Sınavın resmî adı." data-type="text">Sınav</th><th data-tip="Sınav başvurularının alındığı tarih aralığı." data-type="text">Başvuru</th><th data-tip="Sınavın yapılacağı resmî tarih." data-type="date">Sınav Tarihi</th><th data-tip="Sonuçların açıklanacağı resmî tarih." data-type="date">Sonuç</th></tr></thead>
-<tbody>
+<thead><tr><th data-tip="Sınavı düzenleyen kurum / sınav ailesi." data-type="text">Tür</th><th data-tip="Sınavın resmî adı." data-type="text">Sınav</th><th data-tip="Sınav başvurularının alındığı tarih aralığı." data-type="text">Başvuru</th><th data-tip="Sınavın yapılacağı resmî tarih." data-type="date">Sınav Tarihi</th><th data-tip="Sonuçların açıklanma durumu ve geri sayımı. Kesin tarih ilan edilmemişse 'Yaklaşıyor' gösterilir." data-type="text">Sonuç</th></tr></thead>
+<tbody id="takvimBody">
 <tr>
   <td><span class="tag tag-other">Diğer</span></td>
   <td><strong><a href="/msu.html" title="MSÜ (Askerî Öğrenci Aday Belirleme) sınav rehberi">MSÜ (Askerî Öğrenci Aday Belirleme)</a></strong><br><small class="soon">Millî Savunma Üniversitesi · askerî öğrenci</small></td>
   <td>5 – 29 Oca 2026 (geç: 3 Şub)</td>
   <td><strong>1 Mart 2026</strong></td>
-  <td>24 Mar 2026</td>
+  <td class="sn-sonuc" data-kesin="1" data-iso="2026-03-24" data-ham="24 Mar 2026">24 Mar 2026</td>
 </tr><tr>
   <td><span class="tag tag-other">Diğer</span></td>
   <td><strong><a href="/yokdil.html" title="YÖKDİL/1 sınav rehberi">YÖKDİL/1</a></strong><br><small class="soon">Akademik amaçlı yabancı dil</small></td>
   <td>21 – 29 Oca 2026 (geç: 4 Şub)</td>
   <td><strong>8 Mart 2026</strong></td>
-  <td>18 Mar 2026</td>
+  <td class="sn-sonuc" data-kesin="1" data-iso="2026-03-18" data-ham="18 Mar 2026">18 Mar 2026</td>
 </tr><tr>
   <td><span class="tag tag-other">Diğer</span></td>
   <td><strong><a href="/tus.html" title="TUS/1 (Tıpta Uzmanlık) sınav rehberi">TUS/1 (Tıpta Uzmanlık)</a></strong><br><small class="soon">Temel + Klinik Bilimler</small></td>
   <td>28 Oca – 5 Şub 2026 (geç: 12 Şub)</td>
   <td><strong>15 Mart 2026</strong></td>
-  <td>15 Nis 2026</td>
+  <td class="sn-sonuc" data-kesin="1" data-iso="2026-04-15" data-ham="15 Nis 2026">15 Nis 2026</td>
 </tr><tr>
   <td><span class="tag tag-other">Diğer</span></td>
   <td><strong><a href="/yds.html" title="YDS/1 (İlkbahar) sınav rehberi">YDS/1 (İlkbahar)</a></strong><br><small class="soon">Yabancı dil seviye tespit · e-YDS dönemleri ayrıca</small></td>
   <td>18 – 26 Şub 2026 (geç: 4 Mar)</td>
   <td><strong>5 Nisan 2026</strong></td>
-  <td>28 Nis 2026</td>
+  <td class="sn-sonuc" data-kesin="1" data-iso="2026-04-28" data-ham="28 Nis 2026">28 Nis 2026</td>
 </tr><tr>
   <td><span class="tag tag-other">Diğer</span></td>
   <td><strong><a href="/dus.html" title="DUS/1 (Diş Hekimliği Uzmanlık) sınav rehberi">DUS/1 (Diş Hekimliği Uzmanlık)</a></strong><br><small class="soon">Diş hekimliğinde uzmanlık</small></td>
   <td>10 – 17 Mar 2026 (geç: 25 Mar)</td>
   <td><strong>26 Nisan 2026</strong></td>
-  <td>22 May 2026</td>
+  <td class="sn-sonuc" data-kesin="1" data-iso="2026-05-22" data-ham="22 May 2026">22 May 2026</td>
 </tr><tr>
   <td><span class="tag tag-other">Diğer</span></td>
   <td><strong><a href="/ydus.html" title="YDUS (Tıpta Yan Dal Uzmanlık) sınav rehberi">YDUS (Tıpta Yan Dal Uzmanlık)</a></strong><br><small class="soon">Uzman hekimler için yan dal</small></td>
   <td>13 – 23 Mar 2026 (geç: 2 Nis)</td>
   <td><strong>2 Mayıs 2026</strong></td>
-  <td>4 Haz 2026</td>
+  <td class="sn-sonuc" data-kesin="1" data-iso="2026-06-04" data-ham="4 Haz 2026">4 Haz 2026</td>
 </tr><tr>
   <td><span class="tag tag-other">Diğer</span></td>
   <td><strong><a href="/ales.html" title="ALES/1 sınav rehberi">ALES/1</a></strong><br><small class="soon">Lisansüstü / akademik kadro</small></td>
   <td>25 Mar – 2 Nis 2026 (geç: 9 Nis)</td>
   <td><strong>10 Mayıs 2026</strong></td>
-  <td>5 Haz 2026</td>
+  <td class="sn-sonuc" data-kesin="1" data-iso="2026-06-05" data-ham="5 Haz 2026">5 Haz 2026</td>
 </tr><tr>
   <td><span class="tag tag-lgs">LGS</span></td>
-  <td><strong><a href="/lgs.html" title="LGS (Liselere Geçiş) sınav rehberi">LGS (Liselere Geçiş)</a></strong><br><small class="soon">MEB · 8. sınıf · merkezi sınav · giriş belgesi 3 Haz</small></td>
+  <td><strong><a href="/lgs.html" title="LGS (Liselere Geçiş) sınav rehberi">LGS (Liselere Geçiş)</a></strong><br><small class="soon">MEB · 8. sınıf · merkezi sınav · giriş belgesi 3 Haz · yerleştirme sonucu 5 Ağu 2026</small></td>
   <td>23 Mar – 10 Nis 2026 (e-Okul)</td>
   <td><strong>14 Haziran 2026</strong></td>
-  <td>Haziran 2026 sonu</td>
+  <td class="sn-sonuc" data-kesin="1" data-iso="2026-07-10" data-ham="10 Temmuz 2026">10 Temmuz 2026</td>
 </tr><tr>
   <td><span class="tag tag-yks">YKS</span></td>
   <td><strong><a href="/yks.html" title="YKS — TYT sınav rehberi">YKS — TYT</a></strong><br><small class="soon">1. Oturum · Temel Yeterlilik Testi</small></td>
   <td>6 Şub – 2 Mar 2026 (geç: 10-12 Mar)</td>
   <td><strong>20 Haziran 2026</strong></td>
-  <td>2026-07-22</td>
+  <td class="sn-sonuc" data-kesin="1" data-iso="2026-07-22" data-ham="2026-07-22">2026-07-22</td>
 </tr><tr>
   <td><span class="tag tag-yks">YKS</span></td>
   <td><strong><a href="/yks.html" title="YKS — AYT sınav rehberi">YKS — AYT</a></strong><br><small class="soon">2. Oturum · Alan Yeterlilik (10:15)</small></td>
   <td>6 Şub – 2 Mar 2026 (geç: 10-12 Mar)</td>
   <td><strong>21 Haziran 2026</strong></td>
-  <td>2026-07-22</td>
+  <td class="sn-sonuc" data-kesin="1" data-iso="2026-07-22" data-ham="2026-07-22">2026-07-22</td>
 </tr><tr>
   <td><span class="tag tag-yks">YKS</span></td>
   <td><strong><a href="/yks.html" title="YKS — YDT sınav rehberi">YKS — YDT</a></strong><br><small class="soon">3. Oturum · Yabancı Dil Testi (15:45)</small></td>
   <td>6 Şub – 2 Mar 2026 (geç: 10-12 Mar)</td>
   <td><strong>21 Haziran 2026</strong></td>
-  <td>2026-07-22</td>
+  <td class="sn-sonuc" data-kesin="1" data-iso="2026-07-22" data-ham="2026-07-22">2026-07-22</td>
 </tr><tr>
   <td><span class="tag tag-other">Diğer</span></td>
   <td><strong><a href="/dgs.html" title="DGS (Dikey Geçiş) sınav rehberi">DGS (Dikey Geçiş)</a></strong><br><small class="soon">Önlisans → Lisans</small></td>
   <td>15 May – 2 Haz 2026 (geç: 11 Haz)</td>
   <td><strong>19 Temmuz 2026</strong></td>
-  <td>13 Ağu 2026</td>
+  <td class="sn-sonuc" data-kesin="1" data-iso="2026-08-13" data-ham="13 Ağu 2026">13 Ağu 2026</td>
 </tr><tr>
   <td><span class="tag tag-other">Diğer</span></td>
   <td><strong><a href="/ales.html" title="ALES/2 sınav rehberi">ALES/2</a></strong><br><small class="soon">Lisansüstü / akademik kadro</small></td>
   <td>10 – 18 Haz 2026 (geç: 25 Haz)</td>
   <td><strong>2 Ağustos 2026</strong></td>
-  <td>21 Ağu 2026</td>
+  <td class="sn-sonuc" data-kesin="1" data-iso="2026-08-21" data-ham="21 Ağu 2026">21 Ağu 2026</td>
 </tr><tr>
   <td><span class="tag tag-other">Diğer</span></td>
   <td><strong><a href="/yokdil.html" title="YÖKDİL/2 sınav rehberi">YÖKDİL/2</a></strong><br><small class="soon">Akademik amaçlı yabancı dil</small></td>
   <td>16 – 24 Haz 2026 (geç: 30 Haz)</td>
   <td><strong>9 Ağustos 2026</strong></td>
-  <td>26 Ağu 2026</td>
+  <td class="sn-sonuc" data-kesin="1" data-iso="2026-08-26" data-ham="26 Ağu 2026">26 Ağu 2026</td>
 </tr><tr>
   <td><span class="tag tag-other">Diğer</span></td>
   <td><strong><a href="/tus.html" title="TUS/2 sınav rehberi">TUS/2</a></strong><br><small class="soon">2. dönem</small></td>
   <td>8 – 16 Tem 2026 (geç: 24 Tem)</td>
   <td><strong>23 Ağustos 2026</strong></td>
-  <td>17 Eyl 2026</td>
+  <td class="sn-sonuc" data-kesin="1" data-iso="2026-09-17" data-ham="17 Eyl 2026">17 Eyl 2026</td>
 </tr><tr>
   <td><span class="tag tag-kpss">KPSS</span></td>
   <td><strong><a href="/kpss.html" title="KPSS Lisans (GY-GK) sınav rehberi">KPSS Lisans (GY-GK)</a></strong><br><small class="soon">Genel Yetenek - Genel Kültür</small></td>
   <td>1 – 13 Tem 2026 (geç: 22 Tem)</td>
   <td><strong>6 Eylül 2026</strong></td>
-  <td>7 Eki 2026</td>
+  <td class="sn-sonuc" data-kesin="1" data-iso="2026-10-07" data-ham="7 Eki 2026">7 Eki 2026</td>
 </tr><tr>
   <td><span class="tag tag-kpss">KPSS</span></td>
   <td><strong><a href="/kpss.html" title="KPSS Lisans (Alan Bilgisi) sınav rehberi">KPSS Lisans (Alan Bilgisi)</a></strong><br><small class="soon">Alan Bilgisi · 12-13 Eylül (2 gün)</small></td>
   <td>1 – 13 Tem 2026 (geç: 22 Tem)</td>
   <td><strong>12 Eylül 2026</strong></td>
-  <td>7 Eki 2026</td>
+  <td class="sn-sonuc" data-kesin="1" data-iso="2026-10-07" data-ham="7 Eki 2026">7 Eki 2026</td>
 </tr><tr>
   <td><span class="tag tag-kpss">KPSS</span></td>
   <td><strong><a href="/kpss.html" title="KPSS Ön Lisans sınav rehberi">KPSS Ön Lisans</a></strong><br><small class="soon">Ön lisans düzeyi</small></td>
   <td>29 Tem – 10 Ağu 2026 (geç: 19 Ağu)</td>
   <td><strong>4 Ekim 2026</strong></td>
-  <td>30 Eki 2026</td>
+  <td class="sn-sonuc" data-kesin="1" data-iso="2026-10-30" data-ham="30 Eki 2026">30 Eki 2026</td>
 </tr><tr>
   <td><span class="tag tag-kpss">KPSS</span></td>
   <td><strong><a href="/kpss.html" title="KPSS Ortaöğretim sınav rehberi">KPSS Ortaöğretim</a></strong><br><small class="soon">Ortaöğretim (lise) düzeyi</small></td>
   <td>27 Ağu – 8 Eyl 2026 (geç: 15 Eyl)</td>
   <td><strong>25 Ekim 2026</strong></td>
-  <td>19 Kas 2026</td>
+  <td class="sn-sonuc" data-kesin="1" data-iso="2026-11-19" data-ham="19 Kas 2026">19 Kas 2026</td>
 </tr><tr>
   <td><span class="tag tag-other">Diğer</span></td>
   <td><strong><a href="/dus.html" title="DUS/2 sınav rehberi">DUS/2</a></strong><br><small class="soon">2. dönem</small></td>
   <td>16 – 24 Eyl 2026 (geç: 1 Eki)</td>
   <td><strong>1 Kasım 2026</strong></td>
-  <td>26 Kas 2026</td>
+  <td class="sn-sonuc" data-kesin="1" data-iso="2026-11-26" data-ham="26 Kas 2026">26 Kas 2026</td>
 </tr><tr>
   <td><span class="tag tag-kpss">KPSS</span></td>
   <td><strong><a href="/kpss.html" title="KPSS DHBT sınav rehberi">KPSS DHBT</a></strong><br><small class="soon">Din Hizmetleri Alan Bilgisi Testi</small></td>
   <td>22 – 30 Eyl 2026 (geç: 5 Eki)</td>
   <td><strong>1 Kasım 2026</strong></td>
-  <td>25 Kas 2026</td>
+  <td class="sn-sonuc" data-kesin="1" data-iso="2026-11-25" data-ham="25 Kas 2026">25 Kas 2026</td>
 </tr><tr>
   <td><span class="tag tag-other">Diğer</span></td>
   <td><strong><a href="/yds.html" title="YDS/2 (Sonbahar) sınav rehberi">YDS/2 (Sonbahar)</a></strong><br><small class="soon">Yabancı dil seviye tespit</small></td>
   <td>30 Eyl – 8 Eki 2026 (geç: 14 Eki)</td>
   <td><strong>22 Kasım 2026</strong></td>
-  <td>10 Ara 2026</td>
+  <td class="sn-sonuc" data-kesin="1" data-iso="2026-12-10" data-ham="10 Ara 2026">10 Ara 2026</td>
 </tr><tr>
   <td><span class="tag tag-other">Diğer</span></td>
   <td><strong><a href="/ales.html" title="ALES/3 sınav rehberi">ALES/3</a></strong><br><small class="soon">Lisansüstü / akademik kadro</small></td>
   <td>7 – 15 Eki 2026 (geç: 21 Eki)</td>
   <td><strong>29 Kasım 2026</strong></td>
-  <td>17 Ara 2026</td>
+  <td class="sn-sonuc" data-kesin="1" data-iso="2026-12-17" data-ham="17 Ara 2026">17 Ara 2026</td>
 </tr>
 </tbody>
 </table>
 </div>
 <div class="notice"><b>Not:</b> Tarihler ÖSYM 2026 Yılı Sınav Takvimi ve her sınavın resmî <b>kılavuz/duyurularıyla</b> (YKS, LGS, KPSS, DGS, ALES, TUS, DUS, YDS…) teyit edilmiştir.
-Yaklaşmayan sınavların başvuru tarihleri ilgili kılavuz yayımlanınca kesinleşir; güncel bilgi için <a href="https://www.osym.gov.tr" target="_blank" rel="noopener">osym.gov.tr</a> ve <a href="https://www.meb.gov.tr" target="_blank" rel="noopener">meb.gov.tr</a> esastır.</div>
-
+Yaklaşmayan sınavların başvuru tarihleri ilgili kılavuz yayımlanınca kesinleşir; güncel bilgi için <a href="https://www.osym.gov.tr" target="_blank" rel="noopener">osym.gov.tr</a> ve <a href="https://www.meb.gov.tr" target="_blank" rel="noopener">meb.gov.tr</a> esastır.
+Sınav sonucu/duyuru geçmişi için <a href="/duyurular.html">ÖSYM Duyuruları</a> sayfamıza bakabilirsiniz.</div>
+<script nonce="__NONCE__">
+(function(){
+  var rows = document.querySelectorAll('#takvimBody tr');
+  var bugun = new Date(); bugun.setHours(0,0,0,0);
+  Array.prototype.forEach.call(rows, function(tr){
+    var td = tr.querySelector('.sn-sonuc'); if(!td) return;
+    var kesin = td.getAttribute('data-kesin') === '1';
+    var iso = td.getAttribute('data-iso');
+    var ham = td.getAttribute('data-ham') || '';
+    var span = document.createElement('span');
+    if(kesin && iso){
+      var hedef = new Date(iso+'T00:00:00'); hedef.setHours(0,0,0,0);
+      var gun = Math.round((hedef-bugun)/86400000);
+      if(gun < 0){ span.className='sn-durum gecti'; span.textContent='✅ Açıklandı'; }
+      else if(gun === 0){ span.className='sn-durum yakin'; span.textContent='🔴 Bugün açıklanıyor'; }
+      else if(gun <= 14){ span.className='sn-durum yakin'; span.textContent='⏳ '+gun+' gün kaldı'; }
+      else { span.className='sn-durum uzak'; span.textContent=gun+' gün kaldı'; }
+    } else {
+      span.className='sn-durum belirsiz'; span.textContent='🔜 Yaklaşıyor';
+      span.title='Kesin tarih ÖSYM/MEB tarafından henüz ilan edilmedi.';
+    }
+    var tarih=document.createElement('span'); tarih.className='sn-tarih'; tarih.textContent=ham;
+    td.textContent=''; td.appendChild(span); td.appendChild(tarih);
+  });
+})();
+</script>
 </main>
 <footer>
   <div class="footer-inner">
