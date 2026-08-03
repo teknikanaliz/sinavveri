@@ -917,13 +917,17 @@
   <url><loc>https://sinavveri.com/bolum/sigortacilik-ve-risk-yonetimi.html</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
   <url><loc>https://sinavveri.com/bolum/ayakkabi-tasarimi-ve-uretimi.html</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
   <url><loc>https://sinavveri.com/bolum/taki-tasarimi-ve-imalati.html</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://sinavveri.com/bolum/uluslararasi-ticaret-ve-finans.html</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
   <url><loc>https://sinavveri.com/bolum/organik-tarim-isletmeciligi.html</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
   <url><loc>https://sinavveri.com/bolum/grafik-sanatlar.html</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
   <url><loc>https://sinavveri.com/bolum/bahce-ve-tarla-bitkileri.html</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
   <url><loc>https://sinavveri.com/bolum/psikolojik-danismanlik-ve-rehberlik-ogretmenligi.html</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
-  <url><loc>https://sinavveri.com/bolum/e-isletme-ve-e-ticaret.html</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://sinavveri.com/bolum/psikolojik-danismanlik-ve-rehberlik.html</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://sinavveri.com/bolum/bankacilik-ve-finans.html</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://sinavveri.com/bolum/e-ticaret.html</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
   <url><loc>https://sinavveri.com/bolum/gastronomi.html</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
   <url><loc>https://sinavveri.com/bolum/turizm-ve-otel-yonetimi.html</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://sinavveri.com/bolum/e-isletme-ve-e-ticaret.html</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
   <url><loc>https://sinavveri.com/bolum/uygulamali-bankacilik-ve-finans.html</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
   <url><loc>https://sinavveri.com/bolum/balikcilik-teknolojisi.html</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
   <url><loc>https://sinavveri.com/bolum/felsefe-ve-yapay-zeka.html</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
@@ -981,6 +985,8 @@
   <url><loc>https://sinavveri.com/bolum/geleneksel-turk-sanatlari.html</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
   <url><loc>https://sinavveri.com/bolum/el-sanatlari.html</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
   <url><loc>https://sinavveri.com/bolum/cerkez-dili-ve-kulturu.html</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://sinavveri.com/bolum/gorsel-sanatlar-ve-iletisim-tasarimi.html</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://sinavveri.com/bolum/turkoloji.html</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
   <url><loc>https://sinavveri.com/bolum/gurcu-dili-ve-edebiyati.html</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
   <url><loc>https://sinavveri.com/bolum/suryani-dili-ve-edebiyati.html</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
   <url><loc>https://sinavveri.com/bolum/zaza-dili-ve-edebiyati.html</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
@@ -989,6 +995,8 @@
   <url><loc>https://sinavveri.com/bolum/cerkez-dili-ve-edebiyati.html</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
   <url><loc>https://sinavveri.com/bolum/basin-ve-yayin.html</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
   <url><loc>https://sinavveri.com/bolum/animasyon-ve-video-uretimi.html</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://sinavveri.com/bolum/gorsel-sanatlar.html</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://sinavveri.com/bolum/halkla-iliskiler-ve-pazarlama-iletisimi.html</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
   <url><loc>https://sinavveri.com/bolum/karsilastirmali-edebiyat.html</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
   <url><loc>https://sinavveri.com/bolum/ingilizce-fransizca-mutercim-ve-tercumanlik.html</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
   <url><loc>https://sinavveri.com/bolum/ingiliz-dili-ve-edebiyati.html</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
@@ -1034,6 +1042,7 @@
   <url><loc>https://sinavveri.com/bolum/mutercim-tercumanlik-rusca.html</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
   <url><loc>https://sinavveri.com/bolum/urdu-dili-ve-edebiyati.html</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
   <url><loc>https://sinavveri.com/bolum/sirp-dili-ve-edebiyati.html</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://sinavveri.com/bolum/rus-dili-ve-edebiyati-ogretmenligi.html</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
   <url><loc>https://sinavveri.com/bolum/hindoloji.html</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
   <url><loc>https://sinavveri.com/bolum/bulgarca-mutercim-ve-tercumanlik.html</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
   <url><loc>https://sinavveri.com/bolum/ermeni-dili-ve-kulturu.html</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
