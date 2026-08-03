@@ -2465,7 +2465,7 @@ o programa <b>en son yerleşen</b> adayın verisidir. Yerleşen olmayan programl
 # ───────────────────────── TERCİH ROBOTU ─────────────────────────
 ROBOT_JS = r"""<script nonce="__NONCE__">
 (function(){
-  var IDX={k:0,u:1,b:2,g:3,il:4,t:5,o:6,dil:7,bs:8,kont:9,tp:10,sira:11};
+  var IDX={k:0,u:1,b:2,g:3,il:4,t:5,o:6,dil:7,bs:8,kont:9,tp:10,sira:11,yer:12,t24:13,t23:14,s24:15,s23:16};
   var TUR={D:'Devlet',V:'Vakıf',K:'KKTC',DK:'Devlet (KKTC Kampüs)',DU:'Devlet (Ücretli)',DKU:'Devlet (KKTC Uyruklu)',Y:'Diğer','?':'—'};
   var PTL={say:'Sayısal',ea:'Eşit Ağırlık',soz:'Sözel',dil:'Dil',tyt:'TYT (Önlisans)'};
   var SV=window.SV||{};
@@ -2507,7 +2507,7 @@ ROBOT_JS = r"""<script nonce="__NONCE__">
     });
   }
   var lastReach=[],lastSira=0,sortI=null,sortD=1;
-  var SCOLS=[[IDX.b,0],[IDX.il,0],[IDX.t,0],[IDX.tp,1],[IDX.sira,1]];
+  var SCOLS=[[IDX.b,0],[IDX.il,0],[IDX.t,0],[IDX.kont,1],[IDX.tp,1],[IDX.sira,1]];
   function sortReach(){
     if(sortI==null||sortI>=SCOLS.length){lastReach.sort(function(a,b){return a[IDX.sira]-b[IDX.sira];});return;}
     var f=SCOLS[sortI][0],num=SCOLS[sortI][1];
@@ -2515,25 +2515,45 @@ ROBOT_JS = r"""<script nonce="__NONCE__">
       if(num){x=(x==null?null:Number(x));y=(y==null?null:Number(y));if(x==null&&y==null)return 0;if(x==null)return 1;if(y==null)return -1;return (x-y)*sortD;}
       return String(x==null?'':x).localeCompare(String(y==null?'':y),'tr')*sortD;});
   }
+  // Bu yıl ÖSYM kılavuzundan düşmüş program kodları (kod-diff — bkz. pipeline/kilavuz_diff.py).
+  // Satır SİLİNMEZ (geçmiş veri değerlidir), yalnız "Bu yıl alım yapmıyor" rozeti eklenir.
+  var KAPANAN = new Set(__KAPANAN_KODLAR__);
+  var pf0=function(n){return n==null?'—':n.toLocaleString('tr-TR',{minimumFractionDigits:2,maximumFractionDigits:2});};
+  function detailRow(r,ri){
+    var yillar=[[2025,r[IDX.tp],r[IDX.sira]],[2024,r[IDX.t24],r[IDX.s24]],[2023,r[IDX.t23],r[IDX.s23]]]
+      .filter(function(y){return y[1]!=null;});
+    if(!yillar.length)return '';
+    var rows=yillar.map(function(y){return '<tr><td>'+y[0]+'</td><td>'+pf0(y[1])+'</td><td>'+nf(y[2])+'</td></tr>';}).join('');
+    return '<tr class="pdet-row" data-ri="'+ri+'" hidden><td colspan="8"><div class="pdet-box"><b>Geçmiş yıllar</b>'+
+      '<table class="pdet-hist"><thead><tr><th>Yıl</th><th>Taban Puan</th><th>Başarı Sırası</th></tr></thead>'+
+      '<tbody>'+rows+'</tbody></table></div></td></tr>';
+  }
   function draw(){
     var tb=el('rbody'); byId={};
-    if(!lastReach.length){tb.innerHTML='';if(SV.empty)SV.empty('rbody',7,'Bu sıralama ve filtrelerle yerleşebileceğin program bulunamadı. Filtreyi gevşetmeyi deneyin.');el('rhint').style.display='none';if(pgr)pgr.reset();return;}
+    if(!lastReach.length){tb.innerHTML='';if(SV.empty)SV.empty('rbody',8,'Bu sıralama ve filtrelerle yerleşebileceğin program bulunamadı. Filtreyi gevşetmeyi deneyin.');el('rhint').style.display='none';if(pgr)pgr.reset();return;}
     var out=[];
-    lastReach.forEach(function(r){
+    lastReach.forEach(function(r,ri){
       var ratio=r[IDX.sira]/lastSira;  // taban sıra / senin sıran (>1 = taban daha geride = güvenli)
       var safe = ratio>=1.20 ? '<span class="tag tag-lgs">Rahat</span>' : (ratio>=1.0 ? '<span class="tag tag-kpss">Olası</span>' : '<span class="tag tag-other">Sınırda</span>');
       var k=rkey(r); byId[k]={id:k,name:r[IDX.b]||'',sub:r[IDX.u]||'',meta:'taban sıra '+nf(r[IDX.sira])};
       var on=fav&&fav.has(k);
-      out.push('<tr><td><strong>'+(r[IDX.b]||'')+'</strong><br><small>'+(r[IDX.u]||'')+'</small></td>'+
+      var rozet='';
+      if(KAPANAN.has(r[IDX.k])) rozet=' <span class="tag tag-other" title="ÖSYM'+"'"+'nin güncel kılavuzunda bu program bulunamadı">⛔ Bu yıl alım yapmıyor</span>';
+      else if(r[IDX.t24]==null&&r[IDX.t23]==null) rozet=' <span class="tag tag-other" title="Önceki yıllarda taban puan kaydı yok — yeni açılmış veya ilk kez ilan edilmiş olabilir">🆕 Yeni</span>';
+      var det=detailRow(r,ri);
+      var ibtn=det?'<button type="button" class="pdet" data-ri="'+ri+'" aria-expanded="false" aria-label="Geçmiş yıl verilerini göster">ℹ️</button>':'';
+      out.push('<tr><td><strong>'+(r[IDX.b]||'')+'</strong>'+rozet+'<br><small>'+(r[IDX.u]||'')+'</small></td>'+
         '<td>'+(r[IDX.il]||'—')+'</td>'+'<td>'+(TUR[r[IDX.t]]||'—')+'</td>'+
-        '<td><strong>'+pf(r[IDX.tp])+'</strong></td>'+'<td>'+nf(r[IDX.sira])+'</td>'+'<td>'+safe+'</td>'+
+        '<td>'+nf(r[IDX.kont])+'</td>'+
+        '<td><strong>'+pf(r[IDX.tp])+'</strong></td>'+'<td>'+nf(r[IDX.sira])+' '+ibtn+'</td>'+'<td>'+safe+'</td>'+
         '<td style="text-align:center"><button type="button" class="fav-star'+(on?' on':'')+'" data-fid="'+k.replace(/"/g,'&quot;')+'" aria-label="Tercih listeme ekle">'+(on?'★':'☆')+'</button></td></tr>');
+      if(det) out.push(det);
     });
     tb.innerHTML=out.join('');
     if(!pgr&&window.TVPager)pgr=window.TVPager.attach({grid:tb.parentNode,per:25,mount:el('rPager')});
     else if(pgr)pgr.reset();
     el('rhint').style.display='block';
-    el('rhint').textContent='Sütun başlığına tıklayarak sıralayabilir, il/tür/dil filtreleriyle listeyi daraltabilirsiniz.';
+    el('rhint').textContent='Sütun başlığına tıklayarak sıralayabilir, il/tür/dil filtreleriyle listeyi daraltabilirsiniz. ℹ️ ile geçmiş yıl tabanlarını görebilirsiniz.';
   }
   function run(){
     var pt=el('rPt').value;
@@ -2558,8 +2578,18 @@ ROBOT_JS = r"""<script nonce="__NONCE__">
     });
   }
   el('rbody').addEventListener('click',function(e){
-    var b=e.target;if(!b.classList||!b.classList.contains('fav-star'))return;
-    var k=b.getAttribute('data-fid');if(fav&&byId[k])fav.toggle(byId[k]);
+    var b=e.target;
+    if(b.classList&&b.classList.contains('fav-star')){
+      var k=b.getAttribute('data-fid');if(fav&&byId[k])fav.toggle(byId[k]);return;
+    }
+    if(b.classList&&b.classList.contains('pdet')){
+      var ri=b.getAttribute('data-ri');
+      var row=el('rbody').querySelector('.pdet-row[data-ri="'+ri+'"]');
+      if(!row)return;
+      var open=row.hasAttribute('hidden');
+      if(open)row.removeAttribute('hidden');else row.setAttribute('hidden','');
+      b.setAttribute('aria-expanded',open?'true':'false');
+    }
   });
   el('rBtn').addEventListener('click',run);
   el('rSira').addEventListener('keydown',function(e){if(e.key==='Enter')run();});
@@ -2588,11 +2618,47 @@ ROBOT_JS = r"""<script nonce="__NONCE__">
 </script>"""
 
 
+# Resmî ÖSYM kılavuz kutusu — sırayla dener: (1) her yıl otomatik güncellenen kilavuz_2026.json
+# (pipeline/kilavuz_diff.py), (2) o da yoksa sabit 2026 linkleri (2026-07'de doğrulandı, elle
+# indirildi). dokuman.osym.gov.tr dosya adları güncellemede değişebilir — bu yüzden mümkünse
+# kilavuz_2026.json TERCİH edilir (canlı sayfadan bulunmuş, güncel).
+_KV_FALLBACK = {
+    "pdf_url": "https://dokuman.osym.gov.tr/web/2026/7/2026-yuksekogretim-kurumlari-sinavi-yks-yuksekogretim-programlari-ve-kontenjanlari-kilavuzu-h5q8kv-30170002.pdf",
+    "tablo3_url": "https://dokuman.osym.gov.tr/web/2026/7/tablo-3-29u1s7pl.xls",
+    "tablo4_url": "https://dokuman.osym.gov.tr/web/2026/7/tablo-4-hohu0j-30164357.xls",
+    "guncelleme": None, "kapanan_kodlar": [],
+}
+
+
+def _kilavuz_verisi():
+    p = ROOT / "data" / "kilavuz_2026.json"
+    if p.exists():
+        try:
+            return json.loads(p.read_text(encoding="utf-8"))
+        except Exception:
+            pass
+    return _KV_FALLBACK
+
+
 def page_tercih_robotu():
+    kv = _kilavuz_verisi()
+    guncelleme = fmt_date(kv["guncelleme"][:10]) if kv.get("guncelleme") else None
+    kapanan_kodlar = [k["kod"] if isinstance(k, dict) else k for k in kv.get("kapanan_kodlar", [])]
+    kilavuz_box = f"""<div class="info-box" style="margin-bottom:16px">
+  <b>📋 2026 YKS Resmî Kılavuzu ve Kontenjan Tabloları</b>{f' <span style="color:var(--fg-faded);font-weight:400">· son kontrol {guncelleme}</span>' if guncelleme else ''}
+  <div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:8px">
+    <a class="btn btn-ghost" href="{kv['pdf_url']}" target="_blank" rel="noopener">📄 Kılavuz PDF'i</a>
+    <a class="btn btn-ghost" href="{kv['tablo3_url']}" target="_blank" rel="noopener">📊 Tablo-3 (Kontenjanlar)</a>
+    <a class="btn btn-ghost" href="{kv['tablo4_url']}" target="_blank" rel="noopener">📊 Tablo-4 (Kontenjanlar)</a>
+  </div>
+  <div style="font-size:12.5px;color:var(--fg-faded);margin-top:8px">Bu üç dosya ÖSYM'nin resmî 2026 YKS kılavuzudur — programımızdaki
+  taban puan/sıra verisi bu tablolardaki program kodlarıyla otomatik karşılaştırılır; kılavuzdan kalkan programlar
+  aşağıdaki listede <span class="tag tag-other">⛔ Bu yıl alım yapmıyor</span> rozetiyle işaretlenir.</div>
+</div>"""
     body = """
 <div class="crumb"><a href="/index.html">Ana Sayfa</a> / Tercih Robotu</div>
 <div class="page-title"><h1>2026 YKS Tercih Robotu</h1><span class="sub">Başarı sıranı gir, yerleşebileceğin programları gör · 2025 YÖK Atlas yerleştirme verisine göre</span></div>
-""" + robot_nav("tercih-robotu.html") + """
+""" + robot_nav("tercih-robotu.html") + kilavuz_box + """
 <div class="fav-bar" id="favBar"><button type="button" class="fav-toggle" id="favBtn">⭐ Tercih Listem (0)</button></div>
 <div class="fav-panel" id="favPanel"></div>
 
@@ -2623,7 +2689,7 @@ def page_tercih_robotu():
 
 <div class="data-table-wrap">
 <table class="data-table" data-live="1">
-<thead><tr><th data-tip="Programın YÖK Atlas'taki tam adı ve bağlı olduğu üniversite." data-type="text">Program / Üniversite</th><th data-tip="Programın bulunduğu il." data-type="text">İl</th><th data-tip="Üniversite türü: Devlet, Vakıf, KKTC veya özel kontenjan türü." data-type="text">Tür</th><th data-tip="Programa 2025'te en son yerleşen adayın YKS yerleştirme puanı." data-type="num">Taban Puan</th><th data-tip="Programın 2025 taban başarı sırası. Küçük sıra = daha yüksek başarı." data-type="num">Başarı Sırası</th><th data-tip="Girdiğin sıraya göre yerleşme şansı: Rahat (güvenli), Olası (sıraya yakın), Sınırda (riskli)." data-type="text">Şans</th><th data-nosort data-tip="Programı ⭐ ile tercih listene ekle.">⭐</th></tr></thead>
+<thead><tr><th data-tip="Programın YÖK Atlas'taki tam adı ve bağlı olduğu üniversite." data-type="text">Program / Üniversite</th><th data-tip="Programın bulunduğu il." data-type="text">İl</th><th data-tip="Üniversite türü: Devlet, Vakıf, KKTC veya özel kontenjan türü." data-type="text">Tür</th><th data-tip="Programın 2025 genel kontenjanı (kaç kişi alındığı)." data-type="num">Kontenjan</th><th data-tip="Programa 2025'te en son yerleşen adayın YKS yerleştirme puanı." data-type="num">Taban Puan</th><th data-tip="Programın 2025 taban başarı sırası. Küçük sıra = daha yüksek başarı. ℹ️ ile 2024/2023 geçmişini görebilirsiniz." data-type="num">Başarı Sırası</th><th data-tip="Girdiğin sıraya göre yerleşme şansı: Rahat (güvenli), Olası (sıraya yakın), Sınırda (riskli)." data-type="text">Şans</th><th data-nosort data-tip="Programı ⭐ ile tercih listene ekle.">⭐</th></tr></thead>
 <tbody id="rbody"></tbody>
 </table>
 </div>
@@ -2634,7 +2700,7 @@ def page_tercih_robotu():
 "Şans": <b>Rahat</b> (taban sıran senden epey geride — güvenli), <b>Olası</b> (sıraya yakın), <b>Sınırda</b> (taban senden biraz daha iyi — riskli ama 2026'da değişebileceği için denenebilir).
 Bu bir tahmindir; 2026 taban sıraları kontenjan ve tercih yoğunluğuna göre değişir. Resmî tercih için
 <a href="https://www.osym.gov.tr" target="_blank" rel="noopener">ÖSYM</a> kılavuzu esastır.</div>
-""" + ROBOT_JS
+""" + ROBOT_JS.replace("__KAPANAN_KODLAR__", json.dumps(kapanan_kodlar))
     # rIl doldurma — robot da fillIl benzeri ister; basitçe SEARCH veri yüklenince doldurulmuyor.
     fill = r"""<script nonce="__NONCE__">
 (function(){
@@ -2675,8 +2741,28 @@ Bu bir tahmindir; 2026 taban sıraları kontenjan ve tercih yoğunluğuna göre 
 # ───────────────────────── BÖLÜM (program grubu) SAYFALARI ─────────────────────────
 PUAN_ROBOT_JS = r"""<script nonce="__NONCE__">
 (function(){
-  var CFG=__CFG__, SV=window.SV||{}, NCOL=CFG.show.length+4;
+  var CFG=__CFG__, SV=window.SV||{}, NCOL=CFG.show.length+4+(CFG.hist?1:0);
   var data=[],byId={};
+  var pf0=function(n){return n==null?'—':Number(n).toLocaleString('tr-TR',{minimumFractionDigits:2,maximumFractionDigits:2});};
+  // Kodlu kolonlar (ör. LGS tür harfi 'F'→'Fen Lisesi') — CFG.maps={idx:{kod:etiket}} varsa uygulanır.
+  function mapped(idx,v){ var m=CFG.maps&&CFG.maps[idx]; return m&&m[v]!=null? m[v] : v; }
+  // ⓘ açılır detay: 2025/2024/2023 taban (+varsa sıra) geçmişi — bölüm/üniversite sayfalarındaki
+  // .pdet/.pdet-row/.pdet-hist CSS sınıfları AYNEN kullanılır (assets/style.css, kanonik desen).
+  // Robot verisi client-JSON'da kompakt dizi olduğu için burada yalnız DİZİDE ZATEN VAR OLAN
+  // alanlardan kurulur (kadro/akreditasyon/koşul gibi bölüm-sayfası-özel alanlar burada yok).
+  function detailRow(r,ncol){
+    var yillar=[];
+    if(CFG.hist){
+      CFG.hist.forEach(function(h){
+        var t=r[h.t]; if(t==null) return;
+        yillar.push('<tr><td>'+h.yil+'</td><td>'+pf0(t)+'</td>'+(h.s!=null&&r[h.s]!=null?'<td>'+Number(r[h.s]).toLocaleString('tr-TR')+'</td>':(CFG.histHasSira?'<td>—</td>':''))+'</tr>');
+      });
+    }
+    if(!yillar.length) return '';
+    var thead='<tr><th>Yıl</th><th>Taban</th>'+(CFG.histHasSira?'<th>Sıra</th>':'')+'</tr>';
+    return '<tr class="pdet-row"><td colspan="'+ncol+'"><div class="pdet-box"><b>Geçmiş yıllar</b>'+
+      '<table class="pdet-hist"><thead>'+thead+'</thead><tbody>'+yillar.join('')+'</tbody></table></div></td></tr>';
+  }
   var fav=SV.initFav?SV.initFav({ns:CFG.ns_key||'robot',barId:'favBar',panelId:'favPanel',btnId:'favBtn'}):null;
   function el(id){return document.getElementById(id);}
   var pf=function(n){return n==null?'—':Number(n).toLocaleString('tr-TR',{minimumFractionDigits:2,maximumFractionDigits:2});};
@@ -2693,8 +2779,8 @@ PUAN_ROBOT_JS = r"""<script nonce="__NONCE__">
       });
       var ks=Object.keys(cnt).sort(function(a,b){return cnt[b]-cnt[a]||String(a).localeCompare(String(b),'tr');});
       sel.innerHTML='<option value="">Tümü</option>';var hc=false;
-      ks.forEach(function(k){var o=document.createElement('option');o.value=k;o.textContent=k+' ('+cnt[k]+')';if(k===cur){o.selected=true;hc=true;}sel.appendChild(o);});
-      if(cur&&!hc){var o2=document.createElement('option');o2.value=cur;o2.textContent=cur+' (0)';o2.selected=true;sel.appendChild(o2);}
+      ks.forEach(function(k){var o=document.createElement('option');o.value=k;o.textContent=mapped(f[0],k)+' ('+cnt[k]+')';if(k===cur){o.selected=true;hc=true;}sel.appendChild(o);});
+      if(cur&&!hc){var o2=document.createElement('option');o2.value=cur;o2.textContent=mapped(f[0],cur)+' (0)';o2.selected=true;sel.appendChild(o2);}
     });
   }
   function applyQS(){
@@ -2733,15 +2819,22 @@ PUAN_ROBOT_JS = r"""<script nonce="__NONCE__">
     var tb=el('rbody');byId={};
     if(!lastReach.length){tb.innerHTML='';if(SV.empty)SV.empty('rbody',NCOL,'Bu puan ve filtrelerle yerleşebileceğin sonuç bulunamadı. Puanı veya filtreleri gözden geçirin.');el('rhint').style.display='none';if(pgr)pgr.reset();return;}
     var out=[];
-    lastReach.forEach(function(r){
+    lastReach.forEach(function(r,ri){
       var m=userP-r[CFG.taban];
       var safe=m>=CFG.t1?'<span class="tag tag-lgs">Rahat</span>':(m>=0?'<span class="tag tag-kpss">Olası</span>':'<span class="tag tag-other">Sınırda</span>');
-      var name='<td><strong>'+(r[CFG.nb]||'')+'</strong>'+(CFG.ns!=null?'<br><small>'+(r[CFG.ns]||'')+'</small>':'')+'</td>';
-      var show='';CFG.show.forEach(function(c){show+='<td>'+(r[c[0]]==null||r[c[0]]===''?'—':r[c[0]])+'</td>';});
+      // "Yeni" rozeti: geçmiş yıl verisinin TAMAMI boşsa (kayıt tarihçesi yok) — kesin değil ama
+      // güçlü sinyal (bkz. hist alanları). CFG.hist yoksa (ör. LGS'de kısmi) rozet basılmaz.
+      var yeni = CFG.hist && CFG.hist.every(function(h){return r[h.t]==null;})
+        ? ' <span class="tag tag-other" title="Önceki yıllarda taban puan kaydı yok — yeni açılmış veya ilk kez ilan edilmiş olabilir">🆕 Yeni</span>' : '';
+      var name='<td><strong>'+(r[CFG.nb]||'')+'</strong>'+yeni+(CFG.ns!=null?'<br><small>'+(r[CFG.ns]||'')+'</small>':'')+'</td>';
+      var show='';CFG.show.forEach(function(c){var v=r[c[0]];show+='<td>'+(v==null||v===''?'—':mapped(c[0],v))+'</td>';});
+      var det=CFG.hist?detailRow(r,NCOL):'';
+      var dbtn=det? '<td style="text-align:center"><button type="button" class="pdet" data-ri="'+ri+'" aria-expanded="false" aria-label="Geçmiş yıl verilerini göster">ℹ️</button></td>' : (CFG.hist?'<td></td>':'');
       var k=rkey(r);byId[k]={id:k,name:String(r[CFG.nb]||''),sub:(CFG.ns!=null?String(r[CFG.ns]||''):''),meta:'taban '+pf(r[CFG.taban])};
       var on=fav&&fav.has(k);
       var star='<td style="text-align:center"><button type="button" class="fav-star'+(on?' on':'')+'" data-fid="'+k.replace(/"/g,'&quot;')+'" aria-label="Tercih listeme ekle">'+(on?'★':'☆')+'</button></td>';
-      out.push('<tr>'+name+show+'<td><strong>'+pf(r[CFG.taban])+'</strong></td><td>'+safe+'</td>'+star+'</tr>');
+      out.push('<tr>'+name+show+'<td><strong>'+pf(r[CFG.taban])+'</strong></td><td>'+safe+'</td>'+dbtn+star+'</tr>');
+      if(det) out.push(det.replace('<tr class="pdet-row">','<tr class="pdet-row" data-ri="'+ri+'" hidden>'));
     });
     tb.innerHTML=out.join('');
     if(!pgr&&window.TVPager)pgr=window.TVPager.attach({grid:tb.parentNode,per:25,mount:el('rPager')});
@@ -2763,8 +2856,18 @@ PUAN_ROBOT_JS = r"""<script nonce="__NONCE__">
     draw();
   }
   el('rbody').addEventListener('click',function(e){
-    var b=e.target;if(!b.classList||!b.classList.contains('fav-star'))return;
-    var k=b.getAttribute('data-fid');if(fav&&byId[k])fav.toggle(byId[k]);
+    var b=e.target;
+    if(b.classList&&b.classList.contains('fav-star')){
+      var k=b.getAttribute('data-fid');if(fav&&byId[k])fav.toggle(byId[k]);return;
+    }
+    if(b.classList&&b.classList.contains('pdet')){
+      var ri=b.getAttribute('data-ri');
+      var row=el('rbody').querySelector('.pdet-row[data-ri="'+ri+'"]');
+      if(!row)return;
+      var open=row.hasAttribute('hidden');
+      if(open)row.removeAttribute('hidden');else row.setAttribute('hidden','');
+      b.setAttribute('aria-expanded',open?'true':'false');
+    }
   });
   el('rBtn').addEventListener('click',run);
   el('rPuan').addEventListener('keydown',function(e){if(e.key==='Enter')run();});
@@ -2806,9 +2909,12 @@ def robot_nav(active):
 
 
 def puan_robot_page(slug, title, desc, h1, sub, veri_file, nb, ns, show, taban, filters,
-                    noun, t1, t2, intro, kaynak, puan_label, ph):
+                    noun, t1, t2, intro, kaynak, puan_label, ph, hist=None, hist_has_sira=False, maps=None):
     """Generic puan-bazlı tercih robotu. nb/ns: ad sütun idx (bold/alt). show: [(idx,label)] ek sütun.
-    taban: taban puan idx. filters: [(idx,label)]. t1/t2: 'Rahat'/'Olası' eşik (puan farkı)."""
+    taban: taban puan idx. filters: [(idx,label)]. t1/t2: 'Rahat'/'Olası' eşik (puan farkı).
+    hist: [{"yil":2024,"t":idx,"s":idx|None}, …] — verilirse ⓘ açılır satırında geçmiş yıl
+    taban(+sıra) tablosu gösterilir VE "🆕 Yeni" rozeti (tüm hist alanları boşsa) devreye girer.
+    maps: {idx: {kod: etiket}} — kodlu bir `show` kolonunu insan-okur etikete çevirir (ör. LGS türü)."""
     fhtml = ""
     for n, (idx, label) in enumerate(filters):
         fhtml += (f'<div><label style="font-size:12px;color:var(--fg-faded);font-weight:700">{label}</label>'
@@ -2816,10 +2922,13 @@ def puan_robot_page(slug, title, desc, h1, sub, veri_file, nb, ns, show, taban, 
                   f'<option value="">Tümü</option></select></div>')
     thead = (th_html("Program" if ns is not None else "Ad") + "".join(th_html(l) for _, l in show)
              + th_html("Taban") + th_html("Şans")
+             + (('<th data-nosort data-tip="Geçmiş yıl taban puanlarını gösterir.">ⓘ</th>') if hist else "")
              + '<th data-nosort data-tip="Kaydı ⭐ ile tercih listene ekle.">⭐</th>')
     ns_key = slug.replace("-tercih-robotu.html", "").replace(".html", "")
     cfg = {"file": veri_file, "nb": nb, "ns": ns, "show": [[i, l] for i, l in show],
-           "taban": taban, "filters": [[i, l] for i, l in filters], "noun": noun, "t1": t1, "t2": t2, "ns_key": ns_key}
+           "taban": taban, "filters": [[i, l] for i, l in filters], "noun": noun, "t1": t1, "t2": t2, "ns_key": ns_key,
+           "hist": hist, "histHasSira": hist_has_sira,
+           "maps": {str(i): m for i, m in maps.items()} if maps else None}
     js = PUAN_ROBOT_JS.replace("__CFG__", json.dumps(cfg, ensure_ascii=False))
     body = f"""
 <div class="crumb"><a href="/index.html">Ana Sayfa</a> / <a href="/tercih-robotu.html">Tercih Robotu</a> / {h1}</div>
@@ -2859,11 +2968,12 @@ def page_dgs_robot():
         "dgs-tercih-robotu.html", "2026 DGS Tercih Robotu — Puanına Göre Bölüm Bul | SınavVeri",
         "2026 DGS tercih robotu: DGS puanını gir, 2025 ÖSYM yerleştirme verisine göre yerleşebileceğin lisans programlarını anında gör. Ücretsiz.",
         "2026 DGS Tercih Robotu", "Dikey Geçiş · DGS puanını gir, yerleşebileceğin programları gör · 2025 ÖSYM verisine göre",
-        "/veri/dgs.json", 1, 0, [], 3, [(1, "Bölüm"), (0, "Üniversite / Fakülte")],
+        "/veri/dgs.json", 1, 0, [(2, "Kontenjan"), (4, "Tavan")], 3, [(1, "Bölüm"), (0, "Üniversite / Fakülte")],
         "programa", 15, 4,
         "DGS puanını girin; o puanla yerleşebileceğin (taban puanı ≤ senin puanın) tüm lisans programlarını en yüksek tabandan başlayarak listeler. "
         "DGS net hesaplama için <a href='/dgs-puan-hesaplama.html'>DGS puan hesaplama</a>.",
-        "2025 DGS resmî ÖSYM yerleştirme verisi.", "DGS Puanın", "örn. 290,5")
+        "2025 DGS resmî ÖSYM yerleştirme verisi.", "DGS Puanın", "örn. 290,5",
+        hist=[{"yil": 2025, "t": 3}, {"yil": 2024, "t": 5}, {"yil": 2023, "t": 6}])
 
 
 def page_tus_robot():
@@ -2873,11 +2983,12 @@ def page_tus_robot():
         "tus-tercih-robotu.html", "2026 TUS Tercih Robotu — Puanına Göre Uzmanlık Dalı Bul | SınavVeri",
         "2026 TUS tercih robotu: TUS puanını gir, 2025 ÖSYM yerleştirme verisine göre girebileceğin uzmanlık dalı ve kurumları gör. Ücretsiz.",
         "2026 TUS Tercih Robotu", "Tıpta Uzmanlık · TUS puanını gir, girebileceğin dal/kurumları gör · 2025 ÖSYM verisine göre",
-        "/veri/tus.json", 1, 0, [(2, "Tür")], 4, [(9, "Uzmanlık Dalı"), (2, "Kontenjan Türü")],
+        "/veri/tus.json", 1, 0, [(2, "Tür"), (3, "Kontenjan"), (5, "Tavan")], 4, [(9, "Uzmanlık Dalı"), (2, "Kontenjan Türü")],
         "uzmanlık dalına", 4, 1,
         "TUS puanını girin; o puanla girebileceğin (taban ≤ puanın) kurum ve uzmanlık dallarını en yüksek tabandan başlayarak listeler. "
         "Uzmanlık dalı ve kontenjan türüne göre filtreleyebilirsin. TUS hesaplama için <a href='/yks-puan-hesaplama.html'>puan araçları</a>.",
-        "2025 TUS 1. dönem resmî ÖSYM yerleştirme verisi.", "TUS Puanın", "örn. 58,40")
+        "2025 TUS 1. dönem resmî ÖSYM yerleştirme verisi.", "TUS Puanın", "örn. 58,40",
+        hist=[{"yil": 2025, "t": 4}, {"yil": 2024, "t": 6}, {"yil": 2023, "t": 7}])
 
 
 def page_dus_robot():
@@ -2887,11 +2998,12 @@ def page_dus_robot():
         "dus-tercih-robotu.html", "2026 DUS Tercih Robotu — Puanına Göre Uzmanlık Dalı Bul | SınavVeri",
         "2026 DUS tercih robotu: DUS puanını gir, 2025 ÖSYM yerleştirme verisine göre girebileceğin diş hekimliği uzmanlık dalı ve kurumları gör. Ücretsiz.",
         "2026 DUS Tercih Robotu", "Diş Hekimliği Uzmanlık · DUS puanını gir, girebileceğin dal/kurumları gör · 2025 ÖSYM verisine göre",
-        "/veri/dus.json", 1, 0, [(2, "Tür")], 4, [(9, "Uzmanlık Dalı"), (2, "Kontenjan Türü")],
+        "/veri/dus.json", 1, 0, [(2, "Tür"), (3, "Kontenjan"), (5, "Tavan")], 4, [(9, "Uzmanlık Dalı"), (2, "Kontenjan Türü")],
         "uzmanlık dalına", 4, 1,
         "DUS puanını girin; o puanla girebileceğin (taban ≤ puanın) kurum ve diş hekimliği uzmanlık dallarını listeler. "
         "Uzmanlık dalı ve kontenjan türüne göre filtreleyebilirsin.",
-        "2025 DUS resmî ÖSYM yerleştirme verisi.", "DUS Puanın", "örn. 55,20")
+        "2025 DUS resmî ÖSYM yerleştirme verisi.", "DUS Puanın", "örn. 55,20",
+        hist=[{"yil": 2025, "t": 4}, {"yil": 2024, "t": 6}, {"yil": 2023, "t": 7}])
 
 
 def page_kpss_robot():
@@ -2901,7 +3013,7 @@ def page_kpss_robot():
         "kpss-tercih-robotu.html", "2026 KPSS Tercih Robotu — Puanına Göre Kadro Bul | SınavVeri",
         "2026 KPSS tercih robotu: KPSS puanını gir, 2025 ÖSYM atama verisine göre yerleşebileceğin kadro/pozisyonları gör. Ücretsiz (Lisans/Önlisans/Ortaöğretim).",
         "2026 KPSS Tercih Robotu", "KPSS puanını gir, atanabileceğin kadroları gör · 2025 ÖSYM yerleştirmelerine göre",
-        "/veri/kpss.json", 1, 0, [(2, "İl"), (3, "Düzey")], 6, [(2, "İl"), (3, "Düzey"), (4, "Dönem")],
+        "/veri/kpss.json", 1, 0, [(2, "İl"), (3, "Düzey"), (5, "Kontenjan"), (7, "Tavan")], 6, [(2, "İl"), (3, "Düzey"), (4, "Dönem")],
         "kadroya", 4, 1,
         "KPSS puanını girin ve öğrenim düzeyinizi (Lisans/Önlisans/Ortaöğretim) seçin; o puanla atanabileceğin (taban ≤ puanın) kadroları listeler. "
         "İl ve döneme göre de filtreleyebilirsin. KPSS hesaplama için <a href='/kpss-puan-hesaplama.html'>KPSS puan hesaplama</a>."
@@ -2910,7 +3022,8 @@ def page_kpss_robot():
         "<p style='margin:0 0 9px'>🎯 <b style='color:#fff'>Boşta kalma, doğru kadroya yerleş.</b> Tek bir yanlış tercih sıralaması atamanı kaçırabilir. Kişiye özel taban trendi, doluluk ve şans analiziyle yanlış sıralama riskini en aza indir. <a href='/kpss-tercih-raporu.html' style='color:#fde047;font-weight:700;text-decoration:underline'>Örnek raporu gör →</a></p>"
         "<p style='margin:0 0 9px'>⏳ Kendi sınav puanın üzerinden, senin kişisel özelliklerine ve önceliklerine göre, konusunda uzman bir KPSS rehberi eşliğinde senin için sıralı, kişiye özel tercih listeni hazırlayalım. <a href='/kpss-tercih-raporu.html' style='color:#fde047;font-weight:700;text-decoration:underline'>Detaylar ve örnek rapor →</a></p>"
         "<p style='margin:0'>👨‍🏫 Tercihte yalnız kalma. KPSS uzmanı + SınavVeri verisi = sana özel, sıralı, gerekçeli tercih raporu; garanti odaklı strateji. <a href='/kpss-tercih-raporu.html' style='color:#fde047;font-weight:700;text-decoration:underline'>Örnek raporu incele →</a></p></div>",
-        "ÖSYM 2025 KPSS resmî yerleştirme verisi (2025/1–2025/5).", "KPSS Puanın", "örn. 85,40")
+        "ÖSYM 2025 KPSS resmî yerleştirme verisi (2025/1–2025/5).", "KPSS Puanın", "örn. 85,40",
+        hist=[{"yil": 2025, "t": 6}, {"yil": 2024, "t": 8}])
 
 
 def page_lgs_robot(lgs):
@@ -2920,11 +3033,15 @@ def page_lgs_robot(lgs):
         "lgs-tercih-robotu.html", "2026 LGS Tercih Robotu — Puanına Göre Lise Bul | SınavVeri",
         "2026 LGS tercih robotu: LGS puanını gir, 2025 MEB yerleştirme verisine göre yerleşebileceğin liseleri il ve ilçeye göre gör. Ücretsiz.",
         "2026 LGS Tercih Robotu", "LGS puanını gir, yerleşebileceğin liseleri gör · 2025 MEB yerleştirmesine göre",
-        "/veri/liseler.json", 2, None, [(0, "İl"), (1, "İlçe")], 5, [(0, "İl"), (1, "İlçe"), (10, "Yabancı Dil")],
+        "/veri/liseler.json", 2, None,
+        [(0, "İl"), (1, "İlçe"), (3, "Tür"), (4, "Kontenjan"), (6, "Yüzdelik Dilim")], 5,
+        [(0, "İl"), (1, "İlçe"), (3, "Tür"), (10, "Yabancı Dil")],
         "liseye", 15, 4,
         "LGS puanını girin ve ilini seçin; o puanla yerleşebileceğin (taban ≤ puanın) liseleri en yüksek tabandan başlayarak listeler. "
-        "LGS hesaplama için <a href='/lgs-puan-hesaplama.html'>LGS puan hesaplama</a>.",
-        "MEB 2025 LGS yerleştirme verisi.", "LGS Puanın", "örn. 420,5")
+        "Lise türüne (Fen, Sosyal Bilimler, Anadolu…) göre de filtreleyebilirsin. LGS hesaplama için <a href='/lgs-puan-hesaplama.html'>LGS puan hesaplama</a>.",
+        "MEB 2025 LGS yerleştirme verisi.", "LGS Puanın", "örn. 420,5",
+        hist=[{"yil": 2025, "t": 5}, {"yil": 2024, "t": 7}, {"yil": 2023, "t": 8}],
+        maps={3: LISE_TUR_NAME})
 
 
 def _bdil_py(s):

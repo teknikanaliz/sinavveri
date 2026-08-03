@@ -321,7 +321,7 @@
   <div id="rstatus" style="margin-top:14px;font-size:14px;color:var(--accent);font-weight:700"></div>
 </div>
 <div class="data-table-wrap">
-<table class="data-table" data-live="1"><thead><tr><th data-tip="Programın ÖSYM/YÖK Atlas kılavuzundaki tam adı." data-type="text">Program</th><th data-tip="Kurum/kontenjan türü." data-type="text">Tür</th><th data-tip="Yerleşen son adayın puanı (en düşük yerleşme puanı)." data-type="num">Taban</th><th data-tip="Girdiğin puana göre yerleşme şansı: Rahat (güvenli), Olası, Sınırda (riskli)." data-type="text">Şans</th><th data-nosort data-tip="Kaydı ⭐ ile tercih listene ekle.">⭐</th></tr></thead><tbody id="rbody"></tbody></table>
+<table class="data-table" data-live="1"><thead><tr><th data-tip="Programın ÖSYM/YÖK Atlas kılavuzundaki tam adı." data-type="text">Program</th><th data-tip="Kurum/kontenjan türü." data-type="text">Tür</th><th data-tip="İlan edilen kontenjan (alınacak öğrenci/personel sayısı)." data-type="num">Kontenjan</th><th data-tip="Yerleşen ilk adayın puanı (en yüksek yerleşme puanı)." data-type="num">Tavan</th><th data-tip="Yerleşen son adayın puanı (en düşük yerleşme puanı)." data-type="num">Taban</th><th data-tip="Girdiğin puana göre yerleşme şansı: Rahat (güvenli), Olası, Sınırda (riskli)." data-type="text">Şans</th><th data-nosort data-tip="Geçmiş yıl taban puanlarını gösterir.">ⓘ</th><th data-nosort data-tip="Kaydı ⭐ ile tercih listene ekle.">⭐</th></tr></thead><tbody id="rbody"></tbody></table>
 </div>
 <nav id="rPager"></nav>
 <div id="rhint" style="display:none;font-size:12px;color:var(--fg-faded);margin-top:10px;text-align:center"></div>
@@ -330,8 +330,28 @@
 kontenjan ve tercih yoğunluğuna göre değişir. <b>Kaynak:</b> 2025 DUS resmî ÖSYM yerleştirme verisi. Resmî tercih için <a href="https://www.osym.gov.tr" target="_blank" rel="noopener">ÖSYM</a> esastır.</div>
 <script nonce="__NONCE__">
 (function(){
-  var CFG={"file": "/veri/dus.json", "nb": 1, "ns": 0, "show": [[2, "Tür"]], "taban": 4, "filters": [[9, "Uzmanlık Dalı"], [2, "Kontenjan Türü"]], "noun": "uzmanlık dalına", "t1": 4, "t2": 1, "ns_key": "dus"}, SV=window.SV||{}, NCOL=CFG.show.length+4;
+  var CFG={"file": "/veri/dus.json", "nb": 1, "ns": 0, "show": [[2, "Tür"], [3, "Kontenjan"], [5, "Tavan"]], "taban": 4, "filters": [[9, "Uzmanlık Dalı"], [2, "Kontenjan Türü"]], "noun": "uzmanlık dalına", "t1": 4, "t2": 1, "ns_key": "dus", "hist": [{"yil": 2025, "t": 4}, {"yil": 2024, "t": 6}, {"yil": 2023, "t": 7}], "histHasSira": false, "maps": null}, SV=window.SV||{}, NCOL=CFG.show.length+4+(CFG.hist?1:0);
   var data=[],byId={};
+  var pf0=function(n){return n==null?'—':Number(n).toLocaleString('tr-TR',{minimumFractionDigits:2,maximumFractionDigits:2});};
+  // Kodlu kolonlar (ör. LGS tür harfi 'F'→'Fen Lisesi') — CFG.maps={idx:{kod:etiket}} varsa uygulanır.
+  function mapped(idx,v){ var m=CFG.maps&&CFG.maps[idx]; return m&&m[v]!=null? m[v] : v; }
+  // ⓘ açılır detay: 2025/2024/2023 taban (+varsa sıra) geçmişi — bölüm/üniversite sayfalarındaki
+  // .pdet/.pdet-row/.pdet-hist CSS sınıfları AYNEN kullanılır (assets/style.css, kanonik desen).
+  // Robot verisi client-JSON'da kompakt dizi olduğu için burada yalnız DİZİDE ZATEN VAR OLAN
+  // alanlardan kurulur (kadro/akreditasyon/koşul gibi bölüm-sayfası-özel alanlar burada yok).
+  function detailRow(r,ncol){
+    var yillar=[];
+    if(CFG.hist){
+      CFG.hist.forEach(function(h){
+        var t=r[h.t]; if(t==null) return;
+        yillar.push('<tr><td>'+h.yil+'</td><td>'+pf0(t)+'</td>'+(h.s!=null&&r[h.s]!=null?'<td>'+Number(r[h.s]).toLocaleString('tr-TR')+'</td>':(CFG.histHasSira?'<td>—</td>':''))+'</tr>');
+      });
+    }
+    if(!yillar.length) return '';
+    var thead='<tr><th>Yıl</th><th>Taban</th>'+(CFG.histHasSira?'<th>Sıra</th>':'')+'</tr>';
+    return '<tr class="pdet-row"><td colspan="'+ncol+'"><div class="pdet-box"><b>Geçmiş yıllar</b>'+
+      '<table class="pdet-hist"><thead>'+thead+'</thead><tbody>'+yillar.join('')+'</tbody></table></div></td></tr>';
+  }
   var fav=SV.initFav?SV.initFav({ns:CFG.ns_key||'robot',barId:'favBar',panelId:'favPanel',btnId:'favBtn'}):null;
   function el(id){return document.getElementById(id);}
   var pf=function(n){return n==null?'—':Number(n).toLocaleString('tr-TR',{minimumFractionDigits:2,maximumFractionDigits:2});};
@@ -348,8 +368,8 @@ kontenjan ve tercih yoğunluğuna göre değişir. <b>Kaynak:</b> 2025 DUS resm�
       });
       var ks=Object.keys(cnt).sort(function(a,b){return cnt[b]-cnt[a]||String(a).localeCompare(String(b),'tr');});
       sel.innerHTML='<option value="">Tümü</option>';var hc=false;
-      ks.forEach(function(k){var o=document.createElement('option');o.value=k;o.textContent=k+' ('+cnt[k]+')';if(k===cur){o.selected=true;hc=true;}sel.appendChild(o);});
-      if(cur&&!hc){var o2=document.createElement('option');o2.value=cur;o2.textContent=cur+' (0)';o2.selected=true;sel.appendChild(o2);}
+      ks.forEach(function(k){var o=document.createElement('option');o.value=k;o.textContent=mapped(f[0],k)+' ('+cnt[k]+')';if(k===cur){o.selected=true;hc=true;}sel.appendChild(o);});
+      if(cur&&!hc){var o2=document.createElement('option');o2.value=cur;o2.textContent=mapped(f[0],cur)+' (0)';o2.selected=true;sel.appendChild(o2);}
     });
   }
   function applyQS(){
@@ -388,15 +408,22 @@ kontenjan ve tercih yoğunluğuna göre değişir. <b>Kaynak:</b> 2025 DUS resm�
     var tb=el('rbody');byId={};
     if(!lastReach.length){tb.innerHTML='';if(SV.empty)SV.empty('rbody',NCOL,'Bu puan ve filtrelerle yerleşebileceğin sonuç bulunamadı. Puanı veya filtreleri gözden geçirin.');el('rhint').style.display='none';if(pgr)pgr.reset();return;}
     var out=[];
-    lastReach.forEach(function(r){
+    lastReach.forEach(function(r,ri){
       var m=userP-r[CFG.taban];
       var safe=m>=CFG.t1?'<span class="tag tag-lgs">Rahat</span>':(m>=0?'<span class="tag tag-kpss">Olası</span>':'<span class="tag tag-other">Sınırda</span>');
-      var name='<td><strong>'+(r[CFG.nb]||'')+'</strong>'+(CFG.ns!=null?'<br><small>'+(r[CFG.ns]||'')+'</small>':'')+'</td>';
-      var show='';CFG.show.forEach(function(c){show+='<td>'+(r[c[0]]==null||r[c[0]]===''?'—':r[c[0]])+'</td>';});
+      // "Yeni" rozeti: geçmiş yıl verisinin TAMAMI boşsa (kayıt tarihçesi yok) — kesin değil ama
+      // güçlü sinyal (bkz. hist alanları). CFG.hist yoksa (ör. LGS'de kısmi) rozet basılmaz.
+      var yeni = CFG.hist && CFG.hist.every(function(h){return r[h.t]==null;})
+        ? ' <span class="tag tag-other" title="Önceki yıllarda taban puan kaydı yok — yeni açılmış veya ilk kez ilan edilmiş olabilir">🆕 Yeni</span>' : '';
+      var name='<td><strong>'+(r[CFG.nb]||'')+'</strong>'+yeni+(CFG.ns!=null?'<br><small>'+(r[CFG.ns]||'')+'</small>':'')+'</td>';
+      var show='';CFG.show.forEach(function(c){var v=r[c[0]];show+='<td>'+(v==null||v===''?'—':mapped(c[0],v))+'</td>';});
+      var det=CFG.hist?detailRow(r,NCOL):'';
+      var dbtn=det? '<td style="text-align:center"><button type="button" class="pdet" data-ri="'+ri+'" aria-expanded="false" aria-label="Geçmiş yıl verilerini göster">ℹ️</button></td>' : (CFG.hist?'<td></td>':'');
       var k=rkey(r);byId[k]={id:k,name:String(r[CFG.nb]||''),sub:(CFG.ns!=null?String(r[CFG.ns]||''):''),meta:'taban '+pf(r[CFG.taban])};
       var on=fav&&fav.has(k);
       var star='<td style="text-align:center"><button type="button" class="fav-star'+(on?' on':'')+'" data-fid="'+k.replace(/"/g,'&quot;')+'" aria-label="Tercih listeme ekle">'+(on?'★':'☆')+'</button></td>';
-      out.push('<tr>'+name+show+'<td><strong>'+pf(r[CFG.taban])+'</strong></td><td>'+safe+'</td>'+star+'</tr>');
+      out.push('<tr>'+name+show+'<td><strong>'+pf(r[CFG.taban])+'</strong></td><td>'+safe+'</td>'+dbtn+star+'</tr>');
+      if(det) out.push(det.replace('<tr class="pdet-row">','<tr class="pdet-row" data-ri="'+ri+'" hidden>'));
     });
     tb.innerHTML=out.join('');
     if(!pgr&&window.TVPager)pgr=window.TVPager.attach({grid:tb.parentNode,per:25,mount:el('rPager')});
@@ -418,8 +445,18 @@ kontenjan ve tercih yoğunluğuna göre değişir. <b>Kaynak:</b> 2025 DUS resm�
     draw();
   }
   el('rbody').addEventListener('click',function(e){
-    var b=e.target;if(!b.classList||!b.classList.contains('fav-star'))return;
-    var k=b.getAttribute('data-fid');if(fav&&byId[k])fav.toggle(byId[k]);
+    var b=e.target;
+    if(b.classList&&b.classList.contains('fav-star')){
+      var k=b.getAttribute('data-fid');if(fav&&byId[k])fav.toggle(byId[k]);return;
+    }
+    if(b.classList&&b.classList.contains('pdet')){
+      var ri=b.getAttribute('data-ri');
+      var row=el('rbody').querySelector('.pdet-row[data-ri="'+ri+'"]');
+      if(!row)return;
+      var open=row.hasAttribute('hidden');
+      if(open)row.removeAttribute('hidden');else row.setAttribute('hidden','');
+      b.setAttribute('aria-expanded',open?'true':'false');
+    }
   });
   el('rBtn').addEventListener('click',run);
   el('rPuan').addEventListener('keydown',function(e){if(e.key==='Enter')run();});
