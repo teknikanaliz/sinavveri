@@ -38,6 +38,7 @@ NAV = [
     ("/universiteler.html", "Üniversiteler"),
     ("/listeler.html", "Listeler"),
     ("/takvim.html", "Takvim"),
+    ("/duyurular.html", "Duyurular"),
     ("/rehberler.html", "Rehberler"),
     ("/hakkimizda.html", "Hakkımızda"),
 ]
@@ -1315,6 +1316,81 @@ Sınav sonucu/duyuru geçmişi için <a href="/duyurular.html">ÖSYM Duyuruları
     return base("takvim.html", "2026 Sınav Takvimi — YKS, LGS, KPSS, DGS, ALES | SınavVeri",
                 "2026 ÖSYM ve MEB sınav takvimi: YKS (TYT/AYT), LGS, KPSS, DGS, ALES, TUS, YDS başvuru, sınav ve sonuç tarihleri.",
                 body, extra_ld=ev)
+
+
+# ───────────────────────── ÖSYM DUYURULARI ─────────────────────────
+DUYURU_TIP_LABEL = {
+    "sonuc_aciklandi": ("Sonuç Açıklandı", "tag-lgs"), "yerlestirme": ("Yerleştirme", "tag-lgs"),
+    "tercih": ("Tercih", "tag-kpss"), "kilavuz": ("Kılavuz", "tag-kpss"),
+    "basvuru": ("Başvuru", "tag-other"), "giris_belgesi": ("Giriş Belgesi", "tag-other"),
+    "cevap_anahtari": ("Cevap Anahtarı", "tag-other"), "diger": ("Diğer", "tag-other"),
+}
+DUYURU_JS = r"""<script nonce="__NONCE__">
+(function(){
+  var list=document.getElementById('dList'), q=document.getElementById('dSearch'),
+      sinavSel=document.getElementById('dSinav'), tipSel=document.getElementById('dTip'), term='';
+  function match(tr){
+    if(term && tr.textContent.toLocaleLowerCase('tr').indexOf(term)<0) return false;
+    if(sinavSel.value && tr.getAttribute('data-sinav')!==sinavSel.value) return false;
+    if(tipSel.value && tr.getAttribute('data-tip-key')!==tipSel.value) return false;
+    return true;
+  }
+  var p=window.TVPager?window.TVPager.attach({grid:list,per:25,
+        mount:document.getElementById('dPagerNav'),match:match}):null;
+  function apply(){ if(p)p.reset(); else Array.prototype.forEach.call(list.children,function(tr){tr.style.display=match(tr)?'':'none';}); }
+  q.addEventListener('input',function(){term=this.value.toLocaleLowerCase('tr').trim();apply();});
+  sinavSel.addEventListener('change',apply);
+  tipSel.addEventListener('change',apply);
+})();
+</script>"""
+
+
+def page_duyurular():
+    p = ROOT / "data" / "osym_duyurular.json"
+    if not p.exists():
+        return None
+    d = json.loads(p.read_text(encoding="utf-8"))
+    duyurular = sorted(d.get("duyurular", []), key=lambda r: r.get("tarih") or "", reverse=True)
+    from collections import Counter
+    sinav_cnt = Counter(r["sinav"] for r in duyurular if r.get("sinav"))
+    rows = ""
+    for r in duyurular:
+        tip_lbl, tip_cls = DUYURU_TIP_LABEL.get(r.get("tip"), DUYURU_TIP_LABEL["diger"])
+        sinav = r.get("sinav") or ""
+        rows += (f'<tr data-sinav="{html_escape(sinav)}" data-tip-key="{html_escape(r.get("tip") or "diger")}">'
+                 f'<td data-sort="{r.get("tarih") or ""}">{fmt_date(r["tarih"]) if r.get("tarih") else "—"}</td>'
+                 f'<td>{html_escape(sinav) or "—"}</td>'
+                 f'<td><span class="tag {tip_cls}">{tip_lbl}</span></td>'
+                 f'<td><a href="{html_escape(r["url"])}" target="_blank" rel="noopener">{html_escape(r["baslik"])}</a></td></tr>')
+    sinav_opts = "".join(f'<option value="{html_escape(s)}">{html_escape(s)} ({n})</option>'
+                         for s, n in sorted(sinav_cnt.items(), key=lambda x: -x[1]))
+    tip_opts = "".join(f'<option value="{k}">{lbl}</option>' for k, (lbl, _) in DUYURU_TIP_LABEL.items())
+    guncelleme = d.get("guncelleme", "")[:10]
+    body = f"""
+<div class="crumb"><a href="/index.html">Ana Sayfa</a> / ÖSYM Duyuruları</div>
+<div class="page-title"><h1>ÖSYM Duyuruları</h1><span class="sub">{len(duyurular)} duyuru · osym.gov.tr'den · Güncelleme: {fmt_date(guncelleme) if guncelleme else "—"}</span></div>
+<div class="info-box">ÖSYM'nin resmî duyuru akışı — sınav sonuçları, yerleştirme, tercih ve kılavuz duyuruları. Sınav sonucu açıklandığında burada
+görünür; hangi sınavın sonucunun ne zaman açıklanacağını görmek için <a href="/takvim.html">2026 Sınav Takvimi</a>'ni kullanın.</div>
+<div class="msf" style="margin-bottom:14px">
+  <input id="dSearch" type="text" placeholder="Duyuru ara…" style="flex:1 1 240px;min-width:0;padding:10px 12px;border:1px solid var(--border);border-radius:9px;background:var(--bg-card-alt);color:var(--fg);font-family:inherit;font-size:14px">
+  <select id="dSinav" class="btn btn-ghost" style="text-align:left"><option value="">Tüm sınavlar</option>{sinav_opts}</select>
+  <select id="dTip" class="btn btn-ghost" style="text-align:left"><option value="">Tüm duyuru türleri</option>{tip_opts}</select>
+</div>
+<div class="data-table-wrap">
+<table class="data-table">
+<thead><tr><th data-tip="Duyurunun ÖSYM tarafından yayımlandığı tarih." data-type="date">Tarih</th><th data-tip="İlgili sınav (belirtilmemişse boş)." data-type="text">Sınav</th><th data-tip="Duyuru türü: sonuç, yerleştirme, tercih, kılavuz, başvuru…" data-type="text">Tür</th><th data-tip="Duyuru başlığı — tıklayınca ÖSYM'nin resmî sayfası açılır." data-type="text">Başlık</th></tr></thead>
+<tbody id="dList">
+{rows}
+</tbody>
+</table>
+</div>
+<nav id="dPagerNav"></nav>
+<div class="notice"><b>Kaynak:</b> ÖSYM resmî duyuru akışı (osym.gov.tr/Duyurular). Bu liste düzenli olarak güncellenir; ÖSYM sayfadan kaldırsa
+bile duyuru burada arşivde kalır.</div>
+""" + DUYURU_JS
+    return base("duyurular.html", "ÖSYM Duyuruları — Sınav Sonuçları ve Kılavuzlar | SınavVeri",
+                f"ÖSYM'nin güncel duyuruları: sınav sonuçları, yerleştirme, tercih ve kılavuz duyuruları. {len(duyurular)} duyuru, sınav ve türe göre filtrelenebilir.",
+                body, extra_ld=[breadcrumb_ld([("Ana Sayfa", "index.html"), ("ÖSYM Duyuruları", None)])])
 
 
 # ───────────────────────── HESAPLAMA SAYFALARI ─────────────────────────
@@ -5794,6 +5870,9 @@ def main():
     # Sabit sayfalar
     W("index.html", page_index())
     W("takvim.html", page_takvim())
+    _duyurular_html = page_duyurular()
+    if _duyurular_html:
+        W("duyurular.html", _duyurular_html)
     W("taban-puanlari.html", page_taban_hub())
     W("universite-taban-puanlari.html", page_taban_index())
     # ÖSYM resmî taban puanları (TUS/DUS/DGS/KPSS) — istemci JSON üret + sayfalar

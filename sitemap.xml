@@ -2,6 +2,7 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url><loc>https://sinavveri.com/</loc><changefreq>daily</changefreq><priority>1.0</priority></url>
   <url><loc>https://sinavveri.com/takvim.html</loc><changefreq>daily</changefreq><priority>0.9</priority></url>
+  <url><loc>https://sinavveri.com/duyurular.html</loc><changefreq>weekly</changefreq><priority>0.7</priority></url>
   <url><loc>https://sinavveri.com/taban-puanlari.html</loc><changefreq>daily</changefreq><priority>0.9</priority></url>
   <url><loc>https://sinavveri.com/universite-taban-puanlari.html</loc><changefreq>weekly</changefreq><priority>0.7</priority></url>
   <url><loc>https://sinavveri.com/tus-taban/acil-tip.html</loc><changefreq>monthly</changefreq><priority>0.7</priority></url>
