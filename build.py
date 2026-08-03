@@ -3323,18 +3323,19 @@ def page_bolumler(g_by_slug, programs):
                 body)
 
 
-# Çoklu-seçim il filtresi — CSS. Site tema değişkenlerini devralır (açık/koyu uyumlu),
-# mobilde tam genişliğe düşer. Kart ızgarası + TVPager ile birlikte çalışır.
-MULTI_IL_CSS = """<style>
+# ── Çoklu-seçim filtre bileşeni (ÇOK ALANLI) ────────────────────────────────────
+# CSS site tema değişkenlerini devralır (açık/koyu uyumlu), mobilde tam genişliğe düşer.
+MULTI_FILTER_CSS = """<style>
 .msf{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:10px}
-.msf>input[type=text]{flex:1 1 260px;min-width:0;padding:10px 12px;border:1px solid var(--border);border-radius:9px;background:var(--bg-card-alt);color:var(--fg);font-family:inherit;font-size:14px}
+.msf>input[type=text]{flex:1 1 240px;min-width:0;padding:10px 12px;border:1px solid var(--border);border-radius:9px;background:var(--bg-card-alt);color:var(--fg);font-family:inherit;font-size:14px}
 .ms{position:relative;flex:0 0 auto}
 .ms-btn{display:flex;align-items:center;gap:8px;padding:10px 14px;border:1px solid var(--border);border-radius:9px;background:var(--bg-card-alt);color:var(--fg);font-family:inherit;font-size:14px;font-weight:600;cursor:pointer;white-space:nowrap}
-.ms-btn:hover{border-color:var(--accent)}
-.ms-btn[aria-expanded=true]{border-color:var(--accent)}
+.ms-btn:hover,.ms-btn[aria-expanded=true]{border-color:var(--accent)}
+.ms-btn.on{border-color:var(--accent);font-weight:700}
 .ms-caret{font-size:11px;opacity:.7}
-/* right:0 — düğme satırın sağ ucunda; left:0 olsaydı panel ekranın dışına taşardı. */
-.ms-panel{position:absolute;z-index:40;top:calc(100% + 6px);right:0;width:290px;max-width:88vw;background:var(--bg-card);border:1px solid var(--border);border-radius:11px;box-shadow:0 10px 28px rgba(0,0,0,.22);padding:10px}
+/* left:0 — panel düğmenin SOLUNA hizalı; sağa taşan durumda JS `right:0`a çevirir. */
+.ms-panel{position:absolute;z-index:40;top:calc(100% + 6px);left:0;width:290px;max-width:88vw;background:var(--bg-card);border:1px solid var(--border);border-radius:11px;box-shadow:0 10px 28px rgba(0,0,0,.22);padding:10px}
+.ms-panel.right{left:auto;right:0}
 .ms-panel[hidden]{display:none}
 .ms-search{width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:8px;background:var(--bg-card-alt);color:var(--fg);font-family:inherit;font-size:13px}
 .ms-actions{display:flex;gap:8px;margin:8px 0 6px}
@@ -3343,6 +3344,7 @@ MULTI_IL_CSS = """<style>
 .ms-list{max-height:270px;overflow:auto;display:flex;flex-direction:column;gap:1px}
 .ms-list label{display:flex;align-items:center;gap:8px;padding:6px 7px;border-radius:7px;font-size:13.5px;cursor:pointer}
 .ms-list label:hover{background:var(--bg-card-alt)}
+.ms-list label.zero{opacity:.38}   /* diğer filtrelerle birlikte 0 sonuç verir → çıkmaz tıklama uyarısı */
 .ms-list input{accent-color:var(--accent);width:15px;height:15px;flex:0 0 auto}
 .ms-n{margin-left:auto;font-size:11.5px;color:var(--fg-faded)}
 .ms-chips{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:14px}
@@ -3351,147 +3353,225 @@ MULTI_IL_CSS = """<style>
 .ms-chip button{border:0;background:transparent;color:var(--fg-faded);font-size:15px;line-height:1;cursor:pointer;padding:0 2px}
 .ms-chip button:hover{color:var(--accent)}
 .ms-empty{padding:18px 4px;color:var(--fg-faded);font-size:14px}
-@media(max-width:560px){.msf>input[type=text]{flex:1 1 100%}.ms,.ms-btn{width:100%}.ms-btn{justify-content:space-between}.ms-panel{width:100%}}
+@media(max-width:640px){.msf>input[type=text]{flex:1 1 100%;order:9}.ms{flex:1 1 calc(50% - 5px)}.ms-btn{width:100%;justify-content:space-between}.ms-panel{width:100%;left:0;right:auto}}
+@media(max-width:400px){.ms{flex:1 1 100%}}
 </style>"""
 
-# JS ayrı sabitte: f-string içinde her süslü parantezi kaçırmak gerekiyor, okunmaz oluyor.
-MULTI_IL_JS = r"""<script nonce="__NONCE__">
+# JS ayrı sabitte: f-string içinde her süslü parantezi kaçırmak okunmaz hale getiriyor.
+# ÇOK ALANLI: `.msf .ms[data-field]` bulunan her filtre otomatik devreye girer; kartlarda
+# eşleşen `data-<field>` özniteliği aranır. Yeni filtre eklemek = tek satır HTML (JS değişmez).
+MULTI_FILTER_JS = r"""<script nonce="__NONCE__">
 (function(){
-  var q=document.getElementById('uSearch'),list=document.getElementById('uList'),term='';
-  var btn=document.getElementById('ilBtn'),panel=document.getElementById('ilPanel'),
-      lbl=document.getElementById('ilLbl'),chips=document.getElementById('ilChips'),
-      ilq=document.getElementById('ilSearch'),empty=document.getElementById('uEmpty'),
-      sel=new Set();
+  var q=document.getElementById('uSearch'), list=document.getElementById('uList'),
+      chips=document.getElementById('fChips'), empty=document.getElementById('uEmpty'), term='';
+  var groups=Array.prototype.map.call(document.querySelectorAll('.msf .ms[data-field]'),function(g){
+    return {el:g, field:g.getAttribute('data-field'), allLbl:g.getAttribute('data-all'),
+            btn:g.querySelector('.ms-btn'), panel:g.querySelector('.ms-panel'),
+            lbl:g.querySelector('.ms-lbl'), search:g.querySelector('.ms-search'), sel:new Set()};
+  });
 
   function match(a){
     if(term && a.textContent.toLocaleLowerCase('tr').indexOf(term)<0) return false;
-    if(sel.size && !sel.has(a.getAttribute('data-il'))) return false;
+    for(var i=0;i<groups.length;i++){
+      var g=groups[i];
+      if(g.sel.size && !g.sel.has(a.getAttribute('data-'+g.field))) return false;
+    }
     return true;
   }
   // TrVeri STANDART sayfalama (rule 3.17) — kart ızgarası: 24 kart/sayfa.
   var p=window.TVPager?window.TVPager.attach({grid:list,per:24,
         mount:document.getElementById('uPagerNav'),match:match}):null;
 
+  // Sayaçlar DİĞER filtrelere göre yeniden hesaplanır: "Vakıf" seçiliyken İl listesinde
+  // "Van 1" görmek çıkmaz tıklamadır (Van'da vakıf üniv. yok). 0 kalanlar soluklaşır.
+  function recount(){
+    groups.forEach(function(g){
+      var others=groups.filter(function(x){return x!==g;}), cnt={};
+      Array.prototype.forEach.call(list.children,function(a){
+        if(term && a.textContent.toLocaleLowerCase('tr').indexOf(term)<0) return;
+        for(var i=0;i<others.length;i++){
+          var o=others[i];
+          if(o.sel.size && !o.sel.has(a.getAttribute('data-'+o.field))) return;
+        }
+        var v=a.getAttribute('data-'+g.field); if(v) cnt[v]=(cnt[v]||0)+1;
+      });
+      Array.prototype.forEach.call(g.panel.querySelectorAll('.ms-list label'),function(l){
+        var v=l.getAttribute('data-v'), n=cnt[v]||0;
+        l.querySelector('.ms-n').textContent=n;
+        l.classList.toggle('zero', n===0);
+      });
+    });
+  }
   function apply(){
     if(p) p.reset();
     else Array.prototype.forEach.call(list.children,function(a){a.style.display=match(a)?'':'none';});
     var n=0; Array.prototype.forEach.call(list.children,function(a){ if(match(a)) n++; });
     if(empty) empty.style.display = n? 'none':'';
+    recount();
+  }
+  function chip(text,onDel,plain){
+    var c=document.createElement('span'); c.className='ms-chip'; c.textContent=text;
+    if(plain) c.style.borderColor='var(--border)';
+    var x=document.createElement('button'); x.type='button'; x.textContent='×';
+    x.setAttribute('aria-label',text+' filtresini kaldır'); x.onclick=onDel;
+    c.appendChild(x); chips.appendChild(c); 
   }
   function paint(){
-    lbl.textContent = sel.size ? (sel.size===1 ? Array.from(sel)[0] : sel.size+' il seçili') : 'Tüm iller';
-    btn.style.fontWeight = sel.size ? '700':'600';
+    var toplam=0;
+    groups.forEach(function(g){
+      toplam+=g.sel.size;
+      g.lbl.textContent = g.sel.size ? (g.sel.size===1 ? Array.from(g.sel)[0] : g.sel.size+' seçili') : g.allLbl;
+      g.btn.classList.toggle('on', g.sel.size>0);
+    });
     chips.innerHTML='';
-    Array.from(sel).sort(function(a,b){return a.localeCompare(b,'tr');}).forEach(function(il){
-      var c=document.createElement('span'); c.className='ms-chip'; c.textContent=il;
-      var x=document.createElement('button'); x.type='button'; x.textContent='×';
-      x.setAttribute('aria-label',il+' filtresini kaldır');
-      x.onclick=function(){ sel.delete(il); syncBoxes(); paint(); apply(); };
-      c.appendChild(x); chips.appendChild(c);
+    groups.forEach(function(g){
+      Array.from(g.sel).sort(function(a,b){return a.localeCompare(b,'tr');}).forEach(function(v){
+        chip(v, function(){ g.sel.delete(v); sync(g); paint(); apply(); });
+      });
     });
-    if(sel.size>1){
-      var c=document.createElement('span'); c.className='ms-chip';
-      c.style.borderColor='var(--border)'; c.textContent='Hepsini temizle';
-      var x=document.createElement('button'); x.type='button'; x.textContent='×';
-      x.onclick=function(){ sel.clear(); syncBoxes(); paint(); apply(); };
-      c.appendChild(x); chips.appendChild(c);
-    }
+    if(toplam>1) chip('Hepsini temizle', function(){
+      groups.forEach(function(g){ g.sel.clear(); sync(g); }); paint(); apply();
+    }, true);
   }
-  function syncBoxes(){
-    Array.prototype.forEach.call(panel.querySelectorAll('input[type=checkbox]'),function(b){
-      b.checked = sel.has(b.value);
+  function sync(g){
+    Array.prototype.forEach.call(g.panel.querySelectorAll('input[type=checkbox]'),function(b){
+      b.checked = g.sel.has(b.value);
     });
   }
-  btn.addEventListener('click',function(){
-    var open = panel.hasAttribute('hidden');
-    if(open){ panel.removeAttribute('hidden'); ilq.focus(); } else { panel.setAttribute('hidden',''); }
-    btn.setAttribute('aria-expanded', open?'true':'false');
+  function close(g){ g.panel.setAttribute('hidden',''); g.btn.setAttribute('aria-expanded','false'); }
+
+  groups.forEach(function(g){
+    g.btn.addEventListener('click',function(){
+      var open = g.panel.hasAttribute('hidden');
+      groups.forEach(close);                       // aynı anda tek panel açık kalsın
+      if(open){
+        g.panel.removeAttribute('hidden'); g.btn.setAttribute('aria-expanded','true');
+        // Sağa taşıyorsa panelin hizasını çevir (düğme satırın sağ ucundaysa gerekli).
+        g.panel.classList.remove('right');
+        if(g.panel.getBoundingClientRect().right > document.documentElement.clientWidth-4)
+          g.panel.classList.add('right');
+        if(g.search) g.search.focus();
+      }
+    });
+    g.panel.addEventListener('change',function(e){
+      var b=e.target; if(b.type!=='checkbox') return;
+      if(b.checked) g.sel.add(b.value); else g.sel.delete(b.value);
+      paint(); apply();
+    });
+    var all=g.panel.querySelector('[data-act=all]'), none=g.panel.querySelector('[data-act=none]');
+    if(all) all.onclick=function(){
+      Array.prototype.forEach.call(g.panel.querySelectorAll('.ms-list label'),function(l){
+        if(l.style.display!=='none') g.sel.add(l.querySelector('input').value);
+      });
+      sync(g); paint(); apply();
+    };
+    if(none) none.onclick=function(){ g.sel.clear(); sync(g); paint(); apply(); };
+    if(g.search) g.search.addEventListener('input',function(){
+      var t=this.value.toLocaleLowerCase('tr').trim();
+      Array.prototype.forEach.call(g.panel.querySelectorAll('.ms-list label'),function(l){
+        l.style.display = !t || l.getAttribute('data-v').toLocaleLowerCase('tr').indexOf(t)>=0 ? '':'none';
+      });
+    });
   });
   document.addEventListener('click',function(e){
-    if(!panel.hasAttribute('hidden') && !panel.contains(e.target) && e.target!==btn && !btn.contains(e.target)){
-      panel.setAttribute('hidden',''); btn.setAttribute('aria-expanded','false');
-    }
+    groups.forEach(function(g){
+      if(!g.panel.hasAttribute('hidden') && !g.el.contains(e.target)) close(g);
+    });
   });
   document.addEventListener('keydown',function(e){
-    if(e.key==='Escape' && !panel.hasAttribute('hidden')){
-      panel.setAttribute('hidden',''); btn.setAttribute('aria-expanded','false'); btn.focus();
-    }
-  });
-  panel.addEventListener('change',function(e){
-    var b=e.target; if(b.type!=='checkbox') return;
-    if(b.checked) sel.add(b.value); else sel.delete(b.value);
-    paint(); apply();
-  });
-  panel.querySelector('[data-act=all]').onclick=function(){
-    Array.prototype.forEach.call(panel.querySelectorAll('label'),function(l){
-      if(l.style.display!=='none') sel.add(l.querySelector('input').value);
-    });
-    syncBoxes(); paint(); apply();
-  };
-  panel.querySelector('[data-act=none]').onclick=function(){ sel.clear(); syncBoxes(); paint(); apply(); };
-  ilq.addEventListener('input',function(){
-    var t=this.value.toLocaleLowerCase('tr').trim();
-    Array.prototype.forEach.call(panel.querySelectorAll('.ms-list label'),function(l){
-      l.style.display = !t || l.getAttribute('data-il').toLocaleLowerCase('tr').indexOf(t)>=0 ? '':'none';
-    });
+    if(e.key!=='Escape') return;
+    groups.forEach(function(g){ if(!g.panel.hasAttribute('hidden')){ close(g); g.btn.focus(); } });
   });
   q.addEventListener('input',function(){ term=this.value.toLocaleLowerCase('tr').trim(); apply(); });
-  paint();
+  paint(); recount();
 })();
 </script>"""
 
 
+def _ms_group(field, icon, all_label, counts, *, searchable=True, order=None):
+    """Tek bir çoklu-seçim filtresi çizer. counts: {değer: adet}.
+    order verilmezse Türkçe alfabetik (§3.6) sıralanır."""
+    vals = order or sorted(counts, key=tr_sort_key)
+    opts = "".join(
+        f'<label data-v="{html_escape(v)}"><input type="checkbox" value="{html_escape(v)}">'
+        f'{html_escape(v)}<span class="ms-n">{counts[v]}</span></label>'
+        for v in vals if v in counts)
+    srch = (f'<input class="ms-search" type="text" placeholder="{all_label} ara…" autocomplete="off">'
+            if searchable else "")
+    return f"""<div class="ms" data-field="{field}" data-all="{html_escape(all_label)}">
+  <button type="button" class="ms-btn" aria-expanded="false" aria-haspopup="true">
+    <span aria-hidden="true">{icon}</span><span class="ms-lbl">{html_escape(all_label)}</span><span class="ms-caret">▾</span>
+  </button>
+  <div class="ms-panel" hidden role="group" aria-label="{html_escape(all_label)} (birden fazla seçilebilir)">
+    {srch}
+    <div class="ms-actions"><button type="button" data-act="all">Görünenleri seç</button><button type="button" data-act="none">Temizle</button></div>
+    <div class="ms-list">{opts}</div>
+  </div>
+</div>"""
+
+
+# Program kaydındaki tür kodunu üniversite düzeyinde tek etikete indirger.
+# (Devlet üniv. varyantları — ücretli/KKTC kampüs/KKTC uyruklu — hepsi "Devlet"tir.)
+_TUR_BASE = {"D": "Devlet", "DU": "Devlet", "DK": "Devlet", "DKU": "Devlet",
+             "V": "Vakıf", "K": "KKTC", "Y": "Diğer"}
+TUR_SIRA = ["Devlet", "Vakıf", "Vakıf MYO", "KKTC", "Diğer"]
+
+
 def page_universiteler(u_by_slug, programs):
-    from collections import Counter
+    from collections import Counter, defaultdict
     cnt = Counter(r["u"] for r in programs if r.get("u"))
-    ilmap = {}
+    ilmap, turmap = {}, defaultdict(Counter)
     for r in programs:
-        if r.get("u") and r.get("il") and r["u"] not in ilmap:
-            ilmap[r["u"]] = r["il"]
+        u = r.get("u")
+        if not u:
+            continue
+        if r.get("il") and u not in ilmap:
+            ilmap[u] = r["il"]
+        t = _TUR_BASE.get(r.get("t"))
+        if t:
+            turmap[u][t] += 1
     items = sorted(u_by_slug.items(), key=lambda kv: kv[1].lower())
 
-    # İl: önce universiteler.json künyesi (tam kapsam), yoksa program kaydından türet.
-    il_of = {u: (uni_info(u).get("il") or ilmap.get(u) or "").strip() for _s, u in items}
+    # İl/tür: önce universiteler.json künyesi (tam kapsam), yoksa program kaydından türet.
+    # 21 üniversitede (KKTC + yurtdışı ortak + yeni kurulanlar) künye boş — program kaydı doldurur.
+    il_of, tur_of = {}, {}
+    for _s, u in items:
+        info = uni_info(u)
+        il_of[u] = (info.get("il") or ilmap.get(u) or "").strip()
+        tur = (info.get("tur") or "").strip().replace("Vakıf Myo", "Vakıf MYO")
+        if not tur and turmap.get(u):
+            tur = turmap[u].most_common(1)[0][0]
+        tur_of[u] = tur
     il_cnt = Counter(v for v in il_of.values() if v)
+    tur_cnt = Counter(v for v in tur_of.values() if v)
 
     cards = ""
     for s, u in items:
         ic = uni_logo_html(u, size=34, cls="uni-logo") or "🏛️"
-        il = il_of.get(u, "")
-        cards += (f'<a class="tool-btn" href="/universite/{s}.html" data-il="{html_escape(il)}">'
+        il, tur = il_of.get(u, ""), tur_of.get(u, "")
+        alt = " · ".join(x for x in [il, tur, f"{cnt.get(u,0)} program"] if x)
+        cards += (f'<a class="tool-btn" href="/universite/{s}.html" '
+                  f'data-il="{html_escape(il)}" data-tur="{html_escape(tur)}">'
                   f'<span class="tb-icon">{ic}</span><span class="tb-text"><b>{u}</b>'
-                  f'<span>{il} · {cnt.get(u,0)} program</span></span></a>')
+                  f'<span>{alt}</span></span></a>')
 
-    il_opts = "".join(
-        f'<label data-il="{html_escape(il)}"><input type="checkbox" value="{html_escape(il)}">'
-        f'{html_escape(il)}<span class="ms-n">{il_cnt[il]}</span></label>'
-        for il in sorted(il_cnt, key=tr_sort_key))
-
-    body = MULTI_IL_CSS + f"""
+    body = MULTI_FILTER_CSS + f"""
 <div class="crumb"><a href="/index.html">Ana Sayfa</a> / Üniversiteler</div>
 <div class="page-title"><h1>Üniversitelere Göre Taban Puanları</h1><span class="sub">{len(items)} üniversite · {len(il_cnt)} il · YÖK Atlas 2025</span></div>
 <div class="msf">
+{_ms_group("il", "📍", "Tüm iller", il_cnt)}
+{_ms_group("tur", "🏛️", "Tüm türler", tur_cnt, searchable=False, order=TUR_SIRA)}
   <input id="uSearch" type="text" placeholder="Üniversite ara… (örn. boğaziçi, ege, itü)">
-  <div class="ms">
-    <button type="button" class="ms-btn" id="ilBtn" aria-expanded="false" aria-haspopup="true" aria-controls="ilPanel">
-      <span>📍</span><span id="ilLbl">Tüm iller</span><span class="ms-caret">▾</span>
-    </button>
-    <div class="ms-panel" id="ilPanel" hidden role="group" aria-label="İl seçimi (birden fazla seçilebilir)">
-      <input class="ms-search" id="ilSearch" type="text" placeholder="İl ara…" autocomplete="off">
-      <div class="ms-actions"><button type="button" data-act="all">Görünenleri seç</button><button type="button" data-act="none">Temizle</button></div>
-      <div class="ms-list">{il_opts}</div>
-    </div>
-  </div>
 </div>
-<div class="ms-chips" id="ilChips"></div>
+<div class="ms-chips" id="fChips"></div>
 <div class="tool-row" id="uList">
 {cards}
 </div>
-<div class="ms-empty" id="uEmpty" style="display:none">Seçtiğiniz ölçütlere uyan üniversite bulunamadı. Farklı bir il seçin veya aramayı temizleyin.</div>
+<div class="ms-empty" id="uEmpty" style="display:none">Seçtiğiniz ölçütlere uyan üniversite bulunamadı. Filtreleri gevşetin veya aramayı temizleyin.</div>
 <nav id="uPagerNav"></nav>
-""" + MULTI_IL_JS
+""" + MULTI_FILTER_JS
     return base("universiteler.html", "Üniversitelere Göre Taban Puanları 2025 | SınavVeri",
-                "Tüm üniversitelerin 2025 taban puanları ve bölümleri. 227 devlet ve vakıf üniversitesi YÖK Atlas verisiyle. İl ve isme göre filtreleyin.",
+                "Tüm üniversitelerin 2025 taban puanları ve bölümleri. 227 devlet ve vakıf üniversitesi YÖK Atlas verisiyle. İl, üniversite türü ve isme göre filtreleyin.",
                 body)
 
 
