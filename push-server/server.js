@@ -10,7 +10,16 @@
  *
  * Desen: OzelGunlerVeri.com/push-server/server.js ile AYNI (kanonik TrVeri push deseni).
  */
-require('dotenv').config({ path: require('path').join(__dirname, '.env') });
+// .env her deploy'da SİLİNEN current/push-server/ İÇİNDE DEĞİL, kalıcı shared/'da aranır
+// (DB_PATH ile aynı mantık — 2026-08-03: current/push-server/.env deneyip bunun her
+// deploy'da kaybolduğunu ölçtük, shared/'a taşındı). Yerel geliştirmede shared/ yoksa
+// __dirname/.env'e düşer.
+{
+  const fs = require('fs'), path = require('path');
+  const shared = '/var/www/sinavveri.com/shared/push-server/.env';
+  const envPath = fs.existsSync(shared) ? shared : path.join(__dirname, '.env');
+  require('dotenv').config({ path: envPath });
+}
 const express = require('express');
 const cors = require('cors');
 const webpush = require('web-push');
