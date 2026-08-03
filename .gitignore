@@ -38,6 +38,11 @@ data/_universiteler_kaynak.csv
 data/_uni_idmap.json
 _backend-sinavveri-pay/
 
+# push-server (Node.js) — çalışma zamanı, kod git'te kalır
+push-server/node_modules/
+push-server/subscriptions.db
+push-server/.env
+
 # Uretilen sayfalar -> shared/ symlink (kanonik, HastaneVeri deseni)
 bolum/
 universite/

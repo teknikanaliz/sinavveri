@@ -236,8 +236,10 @@ def parse(sayfa: str, limit: int | None = None) -> list[dict]:
     return kayitlar
 
 
-def birlestir(yeni: list[dict]) -> tuple[list[dict], int, int]:
-    """Mevcut arşivle birleştir (url anahtarı). → (liste, eklenen, guncellenen)"""
+def birlestir(yeni: list[dict]) -> tuple[list[dict], int, int, list[dict]]:
+    """Mevcut arşivle birleştir (url anahtarı). → (liste, eklenen, guncellenen, yeni_kayitlar)
+    yeni_kayitlar: bu koşuda GERÇEKTEN ilk kez görülen kayıtlar (push bildirimi tetiklemek için —
+    "güncellenen" değil, arşivde hiç olmayan)."""
     mevcut: dict[str, dict] = {}
     if OUT.exists():
         try:
@@ -249,6 +251,7 @@ def birlestir(yeni: list[dict]) -> tuple[list[dict], int, int]:
             print(f"  ! mevcut dosya okunamadı, sıfırdan yazılacak: {e}")
 
     eklenen = guncellenen = 0
+    yeni_kayitlar = []
     for k in yeni:
         if k["url"] in mevcut:
             # NEDEN update(): eski kayıtta elle/başka scriptle eklenmiş ek alanlar
@@ -259,6 +262,7 @@ def birlestir(yeni: list[dict]) -> tuple[list[dict], int, int]:
         else:
             mevcut[k["url"]] = k
             eklenen += 1
+            yeni_kayitlar.append(k)
 
     # Tarihe göre yeniden sırala: yeni → eski. Tarihsizler en sona.
     # NEDEN ikincil anahtar slug: aynı tarihli kayıtlarda sıra deterministik kalsın
@@ -268,7 +272,36 @@ def birlestir(yeni: list[dict]) -> tuple[list[dict], int, int]:
         key=lambda k: (k.get("tarih") or "0000-00-00", k.get("slug") or ""),
         reverse=True,
     )
-    return liste, eklenen, guncellenen
+    return liste, eklenen, guncellenen, yeni_kayitlar
+
+
+def push_bildir(yeni_kayitlar: list[dict]) -> None:
+    """YENİ "sonuc_aciklandi" duyuruları için push-server'a bildir (server.js kendi içinde
+    duyuru_url bazlı idempotent — aynı URL iki kez POST edilse bile ikinci bildirim atlanır).
+    NEDEN try/except sarmalı: push-server ayakta değilse (bakım, yeniden başlatma) bu script
+    YİNE DE veri dosyasını yazmalı — bildirim ikincil, veri birincil."""
+    import os
+    import urllib.error
+    import urllib.request
+
+    secret = os.environ.get("SINAVVERI_PUSH_SECRET", "")
+    if not secret:
+        return  # env yoksa (yerel geliştirme) sessizce atla
+    sonuclar = [k for k in yeni_kayitlar if k.get("tip") == "sonuc_aciklandi" and k.get("sinav")]
+    if not sonuclar:
+        return
+    for k in sonuclar:
+        body = json.dumps({
+            "secret": secret, "sinav": k["sinav"], "baslik": k["baslik"], "duyuru_url": k["url"],
+        }).encode("utf-8")
+        req = urllib.request.Request(
+            "http://127.0.0.1:3032/api/push/sonuc-aciklandi", data=body,
+            headers={"Content-Type": "application/json"}, method="POST")
+        try:
+            with urllib.request.urlopen(req, timeout=15) as r:
+                print(f"  🔔 push: {k['sinav']} — {json.loads(r.read())}")
+        except (urllib.error.URLError, OSError) as e:
+            print(f"  ! push-server'a ulaşılamadı ({k['sinav']}): {e}")
 
 
 def main() -> None:
@@ -286,7 +319,7 @@ def main() -> None:
     if tarihsiz:
         print(f"  ! {len(tarihsiz)} kayıtta tarih çözülemedi: {[k['slug'] for k in tarihsiz][:5]}")
 
-    liste, eklenen, guncellenen = birlestir(yeni)
+    liste, eklenen, guncellenen, yeni_kayitlar = birlestir(yeni)
     cikti = {
         "guncelleme": datetime.now().replace(microsecond=0).isoformat(),
         "kaynak": "ÖSYM",
@@ -299,6 +332,7 @@ def main() -> None:
         DATA.mkdir(exist_ok=True)
         OUT.write_text(json.dumps(cikti, ensure_ascii=False, indent=1), encoding="utf-8")
         print(f"✓ {OUT} → toplam {len(liste)} kayıt (yeni {eklenen}, güncellenen {guncellenen})")
+        push_bildir(yeni_kayitlar)
 
     # Özet dağılımlar (rapor için)
     from collections import Counter

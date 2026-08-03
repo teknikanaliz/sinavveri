@@ -87,6 +87,12 @@ nav a:hover, nav a.active { background: var(--header-link-hover); color: var(--h
 .theme-toggle { background: rgba(255,255,255,.12); color: var(--header-fg); border: 1px solid rgba(255,255,255,.22); border-radius: 6px; padding: 6px 12px; display: inline-flex; align-items: center; gap: 6px; cursor: pointer; font-size: 13px; font-weight: 500; font-family: inherit; margin-left: 12px; transition: background .15s, border-color .15s; flex-shrink: 0; white-space: nowrap; }
 .theme-toggle:hover { background: rgba(255,255,255,.22); border-color: rgba(255,255,255,.4); }
 [data-theme="dark"] .theme-toggle { background: rgba(255,255,255,.06); border-color: rgba(255,255,255,.14); }
+.push-toggle { background: rgba(255,255,255,.12); color: var(--header-fg); border: 1px solid rgba(255,255,255,.22); border-radius: 6px; padding: 6px 10px; display: inline-flex; align-items: center; gap: 5px; cursor: pointer; font-size: 13px; font-weight: 500; font-family: inherit; margin-left: 8px; transition: background .15s, border-color .15s; flex-shrink: 0; white-space: nowrap; }
+.push-toggle:hover { background: rgba(255,255,255,.22); border-color: rgba(255,255,255,.4); }
+.push-toggle.on { background: rgba(34,197,94,.22); border-color: #22c55e; }
+.push-toggle[hidden] { display: none; }
+[data-theme="dark"] .push-toggle { background: rgba(255,255,255,.06); border-color: rgba(255,255,255,.14); }
+@media (max-width: 720px) { .push-toggle .toggle-text { display: none; } .push-toggle { margin-left: 4px; padding: 6px 8px; } }
 .header-right { display: flex; align-items: center; }
 /* Üst menü tek satırda kalsın: 10 nav öğesi + arama + tema kutusu 1180px'e sığsın
    (aksi halde "Rehberler · Hakkımızda" 2. satıra taşıyor). Masaüstünde tema butonu

@@ -1,0 +1,17 @@
+{
+  "name": "sinavveri-push",
+  "version": "1.0.0",
+  "description": "Web push bildirim sunucusu — SınavVeri.com (sınav sonucu açıklandı bildirimleri)",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "vapid-gen": "node -e \"const w=require('web-push');const k=w.generateVAPIDKeys();console.log('VAPID_PUBLIC_KEY='+k.publicKey);console.log('VAPID_PRIVATE_KEY='+k.privateKey);\""
+  },
+  "dependencies": {
+    "express": "^4.21.0",
+    "web-push": "^3.6.7",
+    "better-sqlite3": "^11.3.0",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5"
+  }
+}

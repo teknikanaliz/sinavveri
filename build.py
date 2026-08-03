@@ -471,6 +471,7 @@ def base(slug, title, desc, body, *, extra_head="", extra_ld=None, og_image=None
       </form>
       <button type="button" class="nav-toggle" id="navToggle" aria-label="Menü" aria-expanded="false">☰</button>
       <nav id="mainNav">{nav_html}</nav>
+      <button type="button" class="push-toggle" id="pushToggle" hidden aria-label="Sınav sonucu bildirimlerine abone ol" title="Sınav sonucu açıklandığında bildirim al"><span class="toggle-icon">🔕</span><span class="toggle-text">Bildirimler</span></button>
       <button type="button" class="theme-toggle" id="themeToggle" aria-label="Tema değiştir" title="Açık/Koyu tema"><span class="toggle-icon">🌙</span><span class="toggle-text">Koyu Tema</span></button>
     </div>
   </div>
@@ -498,6 +499,59 @@ def base(slug, title, desc, body, *, extra_head="", extra_ld=None, og_image=None
       try{{localStorage.setItem('sinavveri-theme',n);}}catch(e){{}} lab();
     }});
   }})();
+</script>
+<script nonce="__NONCE__">
+// Sınav sonucu bildirimleri — push-server (SinavVeri.com/push-server/server.js).
+// Buton yalnız tarayıcı Push API'yi destekliyorsa görünür (Safari/eski tarayıcı → hiç görünmez).
+(function(){{
+  var btn=document.getElementById('pushToggle'); if(!btn) return;
+  if(!('serviceWorker' in navigator) || !('PushManager' in window)) return;
+  var ic=btn.querySelector('.toggle-icon'), tx=btn.querySelector('.toggle-text');
+  var API='https://sinavveri.com/api/push';
+
+  function b64ToArr(b64){{
+    var pad='='.repeat((4-b64.length%4)%4), s=(b64+pad).replace(/-/g,'+').replace(/_/g,'/');
+    var raw=atob(s), out=new Uint8Array(raw.length);
+    for(var i=0;i<raw.length;i++) out[i]=raw.charCodeAt(i);
+    return out;
+  }}
+  function paint(on){{
+    ic.textContent = on ? '🔔' : '🔕';
+    tx.textContent = on ? 'Bildirimler Açık' : 'Bildirimler';
+    btn.classList.toggle('on', on);
+    btn.title = on ? 'Sınav sonucu bildirimleri açık — kapatmak için tıkla' : 'Sınav sonucu açıklandığında bildirim al';
+  }}
+  function currentSub(){{
+    return navigator.serviceWorker.ready.then(function(reg){{ return reg.pushManager.getSubscription(); }});
+  }}
+  btn.removeAttribute('hidden');
+  currentSub().then(function(sub){{ paint(!!sub); }}).catch(function(){{}});
+
+  btn.addEventListener('click',function(){{
+    currentSub().then(function(sub){{
+      if(sub){{
+        return sub.unsubscribe().then(function(){{
+          return fetch(API+'/unsubscribe',{{method:'POST',headers:{{'Content-Type':'application/json'}},body:JSON.stringify({{endpoint:sub.endpoint}})}});
+        }}).then(function(){{ paint(false); }});
+      }}
+      if(Notification.permission==='denied'){{
+        alert('Bildirimlere izin vermemişsiniz. Tarayıcı ayarlarından bu site için bildirim iznini açmanız gerekir.');
+        return;
+      }}
+      return Notification.requestPermission().then(function(perm){{
+        if(perm!=='granted') return;
+        return fetch(API+'/vapid-public-key').then(function(r){{return r.json();}}).then(function(j){{
+          return navigator.serviceWorker.ready.then(function(reg){{
+            return reg.pushManager.subscribe({{userVisibleOnly:true, applicationServerKey:b64ToArr(j.key)}});
+          }});
+        }}).then(function(newSub){{
+          return fetch(API+'/subscribe',{{method:'POST',headers:{{'Content-Type':'application/json'}},body:JSON.stringify(newSub)}})
+            .then(function(){{ paint(true); }});
+        }});
+      }});
+    }}).catch(function(err){{ console.warn('push abonelik hatası',err); }});
+  }});
+}})();
 </script>
 <script nonce="__NONCE__">
 (function(){{
@@ -2160,13 +2214,35 @@ def write_support(pages=None):
     }
     (ROOT / "manifest.json").write_text(json.dumps(manifest, ensure_ascii=False, indent=2), encoding="utf-8")
 
-    sw = """const CACHE='sinavveri-v1';
+    sw = """const CACHE='sinavveri-v2';
 const ASSETS=['/','/index.html','/takvim.html','/assets/style.css'];
 self.addEventListener('install',e=>{e.waitUntil(caches.open(CACHE).then(c=>c.addAll(ASSETS)).then(()=>self.skipWaiting()));});
 self.addEventListener('activate',e=>{e.waitUntil(caches.keys().then(ks=>Promise.all(ks.filter(k=>k!==CACHE).map(k=>caches.delete(k)))).then(()=>self.clients.claim()));});
 self.addEventListener('fetch',e=>{
   if(e.request.method!=='GET')return;
   e.respondWith(fetch(e.request).then(r=>{const cp=r.clone();caches.open(CACHE).then(c=>c.put(e.request,cp));return r;}).catch(()=>caches.match(e.request)));
+});
+
+// Push bildirimi — sınav sonucu açıklandığında push-server (server.js) tetikler.
+self.addEventListener('push',e=>{
+  var data={}; try{ data=e.data?e.data.json():{}; }catch(err){}
+  var title=data.title||'SınavVeri';
+  var opts={
+    body: data.body||'',
+    icon: '/assets/brand/sinavveri-icon.png',
+    badge: '/assets/brand/sinavveri-icon.png',
+    data: { url: data.url||'/' },
+    tag: data.tag||'sinavveri-duyuru'
+  };
+  e.waitUntil(self.registration.showNotification(title, opts));
+});
+self.addEventListener('notificationclick',e=>{
+  e.notification.close();
+  var url=(e.notification.data&&e.notification.data.url)||'/';
+  e.waitUntil(clients.matchAll({type:'window',includeUncontrolled:true}).then(function(list){
+    for(var i=0;i<list.length;i++){ if(list[i].url.indexOf(url)>=0 && 'focus' in list[i]) return list[i].focus(); }
+    if(clients.openWindow) return clients.openWindow(url);
+  }));
 });
 """
     (ROOT / "sw.js").write_text(sw, encoding="utf-8")

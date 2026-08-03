@@ -277,6 +277,7 @@
 <a href="/duyurular.html">Duyurular</a>
 <a href="/rehberler.html">Rehberler</a>
 <a href="/hakkimizda.html">Hakkımızda</a></nav>
+      <button type="button" class="push-toggle" id="pushToggle" hidden aria-label="Sınav sonucu bildirimlerine abone ol" title="Sınav sonucu açıklandığında bildirim al"><span class="toggle-icon">🔕</span><span class="toggle-text">Bildirimler</span></button>
       <button type="button" class="theme-toggle" id="themeToggle" aria-label="Tema değiştir" title="Açık/Koyu tema"><span class="toggle-icon">🌙</span><span class="toggle-text">Koyu Tema</span></button>
     </div>
   </div>
@@ -325,6 +326,59 @@
       try{localStorage.setItem('sinavveri-theme',n);}catch(e){} lab();
     });
   })();
+</script>
+<script nonce="__NONCE__">
+// Sınav sonucu bildirimleri — push-server (SinavVeri.com/push-server/server.js).
+// Buton yalnız tarayıcı Push API'yi destekliyorsa görünür (Safari/eski tarayıcı → hiç görünmez).
+(function(){
+  var btn=document.getElementById('pushToggle'); if(!btn) return;
+  if(!('serviceWorker' in navigator) || !('PushManager' in window)) return;
+  var ic=btn.querySelector('.toggle-icon'), tx=btn.querySelector('.toggle-text');
+  var API='https://sinavveri.com/api/push';
+
+  function b64ToArr(b64){
+    var pad='='.repeat((4-b64.length%4)%4), s=(b64+pad).replace(/-/g,'+').replace(/_/g,'/');
+    var raw=atob(s), out=new Uint8Array(raw.length);
+    for(var i=0;i<raw.length;i++) out[i]=raw.charCodeAt(i);
+    return out;
+  }
+  function paint(on){
+    ic.textContent = on ? '🔔' : '🔕';
+    tx.textContent = on ? 'Bildirimler Açık' : 'Bildirimler';
+    btn.classList.toggle('on', on);
+    btn.title = on ? 'Sınav sonucu bildirimleri açık — kapatmak için tıkla' : 'Sınav sonucu açıklandığında bildirim al';
+  }
+  function currentSub(){
+    return navigator.serviceWorker.ready.then(function(reg){ return reg.pushManager.getSubscription(); });
+  }
+  btn.removeAttribute('hidden');
+  currentSub().then(function(sub){ paint(!!sub); }).catch(function(){});
+
+  btn.addEventListener('click',function(){
+    currentSub().then(function(sub){
+      if(sub){
+        return sub.unsubscribe().then(function(){
+          return fetch(API+'/unsubscribe',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({endpoint:sub.endpoint})});
+        }).then(function(){ paint(false); });
+      }
+      if(Notification.permission==='denied'){
+        alert('Bildirimlere izin vermemişsiniz. Tarayıcı ayarlarından bu site için bildirim iznini açmanız gerekir.');
+        return;
+      }
+      return Notification.requestPermission().then(function(perm){
+        if(perm!=='granted') return;
+        return fetch(API+'/vapid-public-key').then(function(r){return r.json();}).then(function(j){
+          return navigator.serviceWorker.ready.then(function(reg){
+            return reg.pushManager.subscribe({userVisibleOnly:true, applicationServerKey:b64ToArr(j.key)});
+          });
+        }).then(function(newSub){
+          return fetch(API+'/subscribe',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(newSub)})
+            .then(function(){ paint(true); });
+        });
+      });
+    }).catch(function(err){ console.warn('push abonelik hatası',err); });
+  });
+})();
 </script>
 <script nonce="__NONCE__">
 (function(){
