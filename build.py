@@ -3323,6 +3323,124 @@ def page_bolumler(g_by_slug, programs):
                 body)
 
 
+# Çoklu-seçim il filtresi — CSS. Site tema değişkenlerini devralır (açık/koyu uyumlu),
+# mobilde tam genişliğe düşer. Kart ızgarası + TVPager ile birlikte çalışır.
+MULTI_IL_CSS = """<style>
+.msf{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:10px}
+.msf>input[type=text]{flex:1 1 260px;min-width:0;padding:10px 12px;border:1px solid var(--border);border-radius:9px;background:var(--bg-card-alt);color:var(--fg);font-family:inherit;font-size:14px}
+.ms{position:relative;flex:0 0 auto}
+.ms-btn{display:flex;align-items:center;gap:8px;padding:10px 14px;border:1px solid var(--border);border-radius:9px;background:var(--bg-card-alt);color:var(--fg);font-family:inherit;font-size:14px;font-weight:600;cursor:pointer;white-space:nowrap}
+.ms-btn:hover{border-color:var(--accent)}
+.ms-btn[aria-expanded=true]{border-color:var(--accent)}
+.ms-caret{font-size:11px;opacity:.7}
+/* right:0 — düğme satırın sağ ucunda; left:0 olsaydı panel ekranın dışına taşardı. */
+.ms-panel{position:absolute;z-index:40;top:calc(100% + 6px);right:0;width:290px;max-width:88vw;background:var(--bg-card);border:1px solid var(--border);border-radius:11px;box-shadow:0 10px 28px rgba(0,0,0,.22);padding:10px}
+.ms-panel[hidden]{display:none}
+.ms-search{width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:8px;background:var(--bg-card-alt);color:var(--fg);font-family:inherit;font-size:13px}
+.ms-actions{display:flex;gap:8px;margin:8px 0 6px}
+.ms-actions button{flex:1;padding:6px 8px;border:1px solid var(--border);border-radius:7px;background:transparent;color:var(--fg-faded);font-family:inherit;font-size:12px;font-weight:700;cursor:pointer}
+.ms-actions button:hover{color:var(--accent);border-color:var(--accent)}
+.ms-list{max-height:270px;overflow:auto;display:flex;flex-direction:column;gap:1px}
+.ms-list label{display:flex;align-items:center;gap:8px;padding:6px 7px;border-radius:7px;font-size:13.5px;cursor:pointer}
+.ms-list label:hover{background:var(--bg-card-alt)}
+.ms-list input{accent-color:var(--accent);width:15px;height:15px;flex:0 0 auto}
+.ms-n{margin-left:auto;font-size:11.5px;color:var(--fg-faded)}
+.ms-chips{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:14px}
+.ms-chips:empty{margin-bottom:0}
+.ms-chip{display:inline-flex;align-items:center;gap:6px;padding:4px 8px 4px 10px;border:1px solid var(--accent);border-radius:999px;background:var(--bg-card-alt);color:var(--fg);font-size:12.5px;font-weight:600}
+.ms-chip button{border:0;background:transparent;color:var(--fg-faded);font-size:15px;line-height:1;cursor:pointer;padding:0 2px}
+.ms-chip button:hover{color:var(--accent)}
+.ms-empty{padding:18px 4px;color:var(--fg-faded);font-size:14px}
+@media(max-width:560px){.msf>input[type=text]{flex:1 1 100%}.ms,.ms-btn{width:100%}.ms-btn{justify-content:space-between}.ms-panel{width:100%}}
+</style>"""
+
+# JS ayrı sabitte: f-string içinde her süslü parantezi kaçırmak gerekiyor, okunmaz oluyor.
+MULTI_IL_JS = r"""<script nonce="__NONCE__">
+(function(){
+  var q=document.getElementById('uSearch'),list=document.getElementById('uList'),term='';
+  var btn=document.getElementById('ilBtn'),panel=document.getElementById('ilPanel'),
+      lbl=document.getElementById('ilLbl'),chips=document.getElementById('ilChips'),
+      ilq=document.getElementById('ilSearch'),empty=document.getElementById('uEmpty'),
+      sel=new Set();
+
+  function match(a){
+    if(term && a.textContent.toLocaleLowerCase('tr').indexOf(term)<0) return false;
+    if(sel.size && !sel.has(a.getAttribute('data-il'))) return false;
+    return true;
+  }
+  // TrVeri STANDART sayfalama (rule 3.17) — kart ızgarası: 24 kart/sayfa.
+  var p=window.TVPager?window.TVPager.attach({grid:list,per:24,
+        mount:document.getElementById('uPagerNav'),match:match}):null;
+
+  function apply(){
+    if(p) p.reset();
+    else Array.prototype.forEach.call(list.children,function(a){a.style.display=match(a)?'':'none';});
+    var n=0; Array.prototype.forEach.call(list.children,function(a){ if(match(a)) n++; });
+    if(empty) empty.style.display = n? 'none':'';
+  }
+  function paint(){
+    lbl.textContent = sel.size ? (sel.size===1 ? Array.from(sel)[0] : sel.size+' il seçili') : 'Tüm iller';
+    btn.style.fontWeight = sel.size ? '700':'600';
+    chips.innerHTML='';
+    Array.from(sel).sort(function(a,b){return a.localeCompare(b,'tr');}).forEach(function(il){
+      var c=document.createElement('span'); c.className='ms-chip'; c.textContent=il;
+      var x=document.createElement('button'); x.type='button'; x.textContent='×';
+      x.setAttribute('aria-label',il+' filtresini kaldır');
+      x.onclick=function(){ sel.delete(il); syncBoxes(); paint(); apply(); };
+      c.appendChild(x); chips.appendChild(c);
+    });
+    if(sel.size>1){
+      var c=document.createElement('span'); c.className='ms-chip';
+      c.style.borderColor='var(--border)'; c.textContent='Hepsini temizle';
+      var x=document.createElement('button'); x.type='button'; x.textContent='×';
+      x.onclick=function(){ sel.clear(); syncBoxes(); paint(); apply(); };
+      c.appendChild(x); chips.appendChild(c);
+    }
+  }
+  function syncBoxes(){
+    Array.prototype.forEach.call(panel.querySelectorAll('input[type=checkbox]'),function(b){
+      b.checked = sel.has(b.value);
+    });
+  }
+  btn.addEventListener('click',function(){
+    var open = panel.hasAttribute('hidden');
+    if(open){ panel.removeAttribute('hidden'); ilq.focus(); } else { panel.setAttribute('hidden',''); }
+    btn.setAttribute('aria-expanded', open?'true':'false');
+  });
+  document.addEventListener('click',function(e){
+    if(!panel.hasAttribute('hidden') && !panel.contains(e.target) && e.target!==btn && !btn.contains(e.target)){
+      panel.setAttribute('hidden',''); btn.setAttribute('aria-expanded','false');
+    }
+  });
+  document.addEventListener('keydown',function(e){
+    if(e.key==='Escape' && !panel.hasAttribute('hidden')){
+      panel.setAttribute('hidden',''); btn.setAttribute('aria-expanded','false'); btn.focus();
+    }
+  });
+  panel.addEventListener('change',function(e){
+    var b=e.target; if(b.type!=='checkbox') return;
+    if(b.checked) sel.add(b.value); else sel.delete(b.value);
+    paint(); apply();
+  });
+  panel.querySelector('[data-act=all]').onclick=function(){
+    Array.prototype.forEach.call(panel.querySelectorAll('label'),function(l){
+      if(l.style.display!=='none') sel.add(l.querySelector('input').value);
+    });
+    syncBoxes(); paint(); apply();
+  };
+  panel.querySelector('[data-act=none]').onclick=function(){ sel.clear(); syncBoxes(); paint(); apply(); };
+  ilq.addEventListener('input',function(){
+    var t=this.value.toLocaleLowerCase('tr').trim();
+    Array.prototype.forEach.call(panel.querySelectorAll('.ms-list label'),function(l){
+      l.style.display = !t || l.getAttribute('data-il').toLocaleLowerCase('tr').indexOf(t)>=0 ? '':'none';
+    });
+  });
+  q.addEventListener('input',function(){ term=this.value.toLocaleLowerCase('tr').trim(); apply(); });
+  paint();
+})();
+</script>"""
+
+
 def page_universiteler(u_by_slug, programs):
     from collections import Counter
     cnt = Counter(r["u"] for r in programs if r.get("u"))
@@ -3331,34 +3449,49 @@ def page_universiteler(u_by_slug, programs):
         if r.get("u") and r.get("il") and r["u"] not in ilmap:
             ilmap[r["u"]] = r["il"]
     items = sorted(u_by_slug.items(), key=lambda kv: kv[1].lower())
+
+    # İl: önce universiteler.json künyesi (tam kapsam), yoksa program kaydından türet.
+    il_of = {u: (uni_info(u).get("il") or ilmap.get(u) or "").strip() for _s, u in items}
+    il_cnt = Counter(v for v in il_of.values() if v)
+
     cards = ""
     for s, u in items:
         ic = uni_logo_html(u, size=34, cls="uni-logo") or "🏛️"
-        cards += f'<a class="tool-btn" href="/universite/{s}.html"><span class="tb-icon">{ic}</span><span class="tb-text"><b>{u}</b><span>{ilmap.get(u,"")} · {cnt.get(u,0)} program</span></span></a>'
-    body = f"""
+        il = il_of.get(u, "")
+        cards += (f'<a class="tool-btn" href="/universite/{s}.html" data-il="{html_escape(il)}">'
+                  f'<span class="tb-icon">{ic}</span><span class="tb-text"><b>{u}</b>'
+                  f'<span>{il} · {cnt.get(u,0)} program</span></span></a>')
+
+    il_opts = "".join(
+        f'<label data-il="{html_escape(il)}"><input type="checkbox" value="{html_escape(il)}">'
+        f'{html_escape(il)}<span class="ms-n">{il_cnt[il]}</span></label>'
+        for il in sorted(il_cnt, key=tr_sort_key))
+
+    body = MULTI_IL_CSS + f"""
 <div class="crumb"><a href="/index.html">Ana Sayfa</a> / Üniversiteler</div>
-<div class="page-title"><h1>Üniversitelere Göre Taban Puanları</h1><span class="sub">{len(items)} üniversite · YÖK Atlas 2025</span></div>
-<input id="uSearch" type="text" placeholder="Üniversite ara… (örn. boğaziçi, ege, itü)" style="width:100%;max-width:480px;padding:10px 12px;border:1px solid var(--border);border-radius:9px;background:var(--bg-card-alt);color:var(--fg);font-family:inherit;font-size:14px;margin-bottom:18px">
+<div class="page-title"><h1>Üniversitelere Göre Taban Puanları</h1><span class="sub">{len(items)} üniversite · {len(il_cnt)} il · YÖK Atlas 2025</span></div>
+<div class="msf">
+  <input id="uSearch" type="text" placeholder="Üniversite ara… (örn. boğaziçi, ege, itü)">
+  <div class="ms">
+    <button type="button" class="ms-btn" id="ilBtn" aria-expanded="false" aria-haspopup="true" aria-controls="ilPanel">
+      <span>📍</span><span id="ilLbl">Tüm iller</span><span class="ms-caret">▾</span>
+    </button>
+    <div class="ms-panel" id="ilPanel" hidden role="group" aria-label="İl seçimi (birden fazla seçilebilir)">
+      <input class="ms-search" id="ilSearch" type="text" placeholder="İl ara…" autocomplete="off">
+      <div class="ms-actions"><button type="button" data-act="all">Görünenleri seç</button><button type="button" data-act="none">Temizle</button></div>
+      <div class="ms-list">{il_opts}</div>
+    </div>
+  </div>
+</div>
+<div class="ms-chips" id="ilChips"></div>
 <div class="tool-row" id="uList">
 {cards}
 </div>
+<div class="ms-empty" id="uEmpty" style="display:none">Seçtiğiniz ölçütlere uyan üniversite bulunamadı. Farklı bir il seçin veya aramayı temizleyin.</div>
 <nav id="uPagerNav"></nav>
-<script nonce="__NONCE__">
-(function(){{
-  // Arama + TrVeri STANDART sayfalama (rule 3.17) — kart ızgarası: 24 kart/sayfa.
-  var q=document.getElementById('uSearch'),list=document.getElementById('uList'),term='';
-  function match(a){{return !term||a.textContent.toLocaleLowerCase('tr').indexOf(term)>=0;}}
-  var p=window.TVPager?window.TVPager.attach({{grid:list,per:24,mount:document.getElementById('uPagerNav'),match:match}}):null;
-  q.addEventListener('input',function(){{
-    term=this.value.toLocaleLowerCase('tr').trim();
-    if(p)p.reset();
-    else Array.prototype.forEach.call(list.children,function(a){{a.style.display=match(a)?'':'none';}});
-  }});
-}})();
-</script>
-"""
+""" + MULTI_IL_JS
     return base("universiteler.html", "Üniversitelere Göre Taban Puanları 2025 | SınavVeri",
-                "Tüm üniversitelerin 2025 taban puanları ve bölümleri. 227 devlet ve vakıf üniversitesi YÖK Atlas verisiyle.",
+                "Tüm üniversitelerin 2025 taban puanları ve bölümleri. 227 devlet ve vakıf üniversitesi YÖK Atlas verisiyle. İl ve isme göre filtreleyin.",
                 body)
 
 
