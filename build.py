@@ -1236,6 +1236,46 @@ def _guide_for(ad):
     return None
 
 
+# Durum rozeti + geri sayım CSS — takvim tablosunun "Sonuç" hücresinde.
+# JS ile boyanır (ziyaretçinin YEREL tarihine göre) → build bayatlasa da rozet doğru kalır;
+# JS kapalıysa sunucu-render `sonuc_ham` metni (ör. "10 Temmuz 2026") zaten görünür — SEO güvenli.
+TAKVIM_DURUM_CSS = """<style>
+.sn-durum{display:inline-flex;align-items:center;gap:5px;padding:3px 9px;border-radius:999px;font-size:12.5px;font-weight:700;white-space:nowrap}
+.sn-durum.gecti{background:color-mix(in srgb, #16a34a 16%, transparent);color:#16a34a}
+.sn-durum.yakin{background:color-mix(in srgb, var(--accent) 18%, transparent);color:var(--accent)}
+.sn-durum.uzak{background:var(--bg-card-alt);color:var(--fg-faded);border:1px solid var(--border)}
+.sn-durum.belirsiz{background:var(--bg-card-alt);color:var(--fg-faded);border:1px dashed var(--border)}
+.sn-tarih{display:block;font-size:12px;color:var(--fg-faded);margin-top:2px}
+</style>"""
+
+TAKVIM_DURUM_JS = r"""<script nonce="__NONCE__">
+(function(){
+  var rows = document.querySelectorAll('#takvimBody tr');
+  var bugun = new Date(); bugun.setHours(0,0,0,0);
+  Array.prototype.forEach.call(rows, function(tr){
+    var td = tr.querySelector('.sn-sonuc'); if(!td) return;
+    var kesin = td.getAttribute('data-kesin') === '1';
+    var iso = td.getAttribute('data-iso');
+    var ham = td.getAttribute('data-ham') || '';
+    var span = document.createElement('span');
+    if(kesin && iso){
+      var hedef = new Date(iso+'T00:00:00'); hedef.setHours(0,0,0,0);
+      var gun = Math.round((hedef-bugun)/86400000);
+      if(gun < 0){ span.className='sn-durum gecti'; span.textContent='✅ Açıklandı'; }
+      else if(gun === 0){ span.className='sn-durum yakin'; span.textContent='🔴 Bugün açıklanıyor'; }
+      else if(gun <= 14){ span.className='sn-durum yakin'; span.textContent='⏳ '+gun+' gün kaldı'; }
+      else { span.className='sn-durum uzak'; span.textContent=gun+' gün kaldı'; }
+    } else {
+      span.className='sn-durum belirsiz'; span.textContent='🔜 Yaklaşıyor';
+      span.title='Kesin tarih ÖSYM/MEB tarafından henüz ilan edilmedi.';
+    }
+    var tarih=document.createElement('span'); tarih.className='sn-tarih'; tarih.textContent=ham;
+    td.textContent=''; td.appendChild(span); td.appendChild(tarih);
+  });
+})();
+</script>"""
+
+
 def page_takvim():
     rows = ""
     for s in CAL["sinavlar"]:
@@ -1243,27 +1283,31 @@ def page_takvim():
         sinav = fmt_date(s["sinav"]) if s["sinav"].count("-") == 2 else s["sinav"]
         gslug = _guide_for(s["ad"])
         ad_html = f'<a href="/{gslug}" title="{s["ad"]} sınav rehberi">{s["ad"]}</a>' if gslug else s["ad"]
+        kesin = "1" if s.get("sonuc_kesin") else "0"
+        sonuc_iso = s.get("sonuc") or ""
+        sonuc_ham = html_escape(s.get("sonuc_ham") or s["sonuc"])
         rows += f"""<tr>
   <td><span class="tag {cls}">{lbl}</span></td>
   <td><strong>{ad_html}</strong>{('<br><small class="soon">'+s['not']+'</small>') if s['not'] else ''}</td>
   <td>{s['basvuru']}</td>
   <td><strong>{sinav}</strong></td>
-  <td>{s['sonuc']}</td>
+  <td class="sn-sonuc" data-kesin="{kesin}" data-iso="{sonuc_iso}" data-ham="{sonuc_ham}">{sonuc_ham}</td>
 </tr>"""
-    body = f"""
+    body = TAKVIM_DURUM_CSS + f"""
 <div class="crumb"><a href="index.html">Ana Sayfa</a> / Sınav Takvimi</div>
 <div class="page-title"><h1>2026 Sınav Takvimi</h1><span class="sub">ÖSYM ve MEB resmî takvimine göre · Güncelleme: {fmt_date(CAL['guncelleme'])}</span></div>
 <div class="data-table-wrap">
 <table class="data-table">
-<thead><tr><th data-tip="Sınavı düzenleyen kurum / sınav ailesi." data-type="text">Tür</th><th data-tip="Sınavın resmî adı." data-type="text">Sınav</th><th data-tip="Sınav başvurularının alındığı tarih aralığı." data-type="text">Başvuru</th><th data-tip="Sınavın yapılacağı resmî tarih." data-type="date">Sınav Tarihi</th><th data-tip="Sonuçların açıklanacağı resmî tarih." data-type="date">Sonuç</th></tr></thead>
-<tbody>
+<thead><tr><th data-tip="Sınavı düzenleyen kurum / sınav ailesi." data-type="text">Tür</th><th data-tip="Sınavın resmî adı." data-type="text">Sınav</th><th data-tip="Sınav başvurularının alındığı tarih aralığı." data-type="text">Başvuru</th><th data-tip="Sınavın yapılacağı resmî tarih." data-type="date">Sınav Tarihi</th><th data-tip="Sonuçların açıklanma durumu ve geri sayımı. Kesin tarih ilan edilmemişse 'Yaklaşıyor' gösterilir." data-type="text">Sonuç</th></tr></thead>
+<tbody id="takvimBody">
 {rows}
 </tbody>
 </table>
 </div>
 <div class="notice"><b>Not:</b> Tarihler ÖSYM 2026 Yılı Sınav Takvimi ve her sınavın resmî <b>kılavuz/duyurularıyla</b> (YKS, LGS, KPSS, DGS, ALES, TUS, DUS, YDS…) teyit edilmiştir.
-Yaklaşmayan sınavların başvuru tarihleri ilgili kılavuz yayımlanınca kesinleşir; güncel bilgi için <a href="https://www.osym.gov.tr" target="_blank" rel="noopener">osym.gov.tr</a> ve <a href="https://www.meb.gov.tr" target="_blank" rel="noopener">meb.gov.tr</a> esastır.</div>
-"""
+Yaklaşmayan sınavların başvuru tarihleri ilgili kılavuz yayımlanınca kesinleşir; güncel bilgi için <a href="https://www.osym.gov.tr" target="_blank" rel="noopener">osym.gov.tr</a> ve <a href="https://www.meb.gov.tr" target="_blank" rel="noopener">meb.gov.tr</a> esastır.
+Sınav sonucu/duyuru geçmişi için <a href="/duyurular.html">ÖSYM Duyuruları</a> sayfamıza bakabilirsiniz.</div>
+""" + TAKVIM_DURUM_JS
     ev = [{"@type": "Event", "name": s["ad"], "startDate": s["sinav"],
            "eventAttendanceMode": "https://schema.org/OfflineEventAttendanceMode",
            "location": {"@type": "Country", "name": "Türkiye"}}
@@ -3353,7 +3397,14 @@ MULTI_FILTER_CSS = """<style>
 .ms-chip button{border:0;background:transparent;color:var(--fg-faded);font-size:15px;line-height:1;cursor:pointer;padding:0 2px}
 .ms-chip button:hover{color:var(--accent)}
 .ms-empty{padding:18px 4px;color:var(--fg-faded);font-size:14px}
-@media(max-width:640px){.msf>input[type=text]{flex:1 1 100%;order:9}.ms{flex:1 1 calc(50% - 5px)}.ms-btn{width:100%;justify-content:space-between}.ms-panel{width:100%;left:0;right:auto}}
+/* İkincil filtreler (bölge/öğrenci/burs/…): varsayılan gizli, "Daha fazla filtre" ile açılır —
+   9 dropdown'u aynı anda göstermek özellikle mobilde arama kutusunu sayfanın dışına iter. */
+.msf-more{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-bottom:10px}
+.msf-more[hidden]{display:none}
+.msf-toggle{display:inline-flex;align-items:center;gap:6px;padding:9px 14px;border:1px dashed var(--border);border-radius:9px;background:transparent;color:var(--fg-faded);font-family:inherit;font-size:13.5px;font-weight:700;cursor:pointer;margin-bottom:10px}
+.msf-toggle:hover{color:var(--accent);border-color:var(--accent)}
+.msf-toggle.on{color:var(--accent);border-color:var(--accent);border-style:solid}
+@media(max-width:640px){.msf>input[type=text]{flex:1 1 100%;order:9}.ms{flex:1 1 calc(50% - 5px)}.ms-btn{width:100%;justify-content:space-between}.ms-panel{width:100%;left:0;right:auto}.msf-more{flex-direction:column;align-items:stretch}.msf-more .ms{flex:1 1 100%}}
 @media(max-width:400px){.ms{flex:1 1 100%}}
 </style>"""
 
@@ -3364,18 +3415,30 @@ MULTI_FILTER_JS = r"""<script nonce="__NONCE__">
 (function(){
   var q=document.getElementById('uSearch'), list=document.getElementById('uList'),
       chips=document.getElementById('fChips'), empty=document.getElementById('uEmpty'), term='';
-  var groups=Array.prototype.map.call(document.querySelectorAll('.msf .ms[data-field]'),function(g){
+  // NOT ".msf .ms" — ikincil filtreler ("Daha fazla filtre" altında) .msf'in DIŞINDA,
+  // kardeş bir .msf-more kutusunda yaşıyor; ".msf" öneki onları görmezden gelirdi (ölçüldü:
+  // seçim işaretlense de hiçbir kart filtrelenmiyordu — groups dizisine hiç girmiyorlardı).
+  var groups=Array.prototype.map.call(document.querySelectorAll('.ms[data-field]'),function(g){
     return {el:g, field:g.getAttribute('data-field'), allLbl:g.getAttribute('data-all'),
+            multi:g.getAttribute('data-multi')==='1',
             btn:g.querySelector('.ms-btn'), panel:g.querySelector('.ms-panel'),
             lbl:g.querySelector('.ms-lbl'), search:g.querySelector('.ms-search'), sel:new Set()};
   });
-
+  // Çoklu-değerli alanlar (burs/dil/akreditasyon): bir üniversitede birden çok program
+  // farklı değer taşıyabilir → data-attr'da "|" ile ayrılmış liste. Eşleşme = KESİŞİM VAR MI.
+  function cardVals(a,g){
+    var raw=a.getAttribute('data-'+g.field)||'';
+    return g.multi ? raw.split('|').filter(Boolean) : (raw?[raw]:[]);
+  }
+  function groupMatch(a,g){
+    if(!g.sel.size) return true;
+    var vals=cardVals(a,g);
+    for(var i=0;i<vals.length;i++){ if(g.sel.has(vals[i])) return true; }
+    return false;
+  }
   function match(a){
     if(term && a.textContent.toLocaleLowerCase('tr').indexOf(term)<0) return false;
-    for(var i=0;i<groups.length;i++){
-      var g=groups[i];
-      if(g.sel.size && !g.sel.has(a.getAttribute('data-'+g.field))) return false;
-    }
+    for(var i=0;i<groups.length;i++){ if(!groupMatch(a,groups[i])) return false; }
     return true;
   }
   // TrVeri STANDART sayfalama (rule 3.17) — kart ızgarası: 24 kart/sayfa.
@@ -3389,11 +3452,8 @@ MULTI_FILTER_JS = r"""<script nonce="__NONCE__">
       var others=groups.filter(function(x){return x!==g;}), cnt={};
       Array.prototype.forEach.call(list.children,function(a){
         if(term && a.textContent.toLocaleLowerCase('tr').indexOf(term)<0) return;
-        for(var i=0;i<others.length;i++){
-          var o=others[i];
-          if(o.sel.size && !o.sel.has(a.getAttribute('data-'+o.field))) return;
-        }
-        var v=a.getAttribute('data-'+g.field); if(v) cnt[v]=(cnt[v]||0)+1;
+        for(var i=0;i<others.length;i++){ if(!groupMatch(a,others[i])) return; }
+        cardVals(a,g).forEach(function(v){ cnt[v]=(cnt[v]||0)+1; });
       });
       Array.prototype.forEach.call(g.panel.querySelectorAll('.ms-list label'),function(l){
         var v=l.getAttribute('data-v'), n=cnt[v]||0;
@@ -3483,14 +3543,32 @@ MULTI_FILTER_JS = r"""<script nonce="__NONCE__">
     groups.forEach(function(g){ if(!g.panel.hasAttribute('hidden')){ close(g); g.btn.focus(); } });
   });
   q.addEventListener('input',function(){ term=this.value.toLocaleLowerCase('tr').trim(); apply(); });
+
+  // "Daha fazla filtre" — ikincil grupları göster/gizle. Bir ikincil filtrede seçim varken
+  // sayfa tazelenirse (geri/ileri) kapalı kalmasın diye ilk paint'te otomatik açılır.
+  var moreBtn=document.getElementById('fMoreBtn'), moreBox=document.getElementById('fMore');
+  if(moreBtn && moreBox){
+    moreBtn.addEventListener('click',function(){
+      var open=moreBox.hasAttribute('hidden');
+      if(open) moreBox.removeAttribute('hidden'); else moreBox.setAttribute('hidden','');
+      moreBtn.classList.toggle('on', open);
+      moreBtn.querySelector('.msf-toggle-caret').textContent = open? '▴':'▾';
+    });
+    var ikincilSecili = groups.some(function(g){ return moreBox.contains(g.el) && g.sel.size; });
+    if(ikincilSecili) moreBtn.click();
+  }
+
   paint(); recount();
 })();
 </script>"""
 
 
-def _ms_group(field, icon, all_label, counts, *, searchable=True, order=None):
+def _ms_group(field, icon, all_label, counts, *, searchable=True, order=None, multi=False, tip=None):
     """Tek bir çoklu-seçim filtresi çizer. counts: {değer: adet}.
-    order verilmezse Türkçe alfabetik (§3.6) sıralanır."""
+    order verilmezse Türkçe alfabetik (§3.6) sıralanır.
+    multi=True: kartın data-<field> özniteliği "|" ile ayrılmış BİRDEN ÇOK değer taşır
+    (ör. bir üniversitenin hem Burslu hem Ücretli programı olabilir) — eşleşme kesişimle
+    yapılır (bkz. MULTI_FILTER_JS `groupMatch`). tip: buton başlığına eklenecek açıklama."""
     vals = order or sorted(counts, key=tr_sort_key)
     opts = "".join(
         f'<label data-v="{html_escape(v)}"><input type="checkbox" value="{html_escape(v)}">'
@@ -3498,7 +3576,9 @@ def _ms_group(field, icon, all_label, counts, *, searchable=True, order=None):
         for v in vals if v in counts)
     srch = (f'<input class="ms-search" type="text" placeholder="{all_label} ara…" autocomplete="off">'
             if searchable else "")
-    return f"""<div class="ms" data-field="{field}" data-all="{html_escape(all_label)}">
+    multi_attr = ' data-multi="1"' if multi else ""
+    tip_attr = f' title="{html_escape(tip)}"' if tip else ""
+    return f"""<div class="ms" data-field="{field}" data-all="{html_escape(all_label)}"{multi_attr}{tip_attr}>
   <button type="button" class="ms-btn" aria-expanded="false" aria-haspopup="true">
     <span aria-hidden="true">{icon}</span><span class="ms-lbl">{html_escape(all_label)}</span><span class="ms-caret">▾</span>
   </button>
@@ -3516,11 +3596,38 @@ _TUR_BASE = {"D": "Devlet", "DU": "Devlet", "DK": "Devlet", "DKU": "Devlet",
              "V": "Vakıf", "K": "KKTC", "Y": "Diğer"}
 TUR_SIRA = ["Devlet", "Vakıf", "Vakıf MYO", "KKTC", "Diğer"]
 
+BILINMIYOR = "Bilinmiyor"
+
+
+def _kova(deger, esikler_ve_etiketler):
+    """deger için ilk (esik, etiket) çiftini bulur (esik = üst sınır, sonsuz için None)."""
+    if deger is None:
+        return BILINMIYOR
+    for esik, etiket in esikler_ve_etiketler:
+        if esik is None or deger < esik:
+            return etiket
+    return esikler_ve_etiketler[-1][1]
+
+
+OGRENCI_KOVA = [(5000, "5.000 altı"), (20000, "5.000–20.000"), (50000, "20.000–50.000"), (None, "50.000 üzeri")]
+OGRENCI_SIRA = ["5.000 altı", "5.000–20.000", "20.000–50.000", "50.000 üzeri", BILINMIYOR]
+KURULUS_KOVA = [(1980, "1980 öncesi"), (2000, "1980–1999"), (2010, "2000–2009"), (None, "2010 sonrası")]
+KURULUS_SIRA = ["1980 öncesi", "1980–1999", "2000–2009", "2010 sonrası", BILINMIYOR]
+ORAN_KOVA = [(15, "15'in altı (az kalabalık)"), (25, "15–25"), (40, "25–40"), (None, "40 ve üzeri (kalabalık)")]
+ORAN_SIRA = ["15'in altı (az kalabalık)", "15–25", "25–40", "40 ve üzeri (kalabalık)", BILINMIYOR]
+
+# Eğitim dili / akreditasyon: uzun kuyruk var (bkz. veri ölçümü) — yalnız anlamlı sıklıktaki
+# değerler filtre seçeneği olur; nadir olanlar "Diğer dil / Diğer akreditasyon" başlığı yerine
+# sessizce dışarıda bırakılır (10'dan az üniversitede geçen değer ayrım gücü katmıyor).
+DIL_MIN_UNI = 3
+AKR_MIN_UNI = 3
+
 
 def page_universiteler(u_by_slug, programs):
     from collections import Counter, defaultdict
     cnt = Counter(r["u"] for r in programs if r.get("u"))
     ilmap, turmap = {}, defaultdict(Counter)
+    burs_of, dil_of, akr_of = defaultdict(set), defaultdict(set), defaultdict(set)
     for r in programs:
         u = r.get("u")
         if not u:
@@ -3530,28 +3637,79 @@ def page_universiteler(u_by_slug, programs):
         t = _TUR_BASE.get(r.get("t"))
         if t:
             turmap[u][t] += 1
+        if r.get("bs"):
+            burs_of[u].add(r["bs"])
+        if r.get("dil"):
+            dil_of[u].add(r["dil"])
+        if r.get("akr"):
+            akr_of[u].add(r["akr"])
     items = sorted(u_by_slug.items(), key=lambda kv: kv[1].lower())
 
     # İl/tür: önce universiteler.json künyesi (tam kapsam), yoksa program kaydından türet.
     # 21 üniversitede (KKTC + yurtdışı ortak + yeni kurulanlar) künye boş — program kaydı doldurur.
-    il_of, tur_of = {}, {}
+    # Bölge: künyedeki 208 kayıttan il→bölge sözlüğü kendiliğinden çıkarılır (tutarlılığı
+    # ölçüldü — hiçbir il iki bölgeye düşmüyor); Kıbrıs'taki üniversiteler ayrı "Kıbrıs" bölgesi
+    # sayılır (coğrafi bölge değil ama filtre olarak anlamlı); il de yoksa "Yurt Dışı Kampüs".
+    il_bolge = {}
+    for v in UNIV.values():
+        if v.get("il") and v.get("bolge"):
+            il_bolge[v["il"]] = v["bolge"]
+
+    def bolge_for(il):
+        if not il:
+            return "Yurt Dışı Kampüs"
+        if il == "Kıbrıs":
+            return "Kıbrıs"
+        return il_bolge.get(il, "")
+
+    il_of, tur_of, bolge_of = {}, {}, {}
+    ogrenci_kova_of, kurulus_kova_of, oran_kova_of = {}, {}, {}
     for _s, u in items:
         info = uni_info(u)
-        il_of[u] = (info.get("il") or ilmap.get(u) or "").strip()
+        il = (info.get("il") or ilmap.get(u) or "").strip()
+        il_of[u] = il
         tur = (info.get("tur") or "").strip().replace("Vakıf Myo", "Vakıf MYO")
         if not tur and turmap.get(u):
             tur = turmap[u].most_common(1)[0][0]
         tur_of[u] = tur
+        bolge_of[u] = bolge_for(il)
+        ogrenci_kova_of[u] = _kova(info.get("ogrenci"), OGRENCI_KOVA)
+        kurulus_kova_of[u] = _kova(int(info["kurulus"]) if info.get("kurulus") else None, KURULUS_KOVA)
+        ogr, akd = info.get("ogrenci"), info.get("akademisyen")
+        oran_kova_of[u] = _kova((ogr / akd) if ogr and akd else None, ORAN_KOVA)
+
     il_cnt = Counter(v for v in il_of.values() if v)
     tur_cnt = Counter(v for v in tur_of.values() if v)
+    bolge_cnt = Counter(v for v in bolge_of.values() if v)
+    ogrenci_cnt = Counter(ogrenci_kova_of.values())
+    kurulus_cnt = Counter(kurulus_kova_of.values())
+    oran_cnt = Counter(oran_kova_of.values())
+
+    def _cok_deger_sayaci(per_uni_sets, min_uni):
+        c = Counter()
+        for vals in per_uni_sets.values():
+            c.update(vals)
+        return Counter({k: v for k, v in c.items() if v >= min_uni})
+
+    burs_cnt = _cok_deger_sayaci(burs_of, 1)   # burs seçenekleri az sayıda (4) — eşik gereksiz
+    dil_cnt = _cok_deger_sayaci(dil_of, DIL_MIN_UNI)
+    akr_cnt = _cok_deger_sayaci(akr_of, AKR_MIN_UNI)
 
     cards = ""
     for s, u in items:
         ic = uni_logo_html(u, size=34, cls="uni-logo") or "🏛️"
         il, tur = il_of.get(u, ""), tur_of.get(u, "")
         alt = " · ".join(x for x in [il, tur, f"{cnt.get(u,0)} program"] if x)
+        burs_v = "|".join(v for v in burs_of.get(u, ()) if v in burs_cnt)
+        dil_v = "|".join(v for v in dil_of.get(u, ()) if v in dil_cnt)
+        akr_v = "|".join(v for v in akr_of.get(u, ()) if v in akr_cnt)
         cards += (f'<a class="tool-btn" href="/universite/{s}.html" '
-                  f'data-il="{html_escape(il)}" data-tur="{html_escape(tur)}">'
+                  f'data-il="{html_escape(il)}" data-tur="{html_escape(tur)}" '
+                  f'data-bolge="{html_escape(bolge_of.get(u,""))}" '
+                  f'data-ogrenci="{html_escape(ogrenci_kova_of.get(u,""))}" '
+                  f'data-kurulus="{html_escape(kurulus_kova_of.get(u,""))}" '
+                  f'data-oran="{html_escape(oran_kova_of.get(u,""))}" '
+                  f'data-burs="{html_escape(burs_v)}" data-dil="{html_escape(dil_v)}" data-akr="{html_escape(akr_v)}">'
                   f'<span class="tb-icon">{ic}</span><span class="tb-text"><b>{u}</b>'
                   f'<span>{alt}</span></span></a>')
 
@@ -3563,6 +3721,26 @@ def page_universiteler(u_by_slug, programs):
 {_ms_group("tur", "🏛️", "Tüm türler", tur_cnt, searchable=False, order=TUR_SIRA)}
   <input id="uSearch" type="text" placeholder="Üniversite ara… (örn. boğaziçi, ege, itü)">
 </div>
+<button type="button" class="msf-toggle" id="fMoreBtn" aria-expanded="false" aria-controls="fMore">
+  <span aria-hidden="true">🔎</span> Daha fazla filtre <span class="msf-toggle-caret">▾</span>
+</button>
+<div class="msf-more" id="fMore" hidden>
+{_ms_group("bolge", "🗺️", "Tüm bölgeler", bolge_cnt, searchable=False,
+           order=["Marmara", "İç Anadolu", "Ege", "Akdeniz", "Karadeniz", "Doğu Anadolu",
+                  "Güneydoğu Anadolu", "Kıbrıs", "Yurt Dışı Kampüs"])}
+{_ms_group("ogrenci", "👥", "Tüm öğrenci sayıları", ogrenci_cnt, searchable=False, order=OGRENCI_SIRA,
+           tip="Toplam kayıtlı öğrenci sayısına göre.")}
+{_ms_group("burs", "🎓", "Burs / ücret durumu", burs_cnt, searchable=False, multi=True,
+           order=["Burslu", "%50 İndirimli", "%25 İndirimli", "Ücretli"],
+           tip="Yalnızca program bazında burs/ücret bilgisi bulunan (çoğunlukla vakıf) üniversiteler için geçerlidir.")}
+{_ms_group("kurulus", "🏗️", "Tüm kuruluş yılları", kurulus_cnt, searchable=False, order=KURULUS_SIRA)}
+{_ms_group("oran", "📊", "Öğrenci/Akademisyen", oran_cnt, searchable=False, order=ORAN_SIRA,
+           tip="Bir akademisyene düşen öğrenci sayısı — düşük oran daha az kalabalık sınıf demektir.")}
+{_ms_group("dil", "🌐", "Eğitim dili", dil_cnt, multi=True,
+           tip="Üniversitede bu dilde en az bir program bulunuyor.")}
+{_ms_group("akr", "✅", "Akreditasyon", akr_cnt, multi=True,
+           tip="Üniversitede bu kurumca akredite en az bir program bulunuyor (MÜDEK, TEPDAD, FEDEK…).")}
+</div>
 <div class="ms-chips" id="fChips"></div>
 <div class="tool-row" id="uList">
 {cards}
@@ -3571,7 +3749,8 @@ def page_universiteler(u_by_slug, programs):
 <nav id="uPagerNav"></nav>
 """ + MULTI_FILTER_JS
     return base("universiteler.html", "Üniversitelere Göre Taban Puanları 2025 | SınavVeri",
-                "Tüm üniversitelerin 2025 taban puanları ve bölümleri. 227 devlet ve vakıf üniversitesi YÖK Atlas verisiyle. İl, üniversite türü ve isme göre filtreleyin.",
+                "Tüm üniversitelerin 2025 taban puanları ve bölümleri. 227 devlet ve vakıf üniversitesi YÖK Atlas verisiyle. "
+                "İl, bölge, tür, burs durumu, kuruluş yılı, eğitim dili ve akreditasyona göre filtreleyin.",
                 body)
 
 
