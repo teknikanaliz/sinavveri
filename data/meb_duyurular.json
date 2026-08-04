@@ -1,0 +1,846 @@
+{
+ "guncelleme": "2026-08-04T09:41:20",
+ "kaynak": "MEB",
+ "duyurular": [
+  {
+   "tarih": "2026-07-10",
+   "baslik": "\"2026 ORTAÖĞRETİME GEÇİŞ TERCİH VE YERLEŞTİRME KILAVUZU\" YAYIMLANDI",
+   "url": "https://odsgm.meb.gov.tr/www/quot2026-ortaogretime-gecis-tercih-ve-yerlestirme-kilavuzuquot-yayimlandi/icerik/1697",
+   "slug": "www/quot2026-ortaogretime-gecis-tercih-ve-yerlestirme-kilavuzuquot-yayimlandi/icerik/1697",
+   "sinav": "LGS",
+   "tip": "tercih"
+  },
+  {
+   "tarih": "2026-07-10",
+   "baslik": "LGS KAPSAMINDAKİ MERKEZÎ SINAV SONUÇLARI AÇIKLANDI",
+   "url": "https://odsgm.meb.gov.tr/www/lgs-kapsamindaki-merkezi-sinav-sonuclari-aciklandi/icerik/1696",
+   "slug": "www/lgs-kapsamindaki-merkezi-sinav-sonuclari-aciklandi/icerik/1696",
+   "sinav": "LGS",
+   "tip": "sonuc_aciklandi"
+  },
+  {
+   "tarih": "2026-07-10",
+   "baslik": "2026 LGS KAPSAMINDA MERKEZİ SINAV RAPORU",
+   "url": "https://odsgm.meb.gov.tr/www/2026-lgs-kapsaminda-merkezi-sinav-raporu/icerik/1695",
+   "slug": "www/2026-lgs-kapsaminda-merkezi-sinav-raporu/icerik/1695",
+   "sinav": "LGS",
+   "tip": "diger"
+  },
+  {
+   "tarih": "2026-06-13",
+   "baslik": "LGS KAPSAMINDAKİ MERKEZÎ SINAVIN SORU KİTAPÇIKLARI VE CEVAP ANAHTARLARI YAYIMLANDI",
+   "url": "https://odsgm.meb.gov.tr/www/lgs-kapsamindaki-merkezi-sinavin-soru-kitapciklari-ve-cevap-anahtarlari-yayimlandi/icerik/1678",
+   "slug": "www/lgs-kapsamindaki-merkezi-sinavin-soru-kitapciklari-ve-cevap-anahtarlari-yayimlandi/icerik/1678",
+   "sinav": "LGS",
+   "tip": "cevap_anahtari"
+  },
+  {
+   "tarih": "2026-06-08",
+   "baslik": "LGS KAPSAMINDA YAPILACAK MERKEZÎ SINAVDA GÖREV ALACAK BAKANLIK (KURUM) TEMSİLCİLERİYLE BİLGİLENDİRME VE KOORDİNASYON TOPLANTISI GERÇEKLEŞTİRİLDİ",
+   "url": "https://odsgm.meb.gov.tr/www/lgs-kapsaminda-yapilacak-merkezi-sinavda-gorev-alacak-bakanlik-kurum-temsilcileriyle-bilgilendirme-ve-koordinasyon-toplantisi-gerceklestirildi/icerik/1677",
+   "slug": "www/lgs-kapsaminda-yapilacak-merkezi-sinavda-gorev-alacak-bakanlik-kurum-temsilcileriyle-bilgilendirme-ve-koordinasyon-toplantisi-gerceklestirildi/icerik/1677",
+   "sinav": "LGS",
+   "tip": "diger"
+  },
+  {
+   "tarih": "2026-06-05",
+   "baslik": "LGS KAPSAMINDA GERÇEKLEŞTİRİLECEK MERKEZİ SINAVA YÖNELİK İLÇE MİLLÎ EĞİTİM MÜDÜRLERİYLE ÇEVRİM İÇİ DEĞERLENDİRME TOPLANTILARI GERÇEKLEŞTİRİLDİ",
+   "url": "https://odsgm.meb.gov.tr/www/lgs-kapsaminda-gerceklestirilecek-merkezi-sinava-yonelik-ilce-milli-egitim-mudurleriyle-cevrim-ici-degerlendirme-toplantilari-gerceklestirildi/icerik/1676",
+   "slug": "www/lgs-kapsaminda-gerceklestirilecek-merkezi-sinava-yonelik-ilce-milli-egitim-mudurleriyle-cevrim-ici-degerlendirme-toplantilari-gerceklestirildi/icerik/1676",
+   "sinav": "LGS",
+   "tip": "diger"
+  },
+  {
+   "tarih": "2026-06-04",
+   "baslik": "LGS KAPSAMINDA GERÇEKLEŞTİRİLECEK MERKEZÎ SINAV ÖNCESİ İL MÜDÜRLERİ İLE TOPLANTI YAPILDI",
+   "url": "https://odsgm.meb.gov.tr/www/lgs-kapsaminda-gerceklestirilecek-merkezi-sinav-oncesi-il-mudurleri-ile-toplanti-yapildi/icerik/1673",
+   "slug": "www/lgs-kapsaminda-gerceklestirilecek-merkezi-sinav-oncesi-il-mudurleri-ile-toplanti-yapildi/icerik/1673",
+   "sinav": "LGS",
+   "tip": "diger"
+  },
+  {
+   "tarih": "2026-06-03",
+   "baslik": "LGS KAPSAMINDAKİ MERKEZÎ SINAV GİRİŞ BİLGİLERİ ERİŞİME AÇILDI",
+   "url": "https://odsgm.meb.gov.tr/www/lgs-kapsamindaki-merkezi-sinav-giris-bilgileri-erisime-acildi/icerik/1671",
+   "slug": "www/lgs-kapsamindaki-merkezi-sinav-giris-bilgileri-erisime-acildi/icerik/1671",
+   "sinav": "LGS",
+   "tip": "giris_belgesi"
+  },
+  {
+   "tarih": "2026-04-13",
+   "baslik": "LGS KAPSAMINDAKİ MERKEZÎ SINAVIN BAŞVURU SÜRESİ UZATILDI",
+   "url": "https://odsgm.meb.gov.tr/www/lgs-kapsamindaki-merkezi-sinavin-basvuru-suresi-uzatildi/icerik/1586",
+   "slug": "www/lgs-kapsamindaki-merkezi-sinavin-basvuru-suresi-uzatildi/icerik/1586",
+   "sinav": "LGS",
+   "tip": "basvuru"
+  },
+  {
+   "tarih": "2026-04-10",
+   "baslik": "LGS'DE BİR İLK: ÖĞRENCİLERE BESLENME PAKETİ DESTEĞİ \"HABERİMİZ OLSUN\"DA ANLATILDI",
+   "url": "https://odsgm.meb.gov.tr/www/lgs039de-bir-ilk-ogrencilere-beslenme-paketi-destegi-quothaberimiz-olsunquotda-anlatildi/icerik/1581",
+   "slug": "www/lgs039de-bir-ilk-ogrencilere-beslenme-paketi-destegi-quothaberimiz-olsunquotda-anlatildi/icerik/1581",
+   "sinav": "LGS",
+   "tip": "diger"
+  },
+  {
+   "tarih": "2026-03-18",
+   "baslik": "SINAVLA ÖĞRENCİ ALACAK ORTAÖĞRETİM KURUMLARINA İLİŞKİN MERKEZÎ SINAV BAŞVURU VE UYGULAMA KILAVUZU YAYIMLANDI",
+   "url": "https://odsgm.meb.gov.tr/www/sinavla-ogrenci-alacak-ortaogretim-kurumlarina-iliskin-merkezi-sinav-basvuru-ve-uygulama-kilavuzu-yayimlandi/icerik/1559",
+   "slug": "www/sinavla-ogrenci-alacak-ortaogretim-kurumlarina-iliskin-merkezi-sinav-basvuru-ve-uygulama-kilavuzu-yayimlandi/icerik/1559",
+   "sinav": "LGS",
+   "tip": "kilavuz"
+  },
+  {
+   "tarih": "2026-03-06",
+   "baslik": "MEBİ'DE LGS ÖĞRENCİLERİ İÇİN MART AYI ÖRNEK SORULARI YAYIMLANDI",
+   "url": "https://odsgm.meb.gov.tr/www/mebi039de-lgs-ogrencileri-icin-mart-ayi-ornek-sorulari-yayimlandi/icerik/1550",
+   "slug": "www/mebi039de-lgs-ogrencileri-icin-mart-ayi-ornek-sorulari-yayimlandi/icerik/1550",
+   "sinav": "LGS",
+   "tip": "diger"
+  },
+  {
+   "tarih": "2025-11-30",
+   "baslik": "LGS'YE YÖNELİK BİRİNCİ ÖRNEK SORU KİTAPÇIKLARI MEBİ'DE YAYIMLANDI",
+   "url": "https://odsgm.meb.gov.tr/www/lgs039ye-yonelik-birinci-ornek-soru-kitapciklari-mebi039de-yayimlandi/icerik/1512",
+   "slug": "www/lgs039ye-yonelik-birinci-ornek-soru-kitapciklari-mebi039de-yayimlandi/icerik/1512",
+   "sinav": "LGS",
+   "tip": "cevap_anahtari"
+  },
+  {
+   "tarih": "2025-11-06",
+   "baslik": "LGS KAPSAMINDAKİ MERKEZÎ SINAVIN TARİHİ BELLİ OLDU",
+   "url": "https://odsgm.meb.gov.tr/www/lgs-kapsamindaki-merkezi-sinavin-tarihi-belli-oldu/icerik/1504",
+   "slug": "www/lgs-kapsamindaki-merkezi-sinavin-tarihi-belli-oldu/icerik/1504",
+   "sinav": "LGS",
+   "tip": "diger"
+  },
+  {
+   "tarih": "2025-09-19",
+   "baslik": "LGS SINAV SORULARININ TEMEL KAYNAĞI, ÜCRETSİZ DAĞITILAN DERS KİTAPLARI OLDU",
+   "url": "https://odsgm.meb.gov.tr/www/lgs-sinav-sorularinin-temel-kaynagi-ucretsiz-dagitilan-ders-kitaplari-oldu/icerik/1481",
+   "slug": "www/lgs-sinav-sorularinin-temel-kaynagi-ucretsiz-dagitilan-ders-kitaplari-oldu/icerik/1481",
+   "sinav": "LGS",
+   "tip": "diger"
+  },
+  {
+   "tarih": "2025-08-14",
+   "baslik": "LGS KAPSAMINDA YERLEŞTİRMEYE ESAS 2. NAKİL SONUÇLARI AÇIKLANDI",
+   "url": "https://odsgm.meb.gov.tr/www/lgs-kapsaminda-yerlestirmeye-esas-2-nakil-sonuclari-aciklandi/icerik/1472",
+   "slug": "www/lgs-kapsaminda-yerlestirmeye-esas-2-nakil-sonuclari-aciklandi/icerik/1472",
+   "sinav": "LGS",
+   "tip": "sonuc_aciklandi"
+  },
+  {
+   "tarih": "2025-08-08",
+   "baslik": "LGS KAPSAMINDA YERLEŞTİRMEYE ESAS 1. NAKİL SONUÇLARI AÇIKLANDI",
+   "url": "https://odsgm.meb.gov.tr/www/lgs-kapsaminda-yerlestirmeye-esas-1-nakil-sonuclari-aciklandi/icerik/1470",
+   "slug": "www/lgs-kapsaminda-yerlestirmeye-esas-1-nakil-sonuclari-aciklandi/icerik/1470",
+   "sinav": "LGS",
+   "tip": "sonuc_aciklandi"
+  },
+  {
+   "tarih": "2025-08-05",
+   "baslik": "2025 LGS YERLEŞTİRME SONUÇLARINA İLİŞKİN RAPOR YAYIMLANDI",
+   "url": "https://odsgm.meb.gov.tr/www/2025-lgs-yerlestirme-sonuclarina-iliskin-rapor-yayimlandi/icerik/1468",
+   "slug": "www/2025-lgs-yerlestirme-sonuclarina-iliskin-rapor-yayimlandi/icerik/1468",
+   "sinav": "LGS",
+   "tip": "yerlestirme"
+  },
+  {
+   "tarih": "2025-08-04",
+   "baslik": "LGS YERLEŞTİRME SONUÇLARI AÇIKLANDI",
+   "url": "https://odsgm.meb.gov.tr/www/lgs-yerlestirme-sonuclari-aciklandi/icerik/1466",
+   "slug": "www/lgs-yerlestirme-sonuclari-aciklandi/icerik/1466",
+   "sinav": "LGS",
+   "tip": "sonuc_aciklandi"
+  },
+  {
+   "tarih": "2025-07-11",
+   "baslik": "\"2025 ORTAÖĞRETİME GEÇİŞ TERCİH VE YERLEŞTİRME KILAVUZU\" YAYIMLANDI",
+   "url": "https://odsgm.meb.gov.tr/www/quot2025-ortaogretime-gecis-tercih-ve-yerlestirme-kilavuzuquot-yayimlandi/icerik/1454",
+   "slug": "www/quot2025-ortaogretime-gecis-tercih-ve-yerlestirme-kilavuzuquot-yayimlandi/icerik/1454",
+   "sinav": "LGS",
+   "tip": "tercih"
+  },
+  {
+   "tarih": "2025-07-11",
+   "baslik": "LGS KAPSAMINDAKİ MERKEZÎ SINAV SONUÇLARI AÇIKLANDI",
+   "url": "https://odsgm.meb.gov.tr/www/lgs-kapsamindaki-merkezi-sinav-sonuclari-aciklandi/icerik/1452",
+   "slug": "www/lgs-kapsamindaki-merkezi-sinav-sonuclari-aciklandi/icerik/1452",
+   "sinav": "LGS",
+   "tip": "sonuc_aciklandi"
+  },
+  {
+   "tarih": "2025-06-15",
+   "baslik": "LGS KAPSAMINDAKİ MERKEZÎ SINAV TAMAMLANDI, SORU KİTAPÇIKLARI YAYIMLANDI",
+   "url": "https://odsgm.meb.gov.tr/www/lgs-kapsamindaki-merkezi-sinav-tamamlandi-soru-kitapciklari-yayimlandi/icerik/1446",
+   "slug": "www/lgs-kapsamindaki-merkezi-sinav-tamamlandi-soru-kitapciklari-yayimlandi/icerik/1446",
+   "sinav": "LGS",
+   "tip": "cevap_anahtari"
+  },
+  {
+   "tarih": "2025-06-04",
+   "baslik": "LGS KAPSAMINDAKİ MERKEZÎ SINAV GİRİŞ BİLGİLERİ ERİŞİME AÇILDI",
+   "url": "https://odsgm.meb.gov.tr/www/lgs-kapsamindaki-merkezi-sinav-giris-bilgileri-erisime-acildi/icerik/1440",
+   "slug": "www/lgs-kapsamindaki-merkezi-sinav-giris-bilgileri-erisime-acildi/icerik/1440",
+   "sinav": "LGS",
+   "tip": "giris_belgesi"
+  },
+  {
+   "tarih": "2025-04-15",
+   "baslik": "LGS KAPSAMINDAKİ MERKEZÎ SINAVA YÖNELİK ÜÇÜNCÜ ÖRNEK SORU KİTAPÇIKLARI YAYIMLANDI",
+   "url": "https://odsgm.meb.gov.tr/www/lgs-kapsamindaki-merkezi-sinava-yonelik-ucuncu-ornek-soru-kitapciklari-yayimlandi/icerik/1425",
+   "slug": "www/lgs-kapsamindaki-merkezi-sinava-yonelik-ucuncu-ornek-soru-kitapciklari-yayimlandi/icerik/1425",
+   "sinav": "LGS",
+   "tip": "cevap_anahtari"
+  },
+  {
+   "tarih": "2025-03-28",
+   "baslik": "LGS MERKEZÎ SINAVI İÇİN BAŞVURU SÜRESİ UZATILDI.",
+   "url": "https://odsgm.meb.gov.tr/www/lgs-merkezi-sinavi-icin-basvuru-suresi-uzatildi/icerik/1422",
+   "slug": "www/lgs-merkezi-sinavi-icin-basvuru-suresi-uzatildi/icerik/1422",
+   "sinav": "LGS",
+   "tip": "basvuru"
+  },
+  {
+   "tarih": "2025-03-18",
+   "baslik": "2025 LGS KAPSAMINDAKİ MERKEZÎ SINAV İÇİN BAŞVURU VE UYGULAMA KILAVUZU YAYIMLANDI",
+   "url": "https://odsgm.meb.gov.tr/www/2025-lgs-kapsamindaki-merkezi-sinav-icin-basvuru-ve-uygulama-kilavuzu-yayimlandi/icerik/1416",
+   "slug": "www/2025-lgs-kapsamindaki-merkezi-sinav-icin-basvuru-ve-uygulama-kilavuzu-yayimlandi/icerik/1416",
+   "sinav": "LGS",
+   "tip": "kilavuz"
+  },
+  {
+   "tarih": "2025-02-10",
+   "baslik": "LGS KAPSAMINDAKİ MERKEZÎ SINAVA YÖNELİK İKİNCİ ÖRNEK SORU KİTAPÇIKLARI YAYIMLANDI",
+   "url": "https://odsgm.meb.gov.tr/www/lgs-kapsamindaki-merkezi-sinava-yonelik-ikinci-ornek-soru-kitapciklari-yayimlandi/icerik/1405",
+   "slug": "www/lgs-kapsamindaki-merkezi-sinava-yonelik-ikinci-ornek-soru-kitapciklari-yayimlandi/icerik/1405",
+   "sinav": "LGS",
+   "tip": "cevap_anahtari"
+  },
+  {
+   "tarih": "2024-11-18",
+   "baslik": "LGS KAPSAMINDAKİ MERKEZÎ SINAVA YÖNELİK ÖRNEK SORULAR YAYIMLANDI",
+   "url": "https://odsgm.meb.gov.tr/www/lgs-kapsamindaki-merkezi-sinava-yonelik-ornek-sorular-yayimlandi/icerik/1321",
+   "slug": "www/lgs-kapsamindaki-merkezi-sinava-yonelik-ornek-sorular-yayimlandi/icerik/1321",
+   "sinav": "LGS",
+   "tip": "diger"
+  },
+  {
+   "tarih": "2024-11-05",
+   "baslik": "LGS KAPSAMINDAKİ MERKEZÎ SINAVIN TARİHİ BELLİ OLDU",
+   "url": "https://odsgm.meb.gov.tr/www/lgs-kapsamindaki-merkezi-sinavin-tarihi-belli-oldu/icerik/1319",
+   "slug": "www/lgs-kapsamindaki-merkezi-sinavin-tarihi-belli-oldu/icerik/1319",
+   "sinav": "LGS",
+   "tip": "diger"
+  },
+  {
+   "tarih": "2024-06-28",
+   "baslik": "\"2024 ORTAÖĞRETİME GEÇİŞ TERCİH VE YERLEŞTİRME KILAVUZU\" YAYIMLANDI",
+   "url": "https://odsgm.meb.gov.tr/www/quot2024-ortaogretime-gecis-tercih-ve-yerlestirme-kilavuzuquot-yayimlandi/icerik/1249",
+   "slug": "www/quot2024-ortaogretime-gecis-tercih-ve-yerlestirme-kilavuzuquot-yayimlandi/icerik/1249",
+   "sinav": "LGS",
+   "tip": "tercih"
+  },
+  {
+   "tarih": "2024-06-28",
+   "baslik": "LGS KAPSAMINDAKİ MERKEZÎ SINAV SONUÇLARI AÇIKLANDI",
+   "url": "https://odsgm.meb.gov.tr/www/lgs-kapsamindaki-merkezi-sinav-sonuclari-aciklandi/icerik/1248",
+   "slug": "www/lgs-kapsamindaki-merkezi-sinav-sonuclari-aciklandi/icerik/1248",
+   "sinav": "LGS",
+   "tip": "sonuc_aciklandi"
+  },
+  {
+   "tarih": "2024-06-02",
+   "baslik": "LGS KAPSAMINDAKİ MERKEZÎ SINAV TAMAMLANDI, SORU KİTAPÇIKLARI YAYIMLANDI",
+   "url": "https://odsgm.meb.gov.tr/www/lgs-kapsamindaki-merkezi-sinav-tamamlandi-soru-kitapciklari-yayimlandi/icerik/1236",
+   "slug": "www/lgs-kapsamindaki-merkezi-sinav-tamamlandi-soru-kitapciklari-yayimlandi/icerik/1236",
+   "sinav": "LGS",
+   "tip": "cevap_anahtari"
+  },
+  {
+   "tarih": "2024-05-30",
+   "baslik": "LGS KAPSAMINDAKİ MERKEZÎ SINAV, 2 HAZİRAN GÜNÜ 984 SINAV MERKEZİNDE YAPILACAK",
+   "url": "https://odsgm.meb.gov.tr/www/lgs-kapsamindaki-merkezi-sinav-2-haziran-gunu-984-sinav-merkezinde-yapilacak/icerik/1235",
+   "slug": "www/lgs-kapsamindaki-merkezi-sinav-2-haziran-gunu-984-sinav-merkezinde-yapilacak/icerik/1235",
+   "sinav": "LGS",
+   "tip": "diger"
+  },
+  {
+   "tarih": "2024-05-24",
+   "baslik": "LGS KAPSAMINDAKİ MERKEZİ SINAV GİRİŞ BİLGİLERİ ERİŞİME AÇILDI",
+   "url": "https://odsgm.meb.gov.tr/www/lgs-kapsamindaki-merkezi-sinav-giris-bilgileri-erisime-acildi/icerik/1233",
+   "slug": "www/lgs-kapsamindaki-merkezi-sinav-giris-bilgileri-erisime-acildi/icerik/1233",
+   "sinav": "LGS",
+   "tip": "giris_belgesi"
+  },
+  {
+   "tarih": "2024-04-17",
+   "baslik": "LGS KAPSAMINDAKİ MERKEZÎ SINAVA YÖNELİK ÖRNEK SORULAR YAYIMLANDI",
+   "url": "https://odsgm.meb.gov.tr/www/lgs-kapsamindaki-merkezi-sinava-yonelik-ornek-sorular-yayimlandi/icerik/1206",
+   "slug": "www/lgs-kapsamindaki-merkezi-sinava-yonelik-ornek-sorular-yayimlandi/icerik/1206",
+   "sinav": "LGS",
+   "tip": "diger"
+  },
+  {
+   "tarih": "2024-04-01",
+   "baslik": "LGS KAPSAMINDAKİ MERKEZÎ SINAVA BAŞVURULAR UZATILDI",
+   "url": "https://odsgm.meb.gov.tr/www/lgs-kapsamindaki-merkezi-sinava-basvurular-uzatildi/icerik/1202",
+   "slug": "www/lgs-kapsamindaki-merkezi-sinava-basvurular-uzatildi/icerik/1202",
+   "sinav": "LGS",
+   "tip": "basvuru"
+  },
+  {
+   "tarih": "2024-03-18",
+   "baslik": "LGS KAPSAMINDAKİ MERKEZİ SINAV BAŞVURULARI BAŞLADI",
+   "url": "https://odsgm.meb.gov.tr/www/lgs-kapsamindaki-merkezi-sinav-basvurulari-basladi/icerik/1191",
+   "slug": "www/lgs-kapsamindaki-merkezi-sinav-basvurulari-basladi/icerik/1191",
+   "sinav": "LGS",
+   "tip": "basvuru"
+  },
+  {
+   "tarih": "2024-03-13",
+   "baslik": "LGS KAPSAMINDAKİ MERKEZÎ SINAVA İLİŞKİN SIKÇA SORULAN SORULAR YANITLANDI",
+   "url": "https://odsgm.meb.gov.tr/www/lgs-kapsamindaki-merkezi-sinava-iliskin-sikca-sorulan-sorular-yanitlandi/icerik/1188",
+   "slug": "www/lgs-kapsamindaki-merkezi-sinava-iliskin-sikca-sorulan-sorular-yanitlandi/icerik/1188",
+   "sinav": "LGS",
+   "tip": "diger"
+  },
+  {
+   "tarih": "2024-03-12",
+   "baslik": "LGS BAŞVURULARI, ELEKTRONİK ORTAMDA İSTEĞE BAĞLI YAPILACAK",
+   "url": "https://odsgm.meb.gov.tr/www/lgs-basvurulari-elektronik-ortamda-istege-bagli-yapilacak/icerik/1187",
+   "slug": "www/lgs-basvurulari-elektronik-ortamda-istege-bagli-yapilacak/icerik/1187",
+   "sinav": "LGS",
+   "tip": "basvuru"
+  },
+  {
+   "tarih": "2024-02-15",
+   "baslik": "LİSELERE GEÇİŞ SİSTEMİ (LGS) KAPSAMINDAKİ MERKEZÎ SINAVA YÖNELİK ÖRNEK SORULAR YAYIMLANDI",
+   "url": "https://odsgm.meb.gov.tr/www/liselere-gecis-sistemi-lgs-kapsamindaki-merkezi-sinava-yonelik-ornek-sorular-yayimlandi/icerik/1171",
+   "slug": "www/liselere-gecis-sistemi-lgs-kapsamindaki-merkezi-sinava-yonelik-ornek-sorular-yayimlandi/icerik/1171",
+   "sinav": "LGS",
+   "tip": "diger"
+  },
+  {
+   "tarih": "2023-11-15",
+   "baslik": "LGS KAPSAMINDAKİ MERKEZÎ SINAVA YÖNELİK ÖRNEK SORULAR YAYIMLANDI",
+   "url": "https://odsgm.meb.gov.tr/www/lgs-kapsamindaki-merkezi-sinava-yonelik-ornek-sorular-yayimlandi/icerik/1118",
+   "slug": "www/lgs-kapsamindaki-merkezi-sinava-yonelik-ornek-sorular-yayimlandi/icerik/1118",
+   "sinav": "LGS",
+   "tip": "diger"
+  },
+  {
+   "tarih": "2023-08-07",
+   "baslik": "LGS KAPSAMINDA YERLEŞTİRMEYE ESAS 2. NAKİL SONUÇLARI AÇIKLANDI",
+   "url": "https://odsgm.meb.gov.tr/www/lgs-kapsaminda-yerlestirmeye-esas-2-nakil-sonuclari-aciklandi/icerik/996",
+   "slug": "www/lgs-kapsaminda-yerlestirmeye-esas-2-nakil-sonuclari-aciklandi/icerik/996",
+   "sinav": "LGS",
+   "tip": "sonuc_aciklandi"
+  },
+  {
+   "tarih": "2023-07-31",
+   "baslik": "LGS KAPSAMINDA YERLEŞTİRMEYE ESAS 1. NAKİL SONUÇLARI AÇIKLANDI",
+   "url": "https://odsgm.meb.gov.tr/www/lgs-kapsaminda-yerlestirmeye-esas-1-nakil-sonuclari-aciklandi/icerik/995",
+   "slug": "www/lgs-kapsaminda-yerlestirmeye-esas-1-nakil-sonuclari-aciklandi/icerik/995",
+   "sinav": "LGS",
+   "tip": "sonuc_aciklandi"
+  },
+  {
+   "tarih": "2023-07-24",
+   "baslik": "LGS YERLEŞTİRME SONUÇLARI AÇIKLANDI",
+   "url": "https://odsgm.meb.gov.tr/www/lgs-yerlestirme-sonuclari-aciklandi/icerik/991",
+   "slug": "www/lgs-yerlestirme-sonuclari-aciklandi/icerik/991",
+   "sinav": "LGS",
+   "tip": "sonuc_aciklandi"
+  },
+  {
+   "tarih": "2023-06-26",
+   "baslik": "2023 Ortaöğretime Geçiş Tercih ve Yerleştirme Kılavuzu Yayımlandı",
+   "url": "http://meb.ai/UZt7xqw",
+   "slug": "UZt7xqw",
+   "sinav": "LGS",
+   "tip": "tercih"
+  },
+  {
+   "tarih": "2023-06-04",
+   "baslik": "04/06/2023 tarihinde uygulanan Sınavla Öğrenci Alacak Ortaöğretim Kurumlarına İlişkin Merkezi Sınavın Soru Kitapçıkları (Sayısal ve Sözel) ve Cevap Anahtarları",
+   "url": "https://odsgm.meb.gov.tr/www/04062023-tarihinde-uygulanan-sinavla-ogrenci-alacak-ortaogretim-kurumlarina-iliskin-merkezi-sinavin-soru-kitapciklari-sayisal-ve-sozel-ve-cevap-anahtarlari/icerik/983",
+   "slug": "www/04062023-tarihinde-uygulanan-sinavla-ogrenci-alacak-ortaogretim-kurumlarina-iliskin-merkezi-sinavin-soru-kitapciklari-sayisal-ve-sozel-ve-cevap-anahtarlari/icerik/983",
+   "sinav": "LGS",
+   "tip": "cevap_anahtari"
+  },
+  {
+   "tarih": "2023-05-15",
+   "baslik": "Sınavla Öğrenci Alacak Ortaöğretim Kurumlarına İlişkin Merkezî Sınav'a Yönelik Mayıs Ayı Örnek Soruları ve Çözüm Videoları Yayımlandı",
+   "url": "https://odsgm.meb.gov.tr/www/sinavla-ogrenci-alacak-ortaogretim-kurumlarina-iliskin-merkezi-sinav039a-yonelik-mayis-ayi-ornek-sorulari-ve-cozum-videolari-yayimlandi/icerik/975",
+   "slug": "www/sinavla-ogrenci-alacak-ortaogretim-kurumlarina-iliskin-merkezi-sinav039a-yonelik-mayis-ayi-ornek-sorulari-ve-cozum-videolari-yayimlandi/icerik/975",
+   "sinav": "LGS",
+   "tip": "diger"
+  },
+  {
+   "tarih": "2023-04-24",
+   "baslik": "Sınavla Öğrenci Alacak Ortaöğretim Kurumlarına İlişkin Merkezî Sınav'a Yönelik Nisan Ayı Örnek Soruları ve Çözüm Videoları Yayımlandı",
+   "url": "https://odsgm.meb.gov.tr/www/sinavla-ogrenci-alacak-ortaogretim-kurumlarina-iliskin-merkezi-sinav039a-yonelik-nisan-ayi-ornek-sorulari-ve-cozum-videolari-yayimlandi/icerik/968",
+   "slug": "www/sinavla-ogrenci-alacak-ortaogretim-kurumlarina-iliskin-merkezi-sinav039a-yonelik-nisan-ayi-ornek-sorulari-ve-cozum-videolari-yayimlandi/icerik/968",
+   "sinav": "LGS",
+   "tip": "diger"
+  },
+  {
+   "tarih": "2023-03-15",
+   "baslik": "Sınavla Öğrenci Alacak Ortaöğretim Kurumlarına İlişkin Merkezî Sınav'a Yönelik Mart Ayı Örnek Soruları ve Çözüm Videoları Yayımlandı",
+   "url": "https://odsgm.meb.gov.tr/www/sinavla-ogrenci-alacak-ortaogretim-kurumlarina-iliskin-merkezi-sinav039a-yonelik-mart-ayi-ornek-sorulari-ve-cozum-videolari-yayimlandi/icerik/958",
+   "slug": "www/sinavla-ogrenci-alacak-ortaogretim-kurumlarina-iliskin-merkezi-sinav039a-yonelik-mart-ayi-ornek-sorulari-ve-cozum-videolari-yayimlandi/icerik/958",
+   "sinav": "LGS",
+   "tip": "diger"
+  },
+  {
+   "tarih": "2023-03-14",
+   "baslik": "2023 LGS KAPSAMINDAKİ MERKEZİ SINAV KILAVUZU YAYIMLANDI",
+   "url": "https://www.meb.gov.tr/meb_iys_dosyalar/2023_03/13111658_BasYvuru_ve_Uygulama_KYlavuzu_2023.pdf",
+   "slug": "meb_iys_dosyalar/2023_03/13111658_BasYvuru_ve_Uygulama_KYlavuzu_2023.pdf",
+   "sinav": "LGS",
+   "tip": "kilavuz"
+  },
+  {
+   "tarih": "2023-02-24",
+   "baslik": "Sınavla Öğrenci Alacak Ortaöğretim Kurumlarına İlişkin Merkezî Sınav'a Yönelik Şubat Ayı Örnek Soruları ve Çözüm Videoları Yayımlandı",
+   "url": "https://odsgm.meb.gov.tr/www/sinavla-ogrenci-alacak-ortaogretim-kurumlarina-iliskin-merkezi-sinav039a-yonelik-subat-ayi-ornek-sorulari-ve-cozum-videolari-yayimlandi/icerik/943",
+   "slug": "www/sinavla-ogrenci-alacak-ortaogretim-kurumlarina-iliskin-merkezi-sinav039a-yonelik-subat-ayi-ornek-sorulari-ve-cozum-videolari-yayimlandi/icerik/943",
+   "sinav": "LGS",
+   "tip": "diger"
+  },
+  {
+   "tarih": "2023-02-16",
+   "baslik": "2023 Yılında Gerçekleştirilecek \"Sınavla Öğrenci Alacak Ortaöğretim Kurumlarına İlişkin Merkezi Sınav\"a Esas Derslere Ait Konu, Kazanım ve Açıklamalar",
+   "url": "https://odsgm.meb.gov.tr/www/2023-yilinda-gerceklestirilecek-quotsinavla-ogrenci-alacak-ortaogretim-kurumlarina-iliskin-merkezi-sinavquota-esas-derslere-ait-konu-kazanim-ve-aciklamalar/icerik/939",
+   "slug": "www/2023-yilinda-gerceklestirilecek-quotsinavla-ogrenci-alacak-ortaogretim-kurumlarina-iliskin-merkezi-sinavquota-esas-derslere-ait-konu-kazanim-ve-aciklamalar/icerik/939",
+   "sinav": "LGS",
+   "tip": "diger"
+  },
+  {
+   "tarih": "2023-01-16",
+   "baslik": "Sınavla Öğrenci Alacak Ortaöğretim Kurumlarına İlişkin Merkezî Sınav'a Yönelik Ocak Ayı Örnek Soruları ve Çözüm Videoları Yayımlandı",
+   "url": "https://odsgm.meb.gov.tr/www/sinavla-ogrenci-alacak-ortaogretim-kurumlarina-iliskin-merkezi-sinav039a-yonelik-ocak-ayi-ornek-sorulari-ve-cozum-videolari-yayimlandi/icerik/934",
+   "slug": "www/sinavla-ogrenci-alacak-ortaogretim-kurumlarina-iliskin-merkezi-sinav039a-yonelik-ocak-ayi-ornek-sorulari-ve-cozum-videolari-yayimlandi/icerik/934",
+   "sinav": "LGS",
+   "tip": "diger"
+  },
+  {
+   "tarih": "2022-12-15",
+   "baslik": "Sınavla Öğrenci Alacak Ortaöğretim Kurumlarına İlişkin Merkezî Sınav'a Yönelik Aralık Ayı Örnek Soruları ve Çözüm Videoları Yayımlandı",
+   "url": "https://odsgm.meb.gov.tr/www/sinavla-ogrenci-alacak-ortaogretim-kurumlarina-iliskin-merkezi-sinav039a-yonelik-aralik-ayi-ornek-sorulari-ve-cozum-videolari-yayimlandi/icerik/917",
+   "slug": "www/sinavla-ogrenci-alacak-ortaogretim-kurumlarina-iliskin-merkezi-sinav039a-yonelik-aralik-ayi-ornek-sorulari-ve-cozum-videolari-yayimlandi/icerik/917",
+   "sinav": "LGS",
+   "tip": "diger"
+  },
+  {
+   "tarih": "2022-11-20",
+   "baslik": "Sınavla Öğrenci Alacak Ortaöğretim Kurumlarına İlişkin Merkezî Sınav'a Yönelik Kasım Ayı Örnek Soruları ve Çözüm Videoları Yayımlandı",
+   "url": "https://odsgm.meb.gov.tr/www/sinavla-ogrenci-alacak-ortaogretim-kurumlarina-iliskin-merkezi-sinav039a-yonelik-kasim-ayi-ornek-sorulari-ve-cozum-videolari-yayimlandi/icerik/911",
+   "slug": "www/sinavla-ogrenci-alacak-ortaogretim-kurumlarina-iliskin-merkezi-sinav039a-yonelik-kasim-ayi-ornek-sorulari-ve-cozum-videolari-yayimlandi/icerik/911",
+   "sinav": "LGS",
+   "tip": "diger"
+  },
+  {
+   "tarih": "2022-10-05",
+   "baslik": "Sınavla Öğrenci Alacak Ortaöğretim Kurumlarına İlişkin Merkezî Sınav'a Yönelik Ekim Ayı Örnek Soruları Yayımlandı",
+   "url": "https://odsgm.meb.gov.tr/www/sinavla-ogrenci-alacak-ortaogretim-kurumlarina-iliskin-merkezi-sinav039a-yonelik-ekim-ayi-ornek-sorulari-yayimlandi/icerik/836",
+   "slug": "www/sinavla-ogrenci-alacak-ortaogretim-kurumlarina-iliskin-merkezi-sinav039a-yonelik-ekim-ayi-ornek-sorulari-yayimlandi/icerik/836",
+   "sinav": "LGS",
+   "tip": "diger"
+  },
+  {
+   "tarih": "2022-06-05",
+   "baslik": "5 Haziran 2022 Tarihinde Yapılan Sınavla Öğrenci Alacak Ortaöğretim Kurumlarına İlişkin Merkezi Sınavın Soru Kitapçıkları ve Cevap Anahtarları",
+   "url": "https://odsgm.meb.gov.tr/www/5-haziran-2022-tarihinde-yapilan-sinavla-ogrenci-alacak-ortaogretim-kurumlarina-iliskin-merkezi-sinavin-soru-kitapciklari-ve-cevap-anahtarlari/icerik/822",
+   "slug": "www/5-haziran-2022-tarihinde-yapilan-sinavla-ogrenci-alacak-ortaogretim-kurumlarina-iliskin-merkezi-sinavin-soru-kitapciklari-ve-cevap-anahtarlari/icerik/822",
+   "sinav": "LGS",
+   "tip": "cevap_anahtari"
+  },
+  {
+   "tarih": "2022-05-09",
+   "baslik": "Sınavla Öğrenci Alacak Ortaöğretim Kurumlarına İlişkin Merkezî Sınav'a Yönelik Mayıs Ayı Örnek Soruları Yayımlandı",
+   "url": "https://odsgm.meb.gov.tr/www/sinavla-ogrenci-alacak-ortaogretim-kurumlarina-iliskin-merkezi-sinav039a-yonelik-mayis-ayi-ornek-sorulari-yayimlandi/icerik/818",
+   "slug": "www/sinavla-ogrenci-alacak-ortaogretim-kurumlarina-iliskin-merkezi-sinav039a-yonelik-mayis-ayi-ornek-sorulari-yayimlandi/icerik/818",
+   "sinav": "LGS",
+   "tip": "diger"
+  },
+  {
+   "tarih": "2022-04-04",
+   "baslik": "Sınavla Öğrenci Alacak Ortaöğretim Kurumlarına İlişkin Merkezî Sınav'a Yönelik Nisan Ayı Örnek Soruları Yayımlandı",
+   "url": "https://odsgm.meb.gov.tr/www/sinavla-ogrenci-alacak-ortaogretim-kurumlarina-iliskin-merkezi-sinav039a-yonelik-nisan-ayi-ornek-sorulari-yayimlandi/icerik/808",
+   "slug": "www/sinavla-ogrenci-alacak-ortaogretim-kurumlarina-iliskin-merkezi-sinav039a-yonelik-nisan-ayi-ornek-sorulari-yayimlandi/icerik/808",
+   "sinav": "LGS",
+   "tip": "diger"
+  },
+  {
+   "tarih": "2022-03-29",
+   "baslik": "Sınavla Öğrenci Alacak Ortaöğretim Kurumlarına İlişkin Merkezî Sınav Başvuru ve Uygulama Kılavuzu 2022",
+   "url": "https://odsgm.meb.gov.tr/www/sinavla-ogrenci-alacak-ortaogretim-kurumlarina-iliskin-merkez-sinav-basvuru-ve-uygulama-kilavuzu-2022/icerik/806",
+   "slug": "www/sinavla-ogrenci-alacak-ortaogretim-kurumlarina-iliskin-merkez-sinav-basvuru-ve-uygulama-kilavuzu-2022/icerik/806",
+   "sinav": "LGS",
+   "tip": "kilavuz"
+  },
+  {
+   "tarih": "2022-03-07",
+   "baslik": "Sınavla Öğrenci Alacak Ortaöğretim Kurumlarına İlişkin Merkezî Sınav'a Yönelik Mart Ayı Örnek Soruları Yayımlandı",
+   "url": "https://odsgm.meb.gov.tr/www/sinavla-ogrenci-alacak-ortaogretim-kurumlarina-iliskin-merkezi-sinav039a-yonelik-mart-ayi-ornek-sorulari-yayimlandi/icerik/801",
+   "slug": "www/sinavla-ogrenci-alacak-ortaogretim-kurumlarina-iliskin-merkezi-sinav039a-yonelik-mart-ayi-ornek-sorulari-yayimlandi/icerik/801",
+   "sinav": "LGS",
+   "tip": "diger"
+  },
+  {
+   "tarih": "2022-02-07",
+   "baslik": "Sınavla Öğrenci Alacak Ortaöğretim Kurumlarına İlişkin Merkezî Sınav'a Yönelik Şubat Ayı Örnek Soruları Yayımlandı",
+   "url": "https://odsgm.meb.gov.tr/www/sinavla-ogrenci-alacak-ortaogretim-kurumlarina-iliskin-merkezi-sinav039a-yonelik-subat-ayi-ornek-sorulari-yayimlandi/icerik/793",
+   "slug": "www/sinavla-ogrenci-alacak-ortaogretim-kurumlarina-iliskin-merkezi-sinav039a-yonelik-subat-ayi-ornek-sorulari-yayimlandi/icerik/793",
+   "sinav": "LGS",
+   "tip": "diger"
+  },
+  {
+   "tarih": "2022-01-03",
+   "baslik": "Sınavla Öğrenci Alacak Ortaöğretim Kurumlarına İlişkin Merkezî Sınav'a Yönelik Ocak Ayı Örnek Soruları Yayımlandı",
+   "url": "https://odsgm.meb.gov.tr/www/sinavla-ogrenci-alacak-ortaogretim-kurumlarina-iliskin-merkezi-sinav039a-yonelik-ocak-ayi-ornek-sorulari-yayimlandi/icerik/786",
+   "slug": "www/sinavla-ogrenci-alacak-ortaogretim-kurumlarina-iliskin-merkezi-sinav039a-yonelik-ocak-ayi-ornek-sorulari-yayimlandi/icerik/786",
+   "sinav": "LGS",
+   "tip": "diger"
+  },
+  {
+   "tarih": "2021-12-06",
+   "baslik": "Sınavla Öğrenci Alacak Ortaöğretim Kurumlarına İlişkin Merkezî Sınav'a Yönelik Aralık Ayı Örnek Soruları Yayımlandı",
+   "url": "https://odsgm.meb.gov.tr/www/sinavla-ogrenci-alacak-ortaogretim-kurumlarina-iliskin-merkezi-sinav039a-yonelik-aralik-ayi-ornek-sorulari-yayimlandi/icerik/774",
+   "slug": "www/sinavla-ogrenci-alacak-ortaogretim-kurumlarina-iliskin-merkezi-sinav039a-yonelik-aralik-ayi-ornek-sorulari-yayimlandi/icerik/774",
+   "sinav": "LGS",
+   "tip": "diger"
+  },
+  {
+   "tarih": "2021-11-01",
+   "baslik": "Sınavla Öğrenci Alacak Ortaöğretim Kurumlarına İlişkin Merkezî Sınav'a Yönelik Kasım Ayı Örnek Soruları Yayımlandı",
+   "url": "https://odsgm.meb.gov.tr/www/sinavla-ogrenci-alacak-ortaogretim-kurumlarina-iliskin-merkezi-sinav039a-yonelik-kasim-ayi-ornek-sorulari-yayimlandi/icerik/748",
+   "slug": "www/sinavla-ogrenci-alacak-ortaogretim-kurumlarina-iliskin-merkezi-sinav039a-yonelik-kasim-ayi-ornek-sorulari-yayimlandi/icerik/748",
+   "sinav": "LGS",
+   "tip": "diger"
+  },
+  {
+   "tarih": "2021-10-04",
+   "baslik": "Sınavla Öğrenci Alacak Ortaöğretim Kurumlarına İlişkin Merkezî Sınav'a Yönelik Ekim Ayı Örnek Soruları Yayımlandı",
+   "url": "https://odsgm.meb.gov.tr/www/sinavla-ogrenci-alacak-ortaogretim-kurumlarina-iliskin-merkezi-sinav039a-yonelik-ekim-ayi-ornek-sorulari-yayimlandi/icerik/740",
+   "slug": "www/sinavla-ogrenci-alacak-ortaogretim-kurumlarina-iliskin-merkezi-sinav039a-yonelik-ekim-ayi-ornek-sorulari-yayimlandi/icerik/740",
+   "sinav": "LGS",
+   "tip": "diger"
+  },
+  {
+   "tarih": "2021-05-04",
+   "baslik": "Sınavla Öğrenci Alacak Ortaöğretim Kurumlarına İlişkin Merkezî Sınav'a Yönelik Mayıs Ayı Örnek Soruları Yayımlandı",
+   "url": "https://odsgm.meb.gov.tr/www/sinavla-ogrenci-alacak-ortaogretim-kurumlarina-iliskin-merkezi-sinav039a-yonelik-mayis-ayi-ornek-sorulari-yayimlandi/icerik/641",
+   "slug": "www/sinavla-ogrenci-alacak-ortaogretim-kurumlarina-iliskin-merkezi-sinav039a-yonelik-mayis-ayi-ornek-sorulari-yayimlandi/icerik/641",
+   "sinav": "LGS",
+   "tip": "diger"
+  },
+  {
+   "tarih": "2021-04-09",
+   "baslik": "Sınavla Öğrenci Alacak Ortaöğretim Kurumlarına İlişkin Merkezî Sınav'a Yönelik Nisan Ayı Örnek Soruları Yayımlandı",
+   "url": "https://odsgm.meb.gov.tr/www/sinavla-ogrenci-alacak-ortaogretim-kurumlarina-iliskin-merkezi-sinav039a-yonelik-nisan-ayi-ornek-sorulari-yayimlandi/icerik/632",
+   "slug": "www/sinavla-ogrenci-alacak-ortaogretim-kurumlarina-iliskin-merkezi-sinav039a-yonelik-nisan-ayi-ornek-sorulari-yayimlandi/icerik/632",
+   "sinav": "LGS",
+   "tip": "diger"
+  },
+  {
+   "tarih": "2021-03-07",
+   "baslik": "Sınavla Öğrenci Alacak Ortaöğretim Kurumlarına İlişkin Merkezî Sınava Yönelik Mart Ayı Örnek Soruları Yayımlandı",
+   "url": "https://odsgm.meb.gov.tr/www/sinavla-ogrenci-alacak-ortaogretim-kurumlarina-iliskin-merkezi-sinava-yonelik-mart-ayi-ornek-sorulari-yayimlandi/icerik/628",
+   "slug": "www/sinavla-ogrenci-alacak-ortaogretim-kurumlarina-iliskin-merkezi-sinava-yonelik-mart-ayi-ornek-sorulari-yayimlandi/icerik/628",
+   "sinav": "LGS",
+   "tip": "diger"
+  },
+  {
+   "tarih": "2021-02-04",
+   "baslik": "Sınavla Öğrenci Alacak Ortaöğretim Kurumlarına İlişkin Merkezî Sınava Yönelik Şubat Ayı Örnek Soruları Yayımlandı",
+   "url": "https://odsgm.meb.gov.tr/www/sinavla-ogrenci-alacak-ortaogretim-kurumlarina-iliskin-merkezi-sinava-yonelik-subat-ayi-ornek-sorulari-yayimlandi/icerik/623",
+   "slug": "www/sinavla-ogrenci-alacak-ortaogretim-kurumlarina-iliskin-merkezi-sinava-yonelik-subat-ayi-ornek-sorulari-yayimlandi/icerik/623",
+   "sinav": "LGS",
+   "tip": "diger"
+  },
+  {
+   "tarih": "2021-01-05",
+   "baslik": "Sınavla Öğrenci Alacak Ortaöğretim Kurumlarına İlişkin Merkezî Sınava Yönelik Ocak Ayı Örnek Soruları Yayımlandı",
+   "url": "https://odsgm.meb.gov.tr/www/sinavla-ogrenci-alacak-ortaogretim-kurumlarina-iliskin-merkezi-sinava-yonelik-ocak-ayi-ornek-sorulari-yayimlandi/icerik/618",
+   "slug": "www/sinavla-ogrenci-alacak-ortaogretim-kurumlarina-iliskin-merkezi-sinava-yonelik-ocak-ayi-ornek-sorulari-yayimlandi/icerik/618",
+   "sinav": "LGS",
+   "tip": "diger"
+  },
+  {
+   "tarih": "2020-12-01",
+   "baslik": "Sınavla Öğrenci Alacak Ortaöğretim Kurumlarına İlişkin Merkezî Sınava Yönelik Aralık Ayı Örnek Soruları Yayımlandı",
+   "url": "https://odsgm.meb.gov.tr/www/sinavla-ogrenci-alacak-ortaogretim-kurumlarina-iliskin-merkezi-sinava-yonelik-aralik-ayi-ornek-sorulari-yayimlandi/icerik/611",
+   "slug": "www/sinavla-ogrenci-alacak-ortaogretim-kurumlarina-iliskin-merkezi-sinava-yonelik-aralik-ayi-ornek-sorulari-yayimlandi/icerik/611",
+   "sinav": "LGS",
+   "tip": "diger"
+  },
+  {
+   "tarih": "2020-06-03",
+   "baslik": "Sınavla Öğrenci Alacak Ortaöğretim Kurumlarına İlişkin Merkezî Sınava Yönelik Haziran Ayı Çalışma Soruları Yayımlandı",
+   "url": "https://odsgm.meb.gov.tr/www/sinavla-ogrenci-alacak-ortaogretim-kurumlarina-iliskin-merkezi-sinava-yonelik-haziran-ayi-calisma-sorulari-yayimlandi/icerik/547",
+   "slug": "www/sinavla-ogrenci-alacak-ortaogretim-kurumlarina-iliskin-merkezi-sinava-yonelik-haziran-ayi-calisma-sorulari-yayimlandi/icerik/547",
+   "sinav": "LGS",
+   "tip": "diger"
+  },
+  {
+   "tarih": "2020-05-22",
+   "baslik": "Sınavla Öğrenci Alacak Ortaöğretim Kurumlarına İlişkin Merkezî Sınava Yönelik Mayıs Ayı 2. Çalışma Soruları Yayımlandı",
+   "url": "https://odsgm.meb.gov.tr/www/sinavla-ogrenci-alacak-ortaogretim-kurumlarina-iliskin-merkezi-sinava-yonelik-mayis-ayi-2-calisma-sorulari-yayimlandi/icerik/545",
+   "slug": "www/sinavla-ogrenci-alacak-ortaogretim-kurumlarina-iliskin-merkezi-sinava-yonelik-mayis-ayi-2-calisma-sorulari-yayimlandi/icerik/545",
+   "sinav": "LGS",
+   "tip": "diger"
+  },
+  {
+   "tarih": "2020-05-20",
+   "baslik": "Sınavla Öğrenci Alacak Ortaöğretim Kurumlarına İlişkin Merkezî Sınava Yönelik Mayıs Ayı İkinci Örnek Soruları Yayımlandı",
+   "url": "https://odsgm.meb.gov.tr/www/sinavla-ogrenci-alacak-ortaogretim-kurumlarina-iliskin-merkezi-sinava-yonelik-mayis-ayi-ikinci-ornek-sorulari-yayimlandi/icerik/544",
+   "slug": "www/sinavla-ogrenci-alacak-ortaogretim-kurumlarina-iliskin-merkezi-sinava-yonelik-mayis-ayi-ikinci-ornek-sorulari-yayimlandi/icerik/544",
+   "sinav": "LGS",
+   "tip": "diger"
+  },
+  {
+   "tarih": "2020-05-06",
+   "baslik": "Sınavla Öğrenci Alacak Ortaöğretim Kurumlarına İlişkin Merkezî Sınava Yönelik Mayıs Ayı Örnek Soruları Yayımlandı",
+   "url": "https://odsgm.meb.gov.tr/www/sinavla-ogrenci-alacak-ortaogretim-kurumlarina-iliskin-merkezi-sinava-yonelik-mayis-ayi-ornek-sorulari-yayimlandi/icerik/541",
+   "slug": "www/sinavla-ogrenci-alacak-ortaogretim-kurumlarina-iliskin-merkezi-sinava-yonelik-mayis-ayi-ornek-sorulari-yayimlandi/icerik/541",
+   "sinav": "LGS",
+   "tip": "diger"
+  },
+  {
+   "tarih": "2020-05-04",
+   "baslik": "Sınavla Öğrenci Alacak Ortaöğretim Kurumlarına İlişkin Merkezî Sınava Yönelik Mayıs Ayı Çalışma Soruları Yayımlandı",
+   "url": "https://odsgm.meb.gov.tr/www/sinavla-ogrenci-alacak-ortaogretim-kurumlarina-iliskin-merkezi-sinava-yonelik-mayis-ayi-calisma-sorulari-yayimlandi/icerik/540",
+   "slug": "www/sinavla-ogrenci-alacak-ortaogretim-kurumlarina-iliskin-merkezi-sinava-yonelik-mayis-ayi-calisma-sorulari-yayimlandi/icerik/540",
+   "sinav": "LGS",
+   "tip": "diger"
+  },
+  {
+   "tarih": "2020-04-22",
+   "baslik": "Sınavla Öğrenci Alacak Ortaöğretim Kurumlarına İlişkin Merkezî Sınava Yönelik Nisan Ayı İkinci Örnek Soruları Yayımlandı",
+   "url": "https://odsgm.meb.gov.tr/www/sinavla-ogrenci-alacak-ortaogretim-kurumlarina-iliskin-merkezi-sinava-yonelik-nisan-ayi-ikinci-ornek-sorulari-yayimlandi/icerik/534",
+   "slug": "www/sinavla-ogrenci-alacak-ortaogretim-kurumlarina-iliskin-merkezi-sinava-yonelik-nisan-ayi-ikinci-ornek-sorulari-yayimlandi/icerik/534",
+   "sinav": "LGS",
+   "tip": "diger"
+  },
+  {
+   "tarih": "2020-04-16",
+   "baslik": "Sınavla Öğrenci Alacak Ortaöğretim Kurumlarına İlişkin Merkezî Sınava Yönelik Nisan Ayı Çalışma Soruları Yayımlandı",
+   "url": "https://odsgm.meb.gov.tr/www/sinavla-ogrenci-alacak-ortaogretim-kurumlarina-iliskin-merkezi-sinava-yonelik-nisan-ayi-calisma-sorulari-yayimlandi/icerik/529",
+   "slug": "www/sinavla-ogrenci-alacak-ortaogretim-kurumlarina-iliskin-merkezi-sinava-yonelik-nisan-ayi-calisma-sorulari-yayimlandi/icerik/529",
+   "sinav": "LGS",
+   "tip": "diger"
+  },
+  {
+   "tarih": "2020-04-08",
+   "baslik": "Sınavla Öğrenci Alacak Ortaöğretim Kurumlarına İlişkin Merkezî Sınava Yönelik Nisan Ayı Örnek Soruları Yayımlandı",
+   "url": "https://odsgm.meb.gov.tr/www/sinavla-ogrenci-alacak-ortaogretim-kurumlarina-iliskin-merkezi-sinava-yonelik-nisan-ayi-ornek-sorulari-yayimlandi/icerik/527",
+   "slug": "www/sinavla-ogrenci-alacak-ortaogretim-kurumlarina-iliskin-merkezi-sinava-yonelik-nisan-ayi-ornek-sorulari-yayimlandi/icerik/527",
+   "sinav": "LGS",
+   "tip": "diger"
+  },
+  {
+   "tarih": "2020-04-03",
+   "baslik": "Sınavla Öğrenci Alacak Ortaöğretim Kurumlarına İlişkin Merkezî Sınav Başvuru ve Uygulama Kılavuzu 2020 (GÜNCEL)",
+   "url": "http://www.meb.gov.tr/meb_iys_dosyalar/2020_05/06105923_BasYvuru_ve_Uygulama_KYlavuzu_2020_GuYncel.pdf",
+   "slug": "meb_iys_dosyalar/2020_05/06105923_BasYvuru_ve_Uygulama_KYlavuzu_2020_GuYncel.pdf",
+   "sinav": "LGS",
+   "tip": "kilavuz"
+  },
+  {
+   "tarih": "2020-03-27",
+   "baslik": "Sınavla Öğrenci Alacak Ortaöğretim Kurumlarına İlişkin Merkezî Sınava Yönelik Mart Ayı Örnek Soruları Yayımlandı",
+   "url": "https://odsgm.meb.gov.tr/www/sinavla-ogrenci-alacak-ortaogretim-kurumlarina-iliskin-merkezi-sinava-yonelik-mart-ayi-ornek-sorulari-yayimlandi/icerik/524",
+   "slug": "www/sinavla-ogrenci-alacak-ortaogretim-kurumlarina-iliskin-merkezi-sinava-yonelik-mart-ayi-ornek-sorulari-yayimlandi/icerik/524",
+   "sinav": "LGS",
+   "tip": "diger"
+  },
+  {
+   "tarih": "2020-02-24",
+   "baslik": "Sınavla Öğrenci Alacak Ortaöğretim Kurumlarına İlişkin Merkezî Sınava Yönelik Şubat Ayı Örnek Soruları Yayımlandı",
+   "url": "https://odsgm.meb.gov.tr/www/sinavla-ogrenci-alacak-ortaogretim-kurumlarina-iliskin-merkezi-sinava-yonelik-subat-ayi-ornek-sorulari-yayimlandi/icerik/519",
+   "slug": "www/sinavla-ogrenci-alacak-ortaogretim-kurumlarina-iliskin-merkezi-sinava-yonelik-subat-ayi-ornek-sorulari-yayimlandi/icerik/519",
+   "sinav": "LGS",
+   "tip": "diger"
+  },
+  {
+   "tarih": "2020-01-24",
+   "baslik": "Sınavla Öğrenci Alacak Ortaöğretim Kurumlarına İlişkin Merkezî Sınava Yönelik Ocak Ayı Örnek Soruları Yayımlandı",
+   "url": "https://odsgm.meb.gov.tr/www/sinavla-ogrenci-alacak-ortaogretim-kurumlarina-iliskin-merkezi-sinava-yonelik-ocak-ayi-ornek-sorulari-yayimlandi/icerik/508",
+   "slug": "www/sinavla-ogrenci-alacak-ortaogretim-kurumlarina-iliskin-merkezi-sinava-yonelik-ocak-ayi-ornek-sorulari-yayimlandi/icerik/508",
+   "sinav": "LGS",
+   "tip": "diger"
+  },
+  {
+   "tarih": "2019-12-24",
+   "baslik": "Sınavla Öğrenci Alacak Ortaöğretim Kurumlarına İlişkin Merkezî Sınava Yönelik Aralık Ayı Örnek Soruları Yayımlandı",
+   "url": "https://odsgm.meb.gov.tr/www/sinavla-ogrenci-alacak-ortaogretim-kurumlarina-iliskin-merkezi-sinava-yonelik-aralik-ayi-ornek-sorulari-yayimlandi/icerik/505",
+   "slug": "www/sinavla-ogrenci-alacak-ortaogretim-kurumlarina-iliskin-merkezi-sinava-yonelik-aralik-ayi-ornek-sorulari-yayimlandi/icerik/505",
+   "sinav": "LGS",
+   "tip": "diger"
+  },
+  {
+   "tarih": "2019-11-25",
+   "baslik": "Sınavla Öğrenci Alacak Ortaöğretim Kurumlarına İlişkin Merkezî Sınava Yönelik Kasım Ayı Örnek Soruları Yayımlandı",
+   "url": "https://odsgm.meb.gov.tr/www/sinavla-ogrenci-alacak-ortaogretim-kurumlarina-iliskin-merkezi-sinava-yonelik-kasim-ayi-ornek-sorulari-yayimlandi/icerik/499",
+   "slug": "www/sinavla-ogrenci-alacak-ortaogretim-kurumlarina-iliskin-merkezi-sinava-yonelik-kasim-ayi-ornek-sorulari-yayimlandi/icerik/499",
+   "sinav": "LGS",
+   "tip": "diger"
+  },
+  {
+   "tarih": "2019-10-24",
+   "baslik": "Sınavla Öğrenci Alacak Ortaöğretim Kurumlarına İlişkin Merkezî Sınava Yönelik Ekim Ayı Örnek Soruları Yayımlandı",
+   "url": "https://odsgm.meb.gov.tr/www/sinavla-ogrenci-alacak-ortaogretim-kurumlarina-iliskin-merkezi-sinava-yonelik-ekim-ayi-ornek-sorulari-yayimlandi/icerik/495",
+   "slug": "www/sinavla-ogrenci-alacak-ortaogretim-kurumlarina-iliskin-merkezi-sinava-yonelik-ekim-ayi-ornek-sorulari-yayimlandi/icerik/495",
+   "sinav": "LGS",
+   "tip": "diger"
+  },
+  {
+   "tarih": "2019-06-02",
+   "baslik": "1 Haziran 2019 Tarihinde Yapılan Sınavla Öğrenci Alacak Ortaöğretim Kurumlarına İlişkin Merkezi Sınav Soru Kitapçıkları ve Cevap Anahtarları",
+   "url": "https://www.meb.gov.tr/01062019-tarihinde-yapilan-merkezi-sinav-soru-ve-cevap-anahtarlari/duyuru/18776/tr",
+   "slug": "01062019-tarihinde-yapilan-merkezi-sinav-soru-ve-cevap-anahtarlari/duyuru/18776/tr",
+   "sinav": "LGS",
+   "tip": "cevap_anahtari"
+  },
+  {
+   "tarih": "2019-05-24",
+   "baslik": "Sınavla Öğrenci Alacak Ortaöğretim Kurumlarına İlişkin Merkezî Sınava Yönelik Mayıs Ayı Örnek Soruları Yayımlandı",
+   "url": "https://odsgm.meb.gov.tr/www/sinavla-ogrenci-alacak-ortaogretim-kurumlarina-iliskin-merkezi-sinava-yonelik-mayis-ayi-ornek-sorulari-yayimlandi/icerik/460",
+   "slug": "www/sinavla-ogrenci-alacak-ortaogretim-kurumlarina-iliskin-merkezi-sinava-yonelik-mayis-ayi-ornek-sorulari-yayimlandi/icerik/460",
+   "sinav": "LGS",
+   "tip": "diger"
+  },
+  {
+   "tarih": "2019-05-22",
+   "baslik": "Sınavla Öğrenci Alacak Ortaöğretim Kurumlarına İlişkin Merkezî Sınav ve İlköğretim ve Ortaöğretim Kurumları Bursluluk Sınavı Uygulamaları",
+   "url": "https://odsgm.meb.gov.tr/meb_iys_dosyalar/2019_05/22134540_LGS_yazY_2019.pdf",
+   "slug": "meb_iys_dosyalar/2019_05/22134540_LGS_yazY_2019.pdf",
+   "sinav": "LGS",
+   "tip": "diger"
+  },
+  {
+   "tarih": "2019-04-24",
+   "baslik": "Sınavla Öğrenci Alacak Ortaöğretim Kurumlarına İlişkin Merkezî Sınava Yönelik Nisan Ayı Örnek Soruları Yayımlandı",
+   "url": "https://odsgm.meb.gov.tr/www/sinavla-ogrenci-alacak-ortaogretim-kurumlarina-iliskin-merkezi-sinava-yonelik-nisan-ayi-ornek-sorulari-yayimlandi/icerik/457",
+   "slug": "www/sinavla-ogrenci-alacak-ortaogretim-kurumlarina-iliskin-merkezi-sinava-yonelik-nisan-ayi-ornek-sorulari-yayimlandi/icerik/457",
+   "sinav": "LGS",
+   "tip": "diger"
+  },
+  {
+   "tarih": "2019-03-21",
+   "baslik": "Sınavla Öğrenci Alacak Ortaöğretim Kurumlarına İlişkin Merkezî Sınava Yönelik Mart Ayı Örnek Soruları Yayımlandı",
+   "url": "https://odsgm.meb.gov.tr/www/sinavla-ogrenci-alacak-ortaogretim-kurumlarina-iliskin-merkezi-sinava-yonelik-mart-ayi-ornek-sorulari-yayimlandi/icerik/445",
+   "slug": "www/sinavla-ogrenci-alacak-ortaogretim-kurumlarina-iliskin-merkezi-sinava-yonelik-mart-ayi-ornek-sorulari-yayimlandi/icerik/445",
+   "sinav": "LGS",
+   "tip": "diger"
+  },
+  {
+   "tarih": "2019-02-21",
+   "baslik": "Sınavla Öğrenci Alacak Ortaöğretim Kurumlarına İlişkin Merkezî Sınava Yönelik Şubat Ayı Örnek Soruları Yayımlandı",
+   "url": "https://odsgm.meb.gov.tr/www/sinavla-ogrenci-alacak-ortaogretim-kurumlarina-iliskin-merkezi-sinava-yonelik-subat-ayi-ornek-sorulari-yayimlandi/icerik/440",
+   "slug": "www/sinavla-ogrenci-alacak-ortaogretim-kurumlarina-iliskin-merkezi-sinava-yonelik-subat-ayi-ornek-sorulari-yayimlandi/icerik/440",
+   "sinav": "LGS",
+   "tip": "diger"
+  },
+  {
+   "tarih": "2019-01-22",
+   "baslik": "Sınavla Öğrenci Alacak Ortaöğretim Kurumlarına İlişkin Merkezî Sınava Yönelik Ocak Ayı Örnek Soruları Yayımlandı",
+   "url": "https://odsgm.meb.gov.tr/www/sinavla-ogrenci-alacak-ortaogretim-kurumlarina-iliskin-merkezi-sinava-yonelik-ocak-ayi-ornek-sorulari-yayimlandi/icerik/436",
+   "slug": "www/sinavla-ogrenci-alacak-ortaogretim-kurumlarina-iliskin-merkezi-sinava-yonelik-ocak-ayi-ornek-sorulari-yayimlandi/icerik/436",
+   "sinav": "LGS",
+   "tip": "diger"
+  },
+  {
+   "tarih": "2018-12-25",
+   "baslik": "Sınavla Öğrenci Alacak Ortaöğretim Kurumlarına İlişkin Merkezî Sınava Yönelik Aralık Ayı Örnek Soruları Yayımlandı",
+   "url": "https://odsgm.meb.gov.tr/www/sinavla-ogrenci-alacak-ortaogretim-kurumlarina-iliskin-merkezi-sinava-yonelik-aralik-ayi-ornek-sorulari-yayimlandi/icerik/431",
+   "slug": "www/sinavla-ogrenci-alacak-ortaogretim-kurumlarina-iliskin-merkezi-sinava-yonelik-aralik-ayi-ornek-sorulari-yayimlandi/icerik/431",
+   "sinav": "LGS",
+   "tip": "diger"
+  },
+  {
+   "tarih": "2018-11-22",
+   "baslik": "Sınavla Öğrenci Alacak Ortaöğretim Kurumlarına İlişkin Merkezî Sınava Yönelik Kasım Ayı Örnek Soruları Yayımlandı",
+   "url": "https://odsgm.meb.gov.tr/www/sinavla-ogrenci-alacak-ortaogretim-kurumlarina-iliskin-merkezi-sinava-yonelik-kasim-ayi-ornek-sorulari-yayimlandi/icerik/364",
+   "slug": "www/sinavla-ogrenci-alacak-ortaogretim-kurumlarina-iliskin-merkezi-sinava-yonelik-kasim-ayi-ornek-sorulari-yayimlandi/icerik/364",
+   "sinav": "LGS",
+   "tip": "diger"
+  },
+  {
+   "tarih": "2018-10-24",
+   "baslik": "Sınavla Öğrenci Alacak Ortaöğretim Kurumlarına İlişkin Merkezî Sınava Yönelik Örnek Sorular Yayımlandı",
+   "url": "https://odsgm.meb.gov.tr/www/sinavla-ogrenci-alacak-ortaogretim-kurumlarina-iliskin-merkezi-sinava-yonelik-ornek-sorular-yayimlandi/icerik/356",
+   "slug": "www/sinavla-ogrenci-alacak-ortaogretim-kurumlarina-iliskin-merkezi-sinava-yonelik-ornek-sorular-yayimlandi/icerik/356",
+   "sinav": "LGS",
+   "tip": "diger"
+  },
+  {
+   "tarih": "2018-06-26",
+   "baslik": "2018 Yılı Ortaöğretime Geçiş Tercih Ve Yerleştirme Kılavuzu",
+   "url": "https://odsgm.meb.gov.tr/www/2018-yili-ortaogretime-gecis-tercih-ve-yerlestirme-kilavuzu/icerik/322",
+   "slug": "www/2018-yili-ortaogretime-gecis-tercih-ve-yerlestirme-kilavuzu/icerik/322",
+   "sinav": "LGS",
+   "tip": "tercih"
+  },
+  {
+   "tarih": "2018-06-03",
+   "baslik": "2 Haziran 2018 Tarihinde Yapılan Sınavla Öğrenci Alacak Ortaöğretim Kurumlarına İlişkin Merkezî Sınava Ait Soru ve Cevap Anahtarları",
+   "url": "https://odsgm.meb.gov.tr/www/2-haziran-2018-tarihinde-yapilan-sinavla-ogrenci-alacak-ortaogretim-kurumlarina-iliskin-merkezi-sinava-ait-soru-ve-cevap-anahtarlari/icerik/317",
+   "slug": "www/2-haziran-2018-tarihinde-yapilan-sinavla-ogrenci-alacak-ortaogretim-kurumlarina-iliskin-merkezi-sinava-ait-soru-ve-cevap-anahtarlari/icerik/317",
+   "sinav": "LGS",
+   "tip": "cevap_anahtari"
+  },
+  {
+   "tarih": "2016-08-15",
+   "baslik": "Ortaöğretim Kurumlarına Geçiş Uygulaması Kapsamında Açık Öğretim Ortaokulu ve Yurtdışından Başvuracak Öğrenciler İçin Yerleştirmeye Esas Nakil Başvurusu",
+   "url": "https://odsgm.meb.gov.tr/www/ortaogretim-kurumlarina-gecis-uygulamasi-kapsaminda-acik-ogretim-ortaokulu-ve-yurtdisindan-basvuracak-ogrenciler-icin-yerlestirmeye-esas-nakil-basvurusu/icerik/166",
+   "slug": "www/ortaogretim-kurumlarina-gecis-uygulamasi-kapsaminda-acik-ogretim-ortaokulu-ve-yurtdisindan-basvuracak-ogrenciler-icin-yerlestirmeye-esas-nakil-basvurusu/icerik/166",
+   "sinav": "LGS",
+   "tip": "basvuru"
+  },
+  {
+   "tarih": "2016-06-09",
+   "baslik": "2016 Ortaöğretim Kurumlarına Geçiş Uygulaması Tercih ve Yerleştirme e-Kılavuzu",
+   "url": "https://odsgm.meb.gov.tr/meb_iys_dosyalar/2016_06/09051700_2016_ortaogretim_kurumlarina_gecis_uygulamasi_tercih_ve_yerlestirme_ekilavuzu.pdf",
+   "slug": "meb_iys_dosyalar/2016_06/09051700_2016_ortaogretim_kurumlarina_gecis_uygulamasi_tercih_ve_yerlestirme_ekilavuzu.pdf",
+   "sinav": "LGS",
+   "tip": "kilavuz"
+  },
+  {
+   "tarih": "2015-08-07",
+   "baslik": "2015 Ortaöğretim Kurumlarına Geçiş Uygulaması Tercih ve Yerleştirme E-Kılavuzu",
+   "url": "https://odsgm.meb.gov.tr/meb_iys_dosyalar/2015_08/14115818_ook_tercihveyerlestirmeklvz2015.pdf",
+   "slug": "meb_iys_dosyalar/2015_08/14115818_ook_tercihveyerlestirmeklvz2015.pdf",
+   "sinav": "LGS",
+   "tip": "kilavuz"
+  },
+  {
+   "tarih": "2015-06-19",
+   "baslik": "2015 Ortaöğretim Kurumlarına Geçiş Uygulaması Tercih ve Yerleştirme Kılavuzu Sıkça Sorulan Sorular",
+   "url": "https://odsgm.meb.gov.tr/www/2015-ortaogretim-kurumlarina-gecis-uygulamasi-tercih-ve-yerlestirme-kilavuzu-sikca-sorulan-sorular/icerik/53",
+   "slug": "www/2015-ortaogretim-kurumlarina-gecis-uygulamasi-tercih-ve-yerlestirme-kilavuzu-sikca-sorulan-sorular/icerik/53",
+   "sinav": "LGS",
+   "tip": "tercih"
+  },
+  {
+   "tarih": "2015-06-12",
+   "baslik": "2015 Ortaöğretim Kurumlarına Geçiş Uygulaması Tercih ve Yerleştirme İşlemi Tanıtım Videosu",
+   "url": "https://odsgm.meb.gov.tr/www/2015-ortaogretim-kurumlarina-gecis-uygulamasi-tercih-ve-yerlestirme-islemi-tanitim-videosu/icerik/50",
+   "slug": "www/2015-ortaogretim-kurumlarina-gecis-uygulamasi-tercih-ve-yerlestirme-islemi-tanitim-videosu/icerik/50",
+   "sinav": "LGS",
+   "tip": "diger"
+  },
+  {
+   "tarih": "2015-05-28",
+   "baslik": "ORTAÖĞRETİM KURUMLARINA GEÇİŞ UYGULAMASI TERCİH VE YERLEŞTİRME E-KILAVUZU 2015",
+   "url": "https://odsgm.meb.gov.tr/www/ortaogretim-kurumlarina-gecis-uygulamasi-tercih-ve-yerlestirme-e-kilavuzu-2015/icerik/42",
+   "slug": "www/ortaogretim-kurumlarina-gecis-uygulamasi-tercih-ve-yerlestirme-e-kilavuzu-2015/icerik/42",
+   "sinav": "LGS",
+   "tip": "kilavuz"
+  }
+ ]
+}
