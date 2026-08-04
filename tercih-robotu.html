@@ -356,7 +356,7 @@ Bu bir tahmindir; 2026 taban sıraları kontenjan ve tercih yoğunluğuna göre 
 <a href="https://www.osym.gov.tr" target="_blank" rel="noopener">ÖSYM</a> kılavuzu esastır.</div>
 <script nonce="__NONCE__">
 (function(){
-  var IDX={k:0,u:1,b:2,g:3,il:4,t:5,o:6,dil:7,bs:8,kont:9,tp:10,sira:11,yer:12,t24:13,t23:14,s24:15,s23:16};
+  var IDX={k:0,u:1,b:2,g:3,il:4,t:5,o:6,dil:7,bs:8,kont:9,tp:10,sira:11,yer:12,t24:13,t23:14,s24:15,s23:16,det:17};
   var TUR={D:'Devlet',V:'Vakıf',K:'KKTC',DK:'Devlet (KKTC Kampüs)',DU:'Devlet (Ücretli)',DKU:'Devlet (KKTC Uyruklu)',Y:'Diğer','?':'—'};
   var PTL={say:'Sayısal',ea:'Eşit Ağırlık',soz:'Sözel',dil:'Dil',tyt:'TYT (Önlisans)'};
   var SV=window.SV||{};
@@ -410,18 +410,65 @@ Bu bir tahmindir; 2026 taban sıraları kontenjan ve tercih yoğunluğuna göre 
   // Satır SİLİNMEZ (geçmiş veri değerlidir), yalnız "Bu yıl alım yapmıyor" rozeti eklenir.
   var KAPANAN = new Set([]);
   var pf0=function(n){return n==null?'—':n.toLocaleString('tr-TR',{minimumFractionDigits:2,maximumFractionDigits:2});};
-  function detailRow(r,ri){
-    var yillar=[[2025,r[IDX.tp],r[IDX.sira]],[2024,r[IDX.t24],r[IDX.s24]],[2023,r[IDX.t23],r[IDX.s23]]]
-      .filter(function(y){return y[1]!=null;});
-    if(!yillar.length)return '';
-    var rows=yillar.map(function(y){return '<tr><td>'+y[0]+'</td><td>'+pf0(y[1])+'</td><td>'+nf(y[2])+'</td></tr>';}).join('');
-    return '<tr class="pdet-row" data-ri="'+ri+'" hidden><td colspan="8"><div class="pdet-box"><b>Geçmiş yıllar</b>'+
-      '<table class="pdet-hist"><thead><tr><th>Yıl</th><th>Taban Puan</th><th>Başarı Sırası</th></tr></thead>'+
-      '<tbody>'+rows+'</tbody></table></div></td></tr>';
+  function esc(s){return (''+(s==null?'':s)).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+  // ⓘ detay içeriği bölüm/üniversite sayfalarındaki DETAIL_TOOLS_JS ile AYNI kaynak alanlardan
+  // (kosul/kadro/akr/sure/ucret/demo/hist — write_veri()'nin idx17'sinde bundle edilir) VE AYNI
+  // görünümle üretilir. Program kodu ayrıca eklenir (ÖSYM tercih formuna girilen kod budur —
+  // ⚠️ yıldan yıla değişebilir, tercih döneminde güncel kılavuzdan doğrulanmalı).
+  var KOSUL=null, KLAB=['Profesör','Doçent','Dr. Öğr. Üyesi','Araştırma Gör.','Öğretim Gör.'];
+  function renderDetail(r){
+    var d=r[IDX.det]||{}, parts=[];
+    var yillar=[[2025,r[IDX.tp],r[IDX.sira],r[IDX.yer]]].concat(d.hist||[])
+      .filter(function(y){return y[1]!=null||y[2]!=null;});
+    if(yillar.length){
+      var hr=yillar.map(function(y){return '<tr><td><b>'+y[0]+'</b></td><td>'+pf0(y[1])+'</td><td>'+nf(y[2])+'</td><td>'+nf(y[3])+'</td></tr>';}).join('');
+      parts.push('<div><b>Yıllara göre (taban / başarı sırası / yerleşen):</b>'
+        +'<table class="pdet-hist"><thead><tr><th data-tip="Yerleştirme yılı.">Yıl</th><th data-tip="O yıl programa en son yerleşen adayın puanı.">Taban</th><th data-tip="O yıl en son yerleşen adayın başarı sırası.">Başarı Sırası</th><th data-tip="O yıl programa yerleşen toplam öğrenci sayısı.">Yerleşen</th></tr></thead><tbody>'+hr+'</tbody></table></div>');
+    }
+    var demo=d.demo;
+    if(demo){
+      var kz=demo.k||0, er=demo.e||0, ls=demo.ls||0, mz=demo.mz||0, ub=demo.ub||0, um=demo.um||0, ct=kz+er;
+      if(ct>0){
+        var kzp=Math.round(100*kz/ct), erp=100-kzp;
+        parts.push('<div style="margin-top:8px"><b>Yerleşen profili ('+esc(demo.y)+'):</b>'
+          +'<div style="margin:5px 0 2px;font-size:12px">Cinsiyet — Kız %'+kzp+' · Erkek %'+erp+'</div>'
+          +'<div style="display:flex;height:14px;border-radius:7px;overflow:hidden;font-size:9px;line-height:14px;color:#fff">'
+          +'<div style="width:'+kzp+'%;background:#d6336c;text-align:center">'+kz+'</div>'
+          +'<div style="width:'+erp+'%;background:#1c7ed6;text-align:center">'+er+'</div></div>');
+        var ot=ls+mz+ub+um;
+        if(ot>0){
+          var seg=[['Lise son sınıf',ls,'#2f9e44'],['Önceki yıl mezunu',mz,'#f08c00'],['Üniv. öğrencisi iken',ub,'#7048e8'],['Üniv. mezunu',um,'#e8590c']].filter(function(s){return s[1]>0;});
+          parts.push('<div style="margin-top:6px;font-size:12px">Öğrenim durumu:</div>'
+            +'<div style="display:flex;height:14px;border-radius:7px;overflow:hidden;font-size:9px;line-height:14px;color:#fff">'
+            +seg.map(function(s){return '<div style="width:'+Math.round(100*s[1]/ot)+'%;background:'+s[2]+'" title="'+s[0]+': '+s[1]+'"></div>';}).join('')+'</div>'
+            +'<div style="font-size:11px;color:var(--fg-faded);margin-top:3px">'+seg.map(function(s){return esc(s[0])+' %'+Math.round(100*s[1]/ot);}).join(' · ')+'</div>');
+        }
+        parts.push('<div style="font-size:10px;color:var(--fg-faded);margin-top:4px">Cinsiyet ve öğrenim durumu dağılımını YÖK Atlas en son <b>'+esc(demo.y)+'</b> yerleşmeleri için yayınladı; sonraki yıllarda bu istatistik yayından kaldırıldı. Diğer tüm veriler (taban, sıra, kontenjan, yerleşen sayısı, koşullar, kadro, ücret) cari yıla aittir.</div></div>');
+      }
+    }
+    if(d.kadro&&d.kadro.some(function(v){return v>0;})){
+      var kp=[]; d.kadro.forEach(function(v,i){ if(v>0)kp.push(KLAB[i]+': '+v); });
+      parts.push('<div style="margin-top:6px"><b>Akademik kadro:</b> '+kp.join(' · ')+'</div>');
+    }
+    if(d.akr) parts.push('<div><b>Akreditasyon:</b> '+esc(d.akr)+'</div>');
+    if(d.sure) parts.push('<div><b>Öğrenim süresi:</b> '+esc(d.sure)+' yıl</div>');
+    if(d.ucret) parts.push('<div><b>Ücret:</b> '+nf(d.ucret)+' ₺/yıl</div>');
+    if(d.kosul&&KOSUL){
+      var ks=(''+d.kosul).split(',').filter(Boolean);
+      var li=ks.map(function(c){return KOSUL[c]?'<li>'+esc(KOSUL[c])+'</li>':'';}).filter(Boolean).join('');
+      if(li) parts.push('<div style="margin-top:6px"><b>Özel koşullar:</b><ul style="margin:4px 0 0 18px">'+li+'</ul></div>');
+    }
+    if(r[IDX.k]!=null){
+      parts.push('<div style="margin-top:8px;font-size:11.5px;color:var(--fg-faded)"><b>Program Kodu:</b> '+esc(r[IDX.k])
+        +' <span title="ÖSYM tercih formuna girilen kod budur. Program kodları yıldan yıla değişebilir — 2026 tercih döneminde güncel ÖSYM kılavuzundan doğrulayın.">ⓘ (her yıl değişebilir, tercihte güncel kılavuzdan doğrulayın)</span></div>');
+    }
+    if(!parts.length) parts.push('<div style="color:var(--fg-faded)">Ek detay bulunmuyor.</div>');
+    return '<div class="pdet-box">'+parts.join('')+'</div>';
   }
   function draw(){
     var tb=el('rbody'); byId={};
     if(!lastReach.length){tb.innerHTML='';if(SV.empty)SV.empty('rbody',8,'Bu sıralama ve filtrelerle yerleşebileceğin program bulunamadı. Filtreyi gevşetmeyi deneyin.');el('rhint').style.display='none';if(pgr)pgr.reset();return;}
+    if(!KOSUL) fetch('/veri/kosul_map.json').then(function(r){return r.json();}).then(function(j){KOSUL=j;}).catch(function(){KOSUL={};});
     var out=[];
     lastReach.forEach(function(r,ri){
       var ratio=r[IDX.sira]/lastSira;  // taban sıra / senin sıran (>1 = taban daha geride = güvenli)
@@ -431,20 +478,20 @@ Bu bir tahmindir; 2026 taban sıraları kontenjan ve tercih yoğunluğuna göre 
       var rozet='';
       if(KAPANAN.has(r[IDX.k])) rozet=' <span class="tag tag-other" title="ÖSYM'+"'"+'nin güncel kılavuzunda bu program bulunamadı">⛔ Bu yıl alım yapmıyor</span>';
       else if(r[IDX.t24]==null&&r[IDX.t23]==null) rozet=' <span class="tag tag-other" title="Önceki yıllarda taban puan kaydı yok — yeni açılmış veya ilk kez ilan edilmiş olabilir">🆕 Yeni</span>';
-      var det=detailRow(r,ri);
-      var ibtn=det?'<button type="button" class="pdet" data-ri="'+ri+'" aria-expanded="false" aria-label="Geçmiş yıl verilerini göster">ℹ️</button>':'';
+      var hasDet=!!r[IDX.det];
+      var ibtn=hasDet?'<button type="button" class="pdet" data-ri="'+ri+'" aria-expanded="false" aria-label="Program detayını göster">ℹ️</button>':'';
       out.push('<tr><td><strong>'+(r[IDX.b]||'')+'</strong>'+rozet+'<br><small>'+(r[IDX.u]||'')+'</small></td>'+
         '<td>'+(r[IDX.il]||'—')+'</td>'+'<td>'+(TUR[r[IDX.t]]||'—')+'</td>'+
         '<td>'+nf(r[IDX.kont])+'</td>'+
         '<td><strong>'+pf(r[IDX.tp])+'</strong></td>'+'<td>'+nf(r[IDX.sira])+' '+ibtn+'</td>'+'<td>'+safe+'</td>'+
         '<td style="text-align:center"><button type="button" class="fav-star'+(on?' on':'')+'" data-fid="'+k.replace(/"/g,'&quot;')+'" aria-label="Tercih listeme ekle">'+(on?'★':'☆')+'</button></td></tr>');
-      if(det) out.push(det);
+      if(hasDet) out.push('<tr class="pdet-row" data-ri="'+ri+'" hidden><td colspan="8"></td></tr>');
     });
     tb.innerHTML=out.join('');
     if(!pgr&&window.TVPager)pgr=window.TVPager.attach({grid:tb.parentNode,per:25,mount:el('rPager')});
     else if(pgr)pgr.reset();
     el('rhint').style.display='block';
-    el('rhint').textContent='Sütun başlığına tıklayarak sıralayabilir, il/tür/dil filtreleriyle listeyi daraltabilirsiniz. ℹ️ ile geçmiş yıl tabanlarını görebilirsiniz.';
+    el('rhint').textContent='Sütun başlığına tıklayarak sıralayabilir, il/tür/dil filtreleriyle listeyi daraltabilirsiniz. ℹ️ ile program detayını görebilirsiniz.';
   }
   function run(){
     var pt=el('rPt').value;
@@ -478,7 +525,12 @@ Bu bir tahmindir; 2026 taban sıraları kontenjan ve tercih yoğunluğuna göre 
       var row=el('rbody').querySelector('.pdet-row[data-ri="'+ri+'"]');
       if(!row)return;
       var open=row.hasAttribute('hidden');
-      if(open)row.removeAttribute('hidden');else row.setAttribute('hidden','');
+      if(open){
+        row.querySelector('td').innerHTML=renderDetail(lastReach[ri]);  // ilk açılışta üretilir (lazy)
+        row.removeAttribute('hidden');
+      } else {
+        row.setAttribute('hidden','');
+      }
       b.setAttribute('aria-expanded',open?'true':'false');
     }
   });

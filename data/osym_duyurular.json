@@ -1,5 +1,5 @@
 {
- "guncelleme": "2026-08-04T09:30:07",
+ "guncelleme": "2026-08-04T09:26:35",
  "kaynak": "ÖSYM",
  "duyurular": [
   {
@@ -7,7 +7,7 @@
    "baslik": "2026 Türkiye Yurt Dışından Öğrenci Kabul Sınavı (2026-TR-YÖS/2): Başvuru Süresinin Uzatılması /Extension of the application period for 2026 Exam For Foreign Students For Higher Education in Türkiye (2026-TR-YÖS/2)",
    "url": "https://www.osym.gov.tr/2026-turkiye-yurt-disindan-ogrenci-kabul-sinavi-2026-tr-yos2-basvuru-suresinin-uzatilmasi-extension-of-the-application-period-for-2026-exam-for-foreign-students-for-higher-education-in-turkiye-2026-tr-yos2",
    "slug": "2026-turkiye-yurt-disindan-ogrenci-kabul-sinavi-2026-tr-yos2-basvuru-suresinin-uzatilmasi-extension-of-the-application-period-for-2026-exam-for-foreign-students-for-higher-education-in-turkiye-2026-tr-yos2",
-   "sinav": null,
+   "sinav": "TR-YÖS",
    "tip": "basvuru"
   },
   {
@@ -79,7 +79,7 @@
    "baslik": "2026-AGS ve 2026-ÖABT Temel Soru Kitapçıklarının Yayımlanması (%10)",
    "url": "https://www.osym.gov.tr/2026-ags-ve-2026-oabt-temel-soru-kitapciklarinin-yayimlanmasi-10",
    "slug": "2026-ags-ve-2026-oabt-temel-soru-kitapciklarinin-yayimlanmasi-10",
-   "sinav": null,
+   "sinav": "AGS",
    "tip": "diger"
   },
   {
@@ -87,7 +87,7 @@
    "baslik": "2026-AGS ve 2026-ÖABT: Temel Soru Kitapçıkları ve Cevap Anahtarları Yayımlandı",
    "url": "https://www.osym.gov.tr/2026-ags-ve-2026-oabt-temel-soru-kitapciklari-ve-cevap-anahtarlari-yayimlandi",
    "slug": "2026-ags-ve-2026-oabt-temel-soru-kitapciklari-ve-cevap-anahtarlari-yayimlandi",
-   "sinav": null,
+   "sinav": "AGS",
    "tip": "diger"
   },
   {
@@ -175,7 +175,7 @@
    "baslik": "2026-ÖZYES: Kılavuz ve Başvuru Bilgileri",
    "url": "https://www.osym.gov.tr/2026-ozyes-kilavuz-ve-basvuru-bilgileri",
    "slug": "2026-ozyes-kilavuz-ve-basvuru-bilgileri",
-   "sinav": null,
+   "sinav": "ÖZYES",
    "tip": "kilavuz"
   },
   {
@@ -183,7 +183,7 @@
    "baslik": "2026-AGS ve 2026-ÖABT: Sınav Günü Açık Tutulacak İl/İlçe Nüfus Müdürlükleri",
    "url": "https://www.osym.gov.tr/2026-ags-ve-2026-oabt-sinav-gunu-acik-tutulacak-ililce-nufus-mudurlukleri",
    "slug": "2026-ags-ve-2026-oabt-sinav-gunu-acik-tutulacak-ililce-nufus-mudurlukleri",
-   "sinav": null,
+   "sinav": "AGS",
    "tip": "diger"
   },
   {
@@ -255,7 +255,7 @@
    "baslik": "2026-AGS ve 2026-ÖABT: Sınava Giriş Belgeleri Erişime Açıldı",
    "url": "https://www.osym.gov.tr/2026ags-ve-2026oabt-sinava-giris-belgeleri-erisime-acildi",
    "slug": "2026ags-ve-2026oabt-sinava-giris-belgeleri-erisime-acildi",
-   "sinav": null,
+   "sinav": "AGS",
    "tip": "giris_belgesi"
   },
   {
@@ -263,7 +263,7 @@
    "baslik": "2026 Elektronik İngilizce Yeterlik Sınavı/Electronic-Test of English Proficiency (e-TEP 2026/3): Sınava Giriş Belgeleri Erişime Açıldı",
    "url": "https://www.osym.gov.tr/2026-elektronik-ingilizce-yeterlik-sinavielectronictest-of-english-proficiency-etep-20263-sinava-giris-belgeleri-erisime-acildi",
    "slug": "2026-elektronik-ingilizce-yeterlik-sinavielectronictest-of-english-proficiency-etep-20263-sinava-giris-belgeleri-erisime-acildi",
-   "sinav": null,
+   "sinav": "e-TEP",
    "tip": "giris_belgesi"
   },
   {
@@ -279,7 +279,7 @@
    "baslik": "2026 Türkiye Yurt Dışından Öğrenci Kabul Sınavı (2026-TR-YÖS/2) Başvurularının Alınması/Applications for 2026 Exam for Foreign Students For Higher Education in Türkiye (2026-TR-YÖS/2)",
    "url": "https://www.osym.gov.tr/2026-turkiye-yurt-disindan-ogrenci-kabul-sinavi-2026tryos2-basvurularinin-alinmasiapplications-for-2026-exam-for-foreign-students-for-higher-education-in-turkiye-2026tryos2",
    "slug": "2026-turkiye-yurt-disindan-ogrenci-kabul-sinavi-2026tryos2-basvurularinin-alinmasiapplications-for-2026-exam-for-foreign-students-for-higher-education-in-turkiye-2026tryos2",
-   "sinav": null,
+   "sinav": "TR-YÖS",
    "tip": "basvuru"
   },
   {
@@ -303,7 +303,7 @@
    "baslik": "2026-TR-YÖS/2: Kılavuz ve Başvuru Bilgileri",
    "url": "https://www.osym.gov.tr/2026tryos2-kilavuz-ve-basvuru-bilgileri",
    "slug": "2026tryos2-kilavuz-ve-basvuru-bilgileri",
-   "sinav": null,
+   "sinav": "TR-YÖS",
    "tip": "kilavuz"
   },
   {
@@ -407,7 +407,7 @@
    "baslik": "2026 Elektronik İngilizce Yeterlik Sınavı/Electronic-Test of English Proficiency (e-TEP 2026/3): Başvuruların Alınması",
    "url": "https://www.osym.gov.tr/2026-elektronik-ingilizce-yeterlik-sinavielectronictest-of-english-proficiency-etep-20263-basvurularin-alinmasi",
    "slug": "2026-elektronik-ingilizce-yeterlik-sinavielectronictest-of-english-proficiency-etep-20263-basvurularin-alinmasi",
-   "sinav": null,
+   "sinav": "e-TEP",
    "tip": "basvuru"
   },
   {
@@ -455,7 +455,7 @@
    "baslik": "2025 Adalet Bakanlığı Sınavları (Adli Yargı/Adli Yargı-Avukat/İdari Yargı): Yeniden Değerlendirme Sonuçları",
    "url": "https://www.osym.gov.tr/2025-adalet-bakanligi-sinavlari-adli-yargiadli-yargiavukatidari-yargi-yeniden-degerlendirme-sonuclari",
    "slug": "2025-adalet-bakanligi-sinavlari-adli-yargiadli-yargiavukatidari-yargi-yeniden-degerlendirme-sonuclari",
-   "sinav": null,
+   "sinav": "Adalet Bakanlığı Sınavları",
    "tip": "diger"
   },
   {
@@ -615,7 +615,7 @@
    "baslik": "e-YDTS: Sınav Sonuçları Açıklandı",
    "url": "https://www.osym.gov.tr/eydts-sinav-sonuclari-aciklandi",
    "slug": "eydts-sinav-sonuclari-aciklandi",
-   "sinav": null,
+   "sinav": "e-YDTS",
    "tip": "sonuc_aciklandi"
   },
   {
@@ -727,7 +727,7 @@
    "baslik": "e-TEP 2026/2: Sınav Sonuçları Açıklandı",
    "url": "https://www.osym.gov.tr/etep-20262-sinav-sonuclari-aciklandi",
    "slug": "etep-20262-sinav-sonuclari-aciklandi",
-   "sinav": null,
+   "sinav": "e-TEP",
    "tip": "sonuc_aciklandi"
   },
   {
@@ -799,7 +799,7 @@
    "baslik": "2026-EKPSS: Cevap Kâğıtları ve Aday Cevapları Erişime Açıldı",
    "url": "https://www.osym.gov.tr/2026ekpss-cevap-kgitlari-ve-aday-cevaplari-erisime-acildi",
    "slug": "2026ekpss-cevap-kgitlari-ve-aday-cevaplari-erisime-acildi",
-   "sinav": null,
+   "sinav": "EKPSS",
    "tip": "diger"
   },
   {
@@ -847,7 +847,7 @@
    "baslik": "2026-EKPSS: Sınav Sonuçları Açıklandı",
    "url": "https://www.osym.gov.tr/2026ekpss-sinav-sonuclari-aciklandi",
    "slug": "2026ekpss-sinav-sonuclari-aciklandi",
-   "sinav": null,
+   "sinav": "EKPSS",
    "tip": "sonuc_aciklandi"
   },
   {
@@ -871,7 +871,7 @@
    "baslik": "2026-HMGS/1: Sınav Sonuçları Açıklandı",
    "url": "https://www.osym.gov.tr/2026hmgs1-sinav-sonuclari-aciklandi",
    "slug": "2026hmgs1-sinav-sonuclari-aciklandi",
-   "sinav": null,
+   "sinav": "HMGS",
    "tip": "sonuc_aciklandi"
   },
   {
@@ -895,7 +895,7 @@
    "baslik": "2026-MEB-AGS: Kılavuz ve Başvuru Bilgileri",
    "url": "https://www.osym.gov.tr/2026mebags-kilavuz-ve-basvuru-bilgileri",
    "slug": "2026mebags-kilavuz-ve-basvuru-bilgileri",
-   "sinav": null,
+   "sinav": "MEB-AGS",
    "tip": "kilavuz"
   },
   {
@@ -903,7 +903,7 @@
    "baslik": "2026-MEB-AGS: Başvuruların Alınması",
    "url": "https://www.osym.gov.tr/2026mebags-basvurularin-alinmasi",
    "slug": "2026mebags-basvurularin-alinmasi",
-   "sinav": null,
+   "sinav": "MEB-AGS",
    "tip": "basvuru"
   },
   {
@@ -911,7 +911,7 @@
    "baslik": "2026-HMGS/1: Cevap Kâğıtları ve Aday Cevapları Erişime Açıldı",
    "url": "https://www.osym.gov.tr/2026hmgs1-cevap-kgitlari-ve-aday-cevaplari-erisime-acildi",
    "slug": "2026hmgs1-cevap-kgitlari-ve-aday-cevaplari-erisime-acildi",
-   "sinav": null,
+   "sinav": "HMGS",
    "tip": "diger"
   },
   {
@@ -919,7 +919,7 @@
    "baslik": "2026 Elektronik Yabancı Dil Olarak Türkçe Sınavı (e-YDTS): Sınava Giriş Belgeleri Erişime Açıldı",
    "url": "https://www.osym.gov.tr/2026-elektronik-yabanci-dil-olarak-turkce-sinavi-eydts-sinava-giris-belgeleri-erisime-acildi",
    "slug": "2026-elektronik-yabanci-dil-olarak-turkce-sinavi-eydts-sinava-giris-belgeleri-erisime-acildi",
-   "sinav": null,
+   "sinav": "e-YDTS",
    "tip": "giris_belgesi"
   },
   {
@@ -1063,7 +1063,7 @@
    "baslik": "2026-Engelli Kamu Personeli Seçme Sınavı (EKPSS) Kura Başvuru Kılavuzu ve Başvuru Bilgileri",
    "url": "https://www.osym.gov.tr/2026engelli-kamu-personeli-secme-sinavi-ekpss-kura-basvuru-kilavuzu-ve-basvuru-bilgileri",
    "slug": "2026engelli-kamu-personeli-secme-sinavi-ekpss-kura-basvuru-kilavuzu-ve-basvuru-bilgileri",
-   "sinav": null,
+   "sinav": "EKPSS",
    "tip": "kilavuz"
   },
   {
@@ -1071,7 +1071,7 @@
    "baslik": "2026 Elektronik Yabancı Dil Olarak Türkçe Sınavı (e-YDTS): Başvuru Süresinin Uzatılması",
    "url": "https://www.osym.gov.tr/2026-elektronik-yabanci-dil-olarak-turkce-sinavi-eydts-basvuru-suresinin-uzatilmasi",
    "slug": "2026-elektronik-yabanci-dil-olarak-turkce-sinavi-eydts-basvuru-suresinin-uzatilmasi",
-   "sinav": null,
+   "sinav": "e-YDTS",
    "tip": "basvuru"
   },
   {
@@ -1095,7 +1095,7 @@
    "baslik": "2026-EKPSS: Kura İçin Başvuruların Alınması",
    "url": "https://www.osym.gov.tr/2026ekpss-kura-icin-basvurularin-alinmasi",
    "slug": "2026ekpss-kura-icin-basvurularin-alinmasi",
-   "sinav": null,
+   "sinav": "EKPSS",
    "tip": "basvuru"
   },
   {
@@ -1103,7 +1103,7 @@
    "baslik": "2026 Türkiye Yurt Dışından Öğrenci Kabul Sınavı (2026-TR-YÖS/1) Sonuçları Açıklandı/Announcement of the Results of the 2026 Exam for Foreign Students for Higher Education in Türkiye (2026-TR-YÖS/1)",
    "url": "https://www.osym.gov.tr/2026-turkiye-yurt-disindan-ogrenci-kabul-sinavi-2026tryos1-sonuclari-aciklandiannouncement-of-the-results-of-the-2026-exam-for-foreign-students-for-higher-education-in-turkiye-2026tryos1",
    "slug": "2026-turkiye-yurt-disindan-ogrenci-kabul-sinavi-2026tryos1-sonuclari-aciklandiannouncement-of-the-results-of-the-2026-exam-for-foreign-students-for-higher-education-in-turkiye-2026tryos1",
-   "sinav": null,
+   "sinav": "TR-YÖS",
    "tip": "sonuc_aciklandi"
   },
   {
@@ -1111,7 +1111,7 @@
    "baslik": "2026-HMGS/1: Temel Soru Kitapçığı ve Cevap Anahtarı Yayımlandı",
    "url": "https://www.osym.gov.tr/2026hmgs1-temel-soru-kitapcigi-ve-cevap-anahtari-yayimlandi",
    "slug": "2026hmgs1-temel-soru-kitapcigi-ve-cevap-anahtari-yayimlandi",
-   "sinav": null,
+   "sinav": "HMGS",
    "tip": "cevap_anahtari"
   },
   {
@@ -1127,7 +1127,7 @@
    "baslik": "2026-HMGS/1 Temel Soru Kitapçığı ve Cevap Anahtarının Yayınlanması (% 10)",
    "url": "https://www.osym.gov.tr/2026hmgs1-temel-soru-kitapcigi-ve-cevap-anahtarinin-yayinlanmasi-10",
    "slug": "2026hmgs1-temel-soru-kitapcigi-ve-cevap-anahtarinin-yayinlanmasi-10",
-   "sinav": null,
+   "sinav": "HMGS",
    "tip": "cevap_anahtari"
   },
   {
@@ -1175,7 +1175,7 @@
    "baslik": "2026-MEB-EKYS, 2026-TUS 1. Dönem ile 2026-STS Tıp Doktorluğu 1. Dönem Sınavları İçin Sınav Günü Açık Tutulacak İl/İlçe Nüfus Müdürlükleri",
    "url": "https://www.osym.gov.tr/2026mebekys-2026tus-1-donem-ile-2026sts-tip-doktorlugu-1-donem-sinavlari-icin-sinav-gunu-acik-tutulacak-ililce-nufus-mudurlukleri-20260511103759314",
    "slug": "2026mebekys-2026tus-1-donem-ile-2026sts-tip-doktorlugu-1-donem-sinavlari-icin-sinav-gunu-acik-tutulacak-ililce-nufus-mudurlukleri-20260511103759314",
-   "sinav": "TUS",
+   "sinav": "MEB-EKYS",
    "tip": "diger"
   },
   {
@@ -1303,7 +1303,7 @@
    "baslik": "2026 Elektronik İngilizce Yeterlik Sınavı/Electronic-Test of English Proficiency (e-TEP 2026/2): Sınava Giriş Belgeleri Erişime Açıldı",
    "url": "https://www.osym.gov.tr/2026-elektronik-ingilizce-yeterlik-sinavielectronictest-of-english-proficiency-etep-20262-sinava-giris-belgeleri-erisime-acildi",
    "slug": "2026-elektronik-ingilizce-yeterlik-sinavielectronictest-of-english-proficiency-etep-20262-sinava-giris-belgeleri-erisime-acildi",
-   "sinav": null,
+   "sinav": "e-TEP",
    "tip": "giris_belgesi"
   },
   {
@@ -1319,7 +1319,7 @@
    "baslik": "2026-EKPSS Temel Soru Kitapçıklarının Yayınlanması (% 10)",
    "url": "https://www.osym.gov.tr/2026ekpss-temel-soru-kitapciklarinin-yayinlanmasi-10",
    "slug": "2026ekpss-temel-soru-kitapciklarinin-yayinlanmasi-10",
-   "sinav": null,
+   "sinav": "EKPSS",
    "tip": "diger"
   },
   {
@@ -1327,7 +1327,7 @@
    "baslik": "2026-EKPSS: Temel Soru Kitapçıkları ve Cevap Anahtarları Yayımlandı",
    "url": "https://www.osym.gov.tr/2026ekpss-temel-soru-kitapciklari-ve-cevap-anahtarlari-yayimlandi",
    "slug": "2026ekpss-temel-soru-kitapciklari-ve-cevap-anahtarlari-yayimlandi",
-   "sinav": null,
+   "sinav": "EKPSS",
    "tip": "diger"
   },
   {
@@ -1335,7 +1335,7 @@
    "baslik": "2026-DİB-MBSTS: Sınav Sonuçları Açıklandı",
    "url": "https://www.osym.gov.tr/2026dibmbsts-sinav-sonuclari-aciklandi",
    "slug": "2026dibmbsts-sinav-sonuclari-aciklandi",
-   "sinav": null,
+   "sinav": "MBSTS",
    "tip": "sonuc_aciklandi"
   },
   {
@@ -1343,7 +1343,7 @@
    "baslik": "2026-Elektronik Yabancı Dil Olarak Türkçe Sınavı (e-YDTS) Kılavuzu",
    "url": "https://www.osym.gov.tr/2026elektronik-yabanci-dil-olarak-turkce-sinavi-eydts-kilavuzu",
    "slug": "2026elektronik-yabanci-dil-olarak-turkce-sinavi-eydts-kilavuzu",
-   "sinav": null,
+   "sinav": "e-YDTS",
    "tip": "kilavuz"
   },
   {
@@ -1359,7 +1359,7 @@
    "baslik": "2026-DİB-MBSTS: Cevap Kâğıtları ve Aday Cevapları Erişime Açıldı",
    "url": "https://www.osym.gov.tr/2026dibmbsts-cevap-kgitlari-ve-aday-cevaplari-erisime-acildi",
    "slug": "2026dibmbsts-cevap-kgitlari-ve-aday-cevaplari-erisime-acildi",
-   "sinav": null,
+   "sinav": "MBSTS",
    "tip": "diger"
   },
   {
@@ -1367,7 +1367,7 @@
    "baslik": "2026 Elektronik Yabancı Dil Olarak Türkçe Sınavı (e-YDTS): Başvuruların Alınması",
    "url": "https://www.osym.gov.tr/2026-elektronik-yabanci-dil-olarak-turkce-sinavi-eydts-basvurularin-alinmasi",
    "slug": "2026-elektronik-yabanci-dil-olarak-turkce-sinavi-eydts-basvurularin-alinmasi",
-   "sinav": null,
+   "sinav": "e-YDTS",
    "tip": "basvuru"
   },
   {
@@ -1383,7 +1383,7 @@
    "baslik": "İşitme Engelli Adaylar İçin Hazırlanmış 2026 EKPSS ve Kura Kılavuzu",
    "url": "https://www.osym.gov.tr/isitme-engelli-adaylar-icin-hazirlanmis-2026-ekpss-ve-kura-kilavuzu",
    "slug": "isitme-engelli-adaylar-icin-hazirlanmis-2026-ekpss-ve-kura-kilavuzu",
-   "sinav": null,
+   "sinav": "EKPSS",
    "tip": "kilavuz"
   },
   {
@@ -1399,7 +1399,7 @@
    "baslik": "Görme Engelli Adaylar İçin Hazırlanmış 2026 EKPSS ve Kura Kılavuzu",
    "url": "https://www.osym.gov.tr/gorme-engelli-adaylar-icin-hazirlanmis-2026-ekpss-ve-kura-kilavuzu",
    "slug": "gorme-engelli-adaylar-icin-hazirlanmis-2026-ekpss-ve-kura-kilavuzu",
-   "sinav": null,
+   "sinav": "EKPSS",
    "tip": "kilavuz"
   },
   {
@@ -1455,7 +1455,7 @@
    "baslik": "2026-TR-YÖS/1: Temel Soru Kitapçığı ile Cevap Anahtarı Yayımlandı",
    "url": "https://www.osym.gov.tr/2026tryos1-temel-soru-kitapcigi-ile-cevap-anahtari-yayimlandi",
    "slug": "2026tryos1-temel-soru-kitapcigi-ile-cevap-anahtari-yayimlandi",
-   "sinav": null,
+   "sinav": "TR-YÖS",
    "tip": "cevap_anahtari"
   },
   {
@@ -1463,7 +1463,7 @@
    "baslik": "2026-HMGS/1: Sınava Giriş Belgeleri Erişime Açıldı",
    "url": "https://www.osym.gov.tr/2026hmgs1-sinava-giris-belgeleri-erisime-acildi",
    "slug": "2026hmgs1-sinava-giris-belgeleri-erisime-acildi",
-   "sinav": null,
+   "sinav": "HMGS",
    "tip": "giris_belgesi"
   },
   {
@@ -1471,7 +1471,7 @@
    "baslik": "2026-TR-YÖS/1: Temel Soru Kitapçığı ve Cevap Anahtarının Yayımlanması (% 10)",
    "url": "https://www.osym.gov.tr/2026tryos1-temel-soru-kitapcigi-ve-cevap-anahtarinin-yayimlanmasi-10",
    "slug": "2026tryos1-temel-soru-kitapcigi-ve-cevap-anahtarinin-yayimlanmasi-10",
-   "sinav": null,
+   "sinav": "TR-YÖS",
    "tip": "cevap_anahtari"
   },
   {
@@ -1479,7 +1479,7 @@
    "baslik": "2026-TR-YÖS/1 Sınavı İçin Sınav Günü Açık Tutulacak İl/İlçe Nüfus Müdürlükleri",
    "url": "https://www.osym.gov.tr/2026tryos1-sinavi-icin-sinav-gunu-acik-tutulacak-ililce-nufus-mudurlukleri",
    "slug": "2026tryos1-sinavi-icin-sinav-gunu-acik-tutulacak-ililce-nufus-mudurlukleri",
-   "sinav": null,
+   "sinav": "TR-YÖS",
    "tip": "diger"
   },
   {
@@ -1487,7 +1487,7 @@
    "baslik": "2026-MEB-EKYS: Sınav Sonuçları Açıklandı",
    "url": "https://www.osym.gov.tr/2026mebekys-sinav-sonuclari-aciklandi",
    "slug": "2026mebekys-sinav-sonuclari-aciklandi",
-   "sinav": null,
+   "sinav": "MEB-EKYS",
    "tip": "sonuc_aciklandi"
   },
   {
@@ -1495,7 +1495,7 @@
    "baslik": "2026-MEB-EKYS: Cevap Kâğıtları ve Aday Cevapları Erişime Açıldı",
    "url": "https://www.osym.gov.tr/2026mebekys-cevap-kgitlari-ve-aday-cevaplari-erisime-acildi",
    "slug": "2026mebekys-cevap-kgitlari-ve-aday-cevaplari-erisime-acildi",
-   "sinav": null,
+   "sinav": "MEB-EKYS",
    "tip": "diger"
   },
   {
@@ -1503,7 +1503,7 @@
    "baslik": "2026-EKPSS: Sınava Giriş Belgeleri Erişime Açıldı",
    "url": "https://www.osym.gov.tr/2026ekpss-sinava-giris-belgeleri-erisime-acildi",
    "slug": "2026ekpss-sinava-giris-belgeleri-erisime-acildi",
-   "sinav": null,
+   "sinav": "EKPSS",
    "tip": "giris_belgesi"
   },
   {
@@ -1543,7 +1543,7 @@
    "baslik": "2026 Elektronik İngilizce Yeterlik Sınavı/Electronic-Test of English Proficiency (e-TEP 2026/2): Başvuruların Alınması",
    "url": "https://www.osym.gov.tr/2026-elektronik-ingilizce-yeterlik-sinavielectronictest-of-english-proficiency-etep-20262-basvurularin-alinmasi",
    "slug": "2026-elektronik-ingilizce-yeterlik-sinavielectronictest-of-english-proficiency-etep-20262-basvurularin-alinmasi",
-   "sinav": null,
+   "sinav": "e-TEP",
    "tip": "basvuru"
   },
   {
@@ -1567,7 +1567,7 @@
    "baslik": "2025 e-TEP: Sınav Sonuçları Açıklandı",
    "url": "https://www.osym.gov.tr/2025-e-tep-sinav-sonuclari-aciklandi",
    "slug": "2025-e-tep-sinav-sonuclari-aciklandi",
-   "sinav": null,
+   "sinav": "e-TEP",
    "tip": "sonuc_aciklandi"
   },
   {
@@ -1583,7 +1583,7 @@
    "baslik": "2026-TR-YÖS/1: Sınava Giriş Belgeleri Erişime Açıldı/Access to documents for entry to the 2026 TR-YÖS/1 exam has been opened",
    "url": "https://www.osym.gov.tr/2026tryos1-sinava-giris-belgeleri-erisime-acildiaccess-to-documents-for-entry-to-the-2026-tryos1-exam-has-been-opened",
    "slug": "2026tryos1-sinava-giris-belgeleri-erisime-acildiaccess-to-documents-for-entry-to-the-2026-tryos1-exam-has-been-opened",
-   "sinav": null,
+   "sinav": "TR-YÖS",
    "tip": "giris_belgesi"
   },
   {
@@ -1591,7 +1591,7 @@
    "baslik": "2026-DİB-MBSTS Temel Soru Kitapçığı ve Cevap Anahtarı (% 10)",
    "url": "https://www.osym.gov.tr/2026dibmbsts-temel-soru-kitapcigi-ve-cevap-anahtari-10",
    "slug": "2026dibmbsts-temel-soru-kitapcigi-ve-cevap-anahtari-10",
-   "sinav": null,
+   "sinav": "MBSTS",
    "tip": "cevap_anahtari"
   },
   {
@@ -1599,7 +1599,7 @@
    "baslik": "2026-DİB-MBSTS: Temel Soru Kitapçığı ve Cevap Anahtarı Yayımlandı",
    "url": "https://www.osym.gov.tr/2026dibmbsts-temel-soru-kitapcigi-ve-cevap-anahtari-yayimlandi",
    "slug": "2026dibmbsts-temel-soru-kitapcigi-ve-cevap-anahtari-yayimlandi",
-   "sinav": null,
+   "sinav": "MBSTS",
    "tip": "cevap_anahtari"
   },
   {
@@ -1607,7 +1607,7 @@
    "baslik": "2026-GUY: Sınav Sonuçları Açıklandı",
    "url": "https://www.osym.gov.tr/2026guy-sinav-sonuclari-aciklandi",
    "slug": "2026guy-sinav-sonuclari-aciklandi",
-   "sinav": null,
+   "sinav": "GUY",
    "tip": "sonuc_aciklandi"
   },
   {
@@ -1639,7 +1639,7 @@
    "baslik": "2026-DİB-MBSTS İçin Sınav Günü Açık Tutulacak İl/İlçe Nüfus Müdürlükleri",
    "url": "https://www.osym.gov.tr/2026dibmbsts-icin-sinav-gunu-acik-tutulacak-ililce-nufus-mudurlukleri",
    "slug": "2026dibmbsts-icin-sinav-gunu-acik-tutulacak-ililce-nufus-mudurlukleri",
-   "sinav": null,
+   "sinav": "MBSTS",
    "tip": "diger"
   },
   {
@@ -1655,7 +1655,7 @@
    "baslik": "e-TEP 2026 Technical Reports",
    "url": "https://www.osym.gov.tr/etep-2026-technical-reports",
    "slug": "etep-2026-technical-reports",
-   "sinav": null,
+   "sinav": "e-TEP",
    "tip": "diger"
   },
   {
@@ -1671,7 +1671,7 @@
    "baslik": "2025-ÖSYM Uzman Yardımcılığı Sözlü Sınav Sonuçları",
    "url": "https://www.osym.gov.tr/2025-osym-uzman-yardimciligi-sozlu-sinav-sonuclari",
    "slug": "2025-osym-uzman-yardimciligi-sozlu-sinav-sonuclari",
-   "sinav": null,
+   "sinav": "ÖSYM Uzman Yardımcılığı",
    "tip": "diger"
   },
   {
@@ -1711,7 +1711,7 @@
    "baslik": "2026-DİB-MBSTS: Sınava Giriş Belgeleri Erişime Açıldı",
    "url": "https://www.osym.gov.tr/2026dibmbsts-sinava-giris-belgeleri-erisime-acildi",
    "slug": "2026dibmbsts-sinava-giris-belgeleri-erisime-acildi",
-   "sinav": null,
+   "sinav": "MBSTS",
    "tip": "giris_belgesi"
   },
   {
@@ -1719,7 +1719,7 @@
    "baslik": "2026-MEB-EKYS Temel Soru Kitapçığı ve Cevap Anahtarı (% 10)",
    "url": "https://www.osym.gov.tr/2026mebekys-temel-soru-kitapcigi-ve-cevap-anahtari-10",
    "slug": "2026mebekys-temel-soru-kitapcigi-ve-cevap-anahtari-10",
-   "sinav": null,
+   "sinav": "MEB-EKYS",
    "tip": "cevap_anahtari"
   },
   {
@@ -1751,7 +1751,7 @@
    "baslik": "2026-MEB-EKYS: Temel Soru Kitapçığı ve Cevap Anahtarı Yayımlandı",
    "url": "https://www.osym.gov.tr/2026mebekys-temel-soru-kitapcigi-ve-cevap-anahtari-yayimlandi",
    "slug": "2026mebekys-temel-soru-kitapcigi-ve-cevap-anahtari-yayimlandi",
-   "sinav": null,
+   "sinav": "MEB-EKYS",
    "tip": "cevap_anahtari"
   },
   {
@@ -1767,7 +1767,7 @@
    "baslik": "2026-MEB-EKYS, 2026-TUS 1. Dönem ile 2026-STS Tıp Doktorluğu 1. Dönem Sınavları İçin Sınav Günü Açık Tutulacak İl/İlçe Nüfus Müdürlükleri",
    "url": "https://www.osym.gov.tr/2026mebekys-2026tus-1-donem-ile-2026sts-tip-doktorlugu-1-donem-sinavlari-icin-sinav-gunu-acik-tutulacak-ililce-nufus-mudurlukleri-20260511131314256",
    "slug": "2026mebekys-2026tus-1-donem-ile-2026sts-tip-doktorlugu-1-donem-sinavlari-icin-sinav-gunu-acik-tutulacak-ililce-nufus-mudurlukleri-20260511131314256",
-   "sinav": "TUS",
+   "sinav": "MEB-EKYS",
    "tip": "diger"
   },
   {
@@ -1791,7 +1791,7 @@
    "baslik": "2026-MEB-EKYS, 2026-TUS 1. Dönem ile 2026-STS Tıp Doktorluğu 1. Dönem Sınavları İçin Sınav Günü Açık Tutulacak İl/İlçe Nüfus Müdürlükleri",
    "url": "https://www.osym.gov.tr/2026mebekys-2026tus-1-donem-ile-2026sts-tip-doktorlugu-1-donem-sinavlari-icin-sinav-gunu-acik-tutulacak-ililce-nufus-mudurlukleri",
    "slug": "2026mebekys-2026tus-1-donem-ile-2026sts-tip-doktorlugu-1-donem-sinavlari-icin-sinav-gunu-acik-tutulacak-ililce-nufus-mudurlukleri",
-   "sinav": "TUS",
+   "sinav": "MEB-EKYS",
    "tip": "diger"
   },
   {
@@ -1855,7 +1855,7 @@
    "baslik": "2026-HMGS/1: Kılavuz ve Başvuru Bilgileri",
    "url": "https://www.osym.gov.tr/2026hmgs1-kilavuz-ve-basvuru-bilgileri",
    "slug": "2026hmgs1-kilavuz-ve-basvuru-bilgileri",
-   "sinav": null,
+   "sinav": "HMGS",
    "tip": "kilavuz"
   },
   {
@@ -1863,7 +1863,7 @@
    "baslik": "2026-HMGS/1: Başvuruların Alınması",
    "url": "https://www.osym.gov.tr/2026hmgs1-basvurularin-alinmasi",
    "slug": "2026hmgs1-basvurularin-alinmasi",
-   "sinav": null,
+   "sinav": "HMGS",
    "tip": "basvuru"
   },
   {
@@ -1871,7 +1871,7 @@
    "baslik": "2026-MEB-AGS Öğretmenlik Alan Bilgisi Testi (ÖABT): Özel Eğitim Alanı Örnek Sorular",
    "url": "https://www.osym.gov.tr/2026mebags-ogretmenlik-alan-bilgisi-testi-oabt-ozel-egitim-alani-ornek-sorular",
    "slug": "2026mebags-ogretmenlik-alan-bilgisi-testi-oabt-ozel-egitim-alani-ornek-sorular",
-   "sinav": null,
+   "sinav": "MEB-AGS",
    "tip": "diger"
   },
   {
@@ -1895,7 +1895,7 @@
    "baslik": "2026-MEB-EKYS: Sınava Giriş Belgeleri Erişime Açıldı",
    "url": "https://www.osym.gov.tr/2026mebekys-sinava-giris-belgeleri-erisime-acildi",
    "slug": "2026mebekys-sinava-giris-belgeleri-erisime-acildi",
-   "sinav": null,
+   "sinav": "MEB-EKYS",
    "tip": "giris_belgesi"
   },
   {
@@ -1919,7 +1919,7 @@
    "baslik": "e-TEP 2026/1: Sınav Sonuçları Açıklandı",
    "url": "https://www.osym.gov.tr/e-tep-20261-sinav-sonuclari-aciklandi",
    "slug": "e-tep-20261-sinav-sonuclari-aciklandi",
-   "sinav": null,
+   "sinav": "e-TEP",
    "tip": "sonuc_aciklandi"
   },
   {
@@ -1927,7 +1927,7 @@
    "baslik": "e-TEP 2026/1: Sınav Sonuçları Açıklandı",
    "url": "https://www.osym.gov.tr/etep-20261-sinav-sonuclari-aciklandi",
    "slug": "etep-20261-sinav-sonuclari-aciklandi",
-   "sinav": null,
+   "sinav": "e-TEP",
    "tip": "sonuc_aciklandi"
   },
   {
@@ -1951,7 +1951,7 @@
    "baslik": "2026-GUY: Sınava Giriş Belgeleri Erişime Açıldı",
    "url": "https://www.osym.gov.tr/2026guy-sinava-giris-belgeleri-erisime-acildi",
    "slug": "2026guy-sinava-giris-belgeleri-erisime-acildi",
-   "sinav": null,
+   "sinav": "GUY",
    "tip": "giris_belgesi"
   },
   {
@@ -1959,7 +1959,7 @@
    "baslik": "2025-BKUBTS: Yeniden Değerlendirme Sonuçları",
    "url": "https://www.osym.gov.tr/2025bkubts-yeniden-degerlendirme-sonuclari-20260508143423656",
    "slug": "2025bkubts-yeniden-degerlendirme-sonuclari-20260508143423656",
-   "sinav": null,
+   "sinav": "BKUBTS",
    "tip": "diger"
   },
   {
@@ -1967,7 +1967,7 @@
    "baslik": "2025-BKUBTS: Yeniden Değerlendirme Sonuçları",
    "url": "https://www.osym.gov.tr/2025bkubts-yeniden-degerlendirme-sonuclari",
    "slug": "2025bkubts-yeniden-degerlendirme-sonuclari",
-   "sinav": null,
+   "sinav": "BKUBTS",
    "tip": "diger"
   },
   {
@@ -1991,7 +1991,7 @@
    "baslik": "Ölçme,Seçme ve Yerleştirme Merkezi Başkanlığı Sözleşmeli Bilişim Personeli Alımı Mülakat Sonuçları",
    "url": "https://www.osym.gov.tr/olcmesecme-ve-yerlestirme-merkezi-baskanligi-sozlesmeli-bilisim-personeli-alimi-mulakat-sonuclari",
    "slug": "olcmesecme-ve-yerlestirme-merkezi-baskanligi-sozlesmeli-bilisim-personeli-alimi-mulakat-sonuclari",
-   "sinav": null,
+   "sinav": "ÖSYM Sözleşmeli Bilişim Personeli",
    "tip": "diger"
   },
   {
@@ -2071,7 +2071,7 @@
    "baslik": "2026-DİB-MBSTS: Kılavuz ve Başvuru Bilgileri",
    "url": "https://www.osym.gov.tr/2026dibmbsts-kilavuz-ve-basvuru-bilgileri",
    "slug": "2026dibmbsts-kilavuz-ve-basvuru-bilgileri",
-   "sinav": null,
+   "sinav": "MBSTS",
    "tip": "kilavuz"
   },
   {
@@ -2079,7 +2079,7 @@
    "baslik": "2026-DİB-MBSTS: Başvuruların Alınması",
    "url": "https://www.osym.gov.tr/2026dibmbsts-basvurularin-alinmasi",
    "slug": "2026dibmbsts-basvurularin-alinmasi",
-   "sinav": null,
+   "sinav": "MBSTS",
    "tip": "basvuru"
   },
   {
@@ -2103,7 +2103,7 @@
    "baslik": "2024-İSG/1: Yeniden Değerlendirme Sonuçları",
    "url": "https://www.osym.gov.tr/2024isg1-yeniden-degerlendirme-sonuclari",
    "slug": "2024isg1-yeniden-degerlendirme-sonuclari",
-   "sinav": null,
+   "sinav": "İSG",
    "tip": "diger"
   },
   {
@@ -2127,7 +2127,7 @@
    "baslik": "2025-HMGS/2: Yeniden Değerlendirme Sonuçları",
    "url": "https://www.osym.gov.tr/2025hmgs2-yeniden-degerlendirme-sonuclari",
    "slug": "2025hmgs2-yeniden-degerlendirme-sonuclari",
-   "sinav": null,
+   "sinav": "HMGS",
    "tip": "diger"
   },
   {
@@ -2135,7 +2135,7 @@
    "baslik": "2025-HMGS/2: Yeniden Değerlendirme Sonuçları",
    "url": "https://www.osym.gov.tr/2025hmgs2-yeniden-degerlendirme-sonuclari-20260511090900919",
    "slug": "2025hmgs2-yeniden-degerlendirme-sonuclari-20260511090900919",
-   "sinav": null,
+   "sinav": "HMGS",
    "tip": "diger"
   },
   {
@@ -2143,7 +2143,7 @@
    "baslik": "2026-EKPSS: Kılavuz, Tablolar ve Başvuru Bilgileri",
    "url": "https://www.osym.gov.tr/2026ekpss-kilavuz-tablolar-ve-basvuru-bilgileri",
    "slug": "2026ekpss-kilavuz-tablolar-ve-basvuru-bilgileri",
-   "sinav": null,
+   "sinav": "EKPSS",
    "tip": "kilavuz"
   },
   {
@@ -2151,7 +2151,7 @@
    "baslik": "2026-EKPSS: Başvuruların Alınması",
    "url": "https://www.osym.gov.tr/2026ekpss-basvurularin-alinmasi",
    "slug": "2026ekpss-basvurularin-alinmasi",
-   "sinav": null,
+   "sinav": "EKPSS",
    "tip": "basvuru"
   },
   {
@@ -2159,7 +2159,7 @@
    "baslik": "2026 Türkiye Yurt Dışından Öğrenci Kabul Sınavı (2026-TR-YÖS/1): Başvuru Süresinin Uzatılması /Extension of the application period for 2026 Exam For Foreign Students For Higher Education in Türkiye (2026-TR-YÖS/1)",
    "url": "https://www.osym.gov.tr/2026-turkiye-yurt-disindan-ogrenci-kabul-sinavi-2026tryos1-basvuru-suresinin-uzatilmasi-extension-of-the-application-period-for-2026-exam-for-foreign-students-for-higher-education-in-turkiye-2026tryos1",
    "slug": "2026-turkiye-yurt-disindan-ogrenci-kabul-sinavi-2026tryos1-basvuru-suresinin-uzatilmasi-extension-of-the-application-period-for-2026-exam-for-foreign-students-for-higher-education-in-turkiye-2026tryos1",
-   "sinav": null,
+   "sinav": "TR-YÖS",
    "tip": "basvuru"
   },
   {
@@ -2167,7 +2167,7 @@
    "baslik": "2026-EKPSS/Kura İle Engelli Kamu Personeli Yerleştirme: Sınav Sonucu İle Yapılan Yerleştirme Sonuçları Açıklandı",
    "url": "https://www.osym.gov.tr/2026ekpsskura-ile-engelli-kamu-personeli-yerlestirme-sinav-sonucu-ile-yapilan-yerlestirme-sonuclari-aciklandi",
    "slug": "2026ekpsskura-ile-engelli-kamu-personeli-yerlestirme-sinav-sonucu-ile-yapilan-yerlestirme-sonuclari-aciklandi",
-   "sinav": null,
+   "sinav": "EKPSS",
    "tip": "sonuc_aciklandi"
   },
   {
@@ -2175,7 +2175,7 @@
    "baslik": "2026-EKPSS/Kura İle Engelli Kamu Personeli Yerleştirme: Kura Usulü İle Yapılan Yerleştirme Sonuçları Açıklandı",
    "url": "https://www.osym.gov.tr/2026ekpsskura-ile-engelli-kamu-personeli-yerlestirme-kura-usulu-ile-yapilan-yerlestirme-sonuclari-aciklandi",
    "slug": "2026ekpsskura-ile-engelli-kamu-personeli-yerlestirme-kura-usulu-ile-yapilan-yerlestirme-sonuclari-aciklandi",
-   "sinav": null,
+   "sinav": "EKPSS",
    "tip": "sonuc_aciklandi"
   },
   {
@@ -2183,7 +2183,7 @@
    "baslik": "2026-EKPSS: Sınav Sonucu ile Yapılan Yerleştirme Sonuçlarına İlişkin Sayısal Bilgiler",
    "url": "https://www.osym.gov.tr/2026ekpss-sinav-sonucu-ile-yapilan-yerlestirme-sonuclarina-iliskin-sayisal-bilgiler",
    "slug": "2026ekpss-sinav-sonucu-ile-yapilan-yerlestirme-sonuclarina-iliskin-sayisal-bilgiler",
-   "sinav": null,
+   "sinav": "EKPSS",
    "tip": "yerlestirme"
   },
   {
@@ -2191,7 +2191,7 @@
    "baslik": "2026-GUY: Ön Başvuru Sonuçlarının Açıklanması ve Nihai Başvuruların Alınması",
    "url": "https://www.osym.gov.tr/2026guy-on-basvuru-sonuclarinin-aciklanmasi-ve-nihai-basvurularin-alinmasi",
    "slug": "2026guy-on-basvuru-sonuclarinin-aciklanmasi-ve-nihai-basvurularin-alinmasi",
-   "sinav": null,
+   "sinav": "GUY",
    "tip": "basvuru"
   },
   {
@@ -2199,7 +2199,7 @@
    "baslik": "2026 Elektronik İngilizce Yeterlik Sınavı/Electronic-Test of English Proficiency (e-TEP 2026/1): Sınava Giriş Belgeleri Erişime Açıldı",
    "url": "https://www.osym.gov.tr/2026-elektronik-ingilizce-yeterlik-sinavielectronictest-of-english-proficiency-etep-20261-sinava-giris-belgeleri-erisime-acildi",
    "slug": "2026-elektronik-ingilizce-yeterlik-sinavielectronictest-of-english-proficiency-etep-20261-sinava-giris-belgeleri-erisime-acildi",
-   "sinav": null,
+   "sinav": "e-TEP",
    "tip": "giris_belgesi"
   },
   {
@@ -2207,7 +2207,7 @@
    "baslik": "2026 Elektronik İngilizce Yeterlik Sınavı/Electronic-Test of English Proficiency (e-TEP 2026/1): Sınava Giriş Belgeleri Erişime Açıldı",
    "url": "https://www.osym.gov.tr/2026-elektronik-ingilizce-yeterlik-sinavielectronic-test-of-english-proficiency-e-tep-20261-sinava-giris-belgeleri-erisime-acildi",
    "slug": "2026-elektronik-ingilizce-yeterlik-sinavielectronic-test-of-english-proficiency-e-tep-20261-sinava-giris-belgeleri-erisime-acildi",
-   "sinav": null,
+   "sinav": "e-TEP",
    "tip": "giris_belgesi"
   },
   {
@@ -2247,7 +2247,7 @@
    "baslik": "2026-MEB-EKYS: Kılavuz ve Başvuru Bilgileri",
    "url": "https://www.osym.gov.tr/2026mebekys-kilavuz-ve-basvuru-bilgileri",
    "slug": "2026mebekys-kilavuz-ve-basvuru-bilgileri",
-   "sinav": null,
+   "sinav": "MEB-EKYS",
    "tip": "kilavuz"
   },
   {
@@ -2255,7 +2255,7 @@
    "baslik": "2026-MEB-EKYS: Başvuruların Alınması",
    "url": "https://www.osym.gov.tr/2026mebekys-basvurularin-alinmasi",
    "slug": "2026mebekys-basvurularin-alinmasi",
-   "sinav": null,
+   "sinav": "MEB-EKYS",
    "tip": "basvuru"
   },
   {
@@ -2279,7 +2279,7 @@
    "baslik": "2025 Sayıştay Başkanlığı Sayıştay Denetçi Yardımcısı Adaylığı Yazılı Sınav Sonuçları Açıklandı",
    "url": "https://www.osym.gov.tr/2025-sayistay-baskanligi-sayistay-denetci-yardimcisi-adayligi-yazili-sinav-sonuclari-aciklandi",
    "slug": "2025-sayistay-baskanligi-sayistay-denetci-yardimcisi-adayligi-yazili-sinav-sonuclari-aciklandi",
-   "sinav": null,
+   "sinav": "Sayıştay",
    "tip": "sonuc_aciklandi"
   },
   {
@@ -2303,7 +2303,7 @@
    "baslik": "2025 ÖSYM Uzman Yardımcılığı Yazılı Sınav Sonuçları",
    "url": "https://www.osym.gov.tr/2025-osym-uzman-yardimciligi-yazili-sinav-sonuclari",
    "slug": "2025-osym-uzman-yardimciligi-yazili-sinav-sonuclari",
-   "sinav": null,
+   "sinav": "ÖSYM Uzman Yardımcılığı",
    "tip": "diger"
   },
   {
@@ -2311,7 +2311,7 @@
    "baslik": "2025-CBRY: Sınav Sonuçları Açıklandı",
    "url": "https://www.osym.gov.tr/2025cbry-sinav-sonuclari-aciklandi",
    "slug": "2025cbry-sinav-sonuclari-aciklandi",
-   "sinav": null,
+   "sinav": "CBRY",
    "tip": "sonuc_aciklandi"
   },
   {
@@ -2343,7 +2343,7 @@
    "baslik": "2024 Adalet Bakanlığı Sınavları (Adli Yargı/Adli Yargı-Avukat/İdari Yargı): Yeniden Değerlendirme Sonuçları",
    "url": "https://www.osym.gov.tr/2024-adalet-bakanligi-sinavlari-adli-yargiadli-yargiavukatidari-yargi-yeniden-degerlendirme-sonuclari",
    "slug": "2024-adalet-bakanligi-sinavlari-adli-yargiadli-yargiavukatidari-yargi-yeniden-degerlendirme-sonuclari",
-   "sinav": null,
+   "sinav": "Adalet Bakanlığı Sınavları",
    "tip": "diger"
   },
   {
@@ -2367,7 +2367,7 @@
    "baslik": "2025 Adalet Bakanlığı Sınavları (Adli Yargı/Adli Yargı-Avukat/İdari Yargı) Sonuçları Açıklandı",
    "url": "https://www.osym.gov.tr/2025-adalet-bakanligi-sinavlari-adli-yargiadli-yargiavukatidari-yargi-sonuclari-aciklandi",
    "slug": "2025-adalet-bakanligi-sinavlari-adli-yargiadli-yargiavukatidari-yargi-sonuclari-aciklandi",
-   "sinav": null,
+   "sinav": "Adalet Bakanlığı Sınavları",
    "tip": "sonuc_aciklandi"
   },
   {
@@ -2375,7 +2375,7 @@
    "baslik": "2025 Adalet Bakanlığı Sınavları (Adli Yargı/Adli Yargı-Avukat/İdari Yargı) Cevap Kâğıtları ve Aday Cevapları Erişime Açıldı",
    "url": "https://www.osym.gov.tr/2025-adalet-bakanligi-sinavlari-adli-yargiadli-yargiavukatidari-yargi-cevap-kgitlari-ve-aday-cevaplari-erisime-acildi",
    "slug": "2025-adalet-bakanligi-sinavlari-adli-yargiadli-yargiavukatidari-yargi-cevap-kgitlari-ve-aday-cevaplari-erisime-acildi",
-   "sinav": null,
+   "sinav": "Adalet Bakanlığı Sınavları",
    "tip": "diger"
   },
   {
@@ -2383,7 +2383,7 @@
    "baslik": "2026 Türkiye Yurt Dışından Öğrenci Kabul Sınavı (2026-TR-YÖS/1) Başvurularının Alınması",
    "url": "https://www.osym.gov.tr/2026-turkiye-yurt-disindan-ogrenci-kabul-sinavi-2026-tr-yos1-basvurularinin-alinmasi",
    "slug": "2026-turkiye-yurt-disindan-ogrenci-kabul-sinavi-2026-tr-yos1-basvurularinin-alinmasi",
-   "sinav": null,
+   "sinav": "TR-YÖS",
    "tip": "basvuru"
   },
   {
@@ -2391,7 +2391,7 @@
    "baslik": "2026 Elektronik İngilizce Yeterlik Sınavı/Electronic-Test of English Proficiency (e-TEP 2026/1): Başvuruların Alınması",
    "url": "https://www.osym.gov.tr/2026-elektronik-ingilizce-yeterlik-sinavielectronic-test-of-english-proficiency-e-tep-20261-basvurularin-alinmasi",
    "slug": "2026-elektronik-ingilizce-yeterlik-sinavielectronic-test-of-english-proficiency-e-tep-20261-basvurularin-alinmasi",
-   "sinav": null,
+   "sinav": "e-TEP",
    "tip": "basvuru"
   },
   {
@@ -2399,7 +2399,7 @@
    "baslik": "2026-TR-YÖS/1: Kılavuz ve Başvuru Bilgileri",
    "url": "https://www.osym.gov.tr/2026tryos1-kilavuz-ve-basvuru-bilgileri",
    "slug": "2026tryos1-kilavuz-ve-basvuru-bilgileri",
-   "sinav": null,
+   "sinav": "TR-YÖS",
    "tip": "kilavuz"
   },
   {
@@ -2407,7 +2407,7 @@
    "baslik": "2026-GUY: Kılavuz ve Başvuru Bilgileri",
    "url": "https://www.osym.gov.tr/2026guy-kilavuz-ve-basvuru-bilgileri",
    "slug": "2026guy-kilavuz-ve-basvuru-bilgileri",
-   "sinav": null,
+   "sinav": "GUY",
    "tip": "kilavuz"
   },
   {
@@ -2415,7 +2415,7 @@
    "baslik": "2026 Elektronik İngilizce Yeterlik Sınavı (2026 e-TEP) Kılavuzu",
    "url": "https://www.osym.gov.tr/2026-elektronik-ingilizce-yeterlik-sinavi-2026-etep-kilavuzu",
    "slug": "2026-elektronik-ingilizce-yeterlik-sinavi-2026-etep-kilavuzu",
-   "sinav": null,
+   "sinav": "e-TEP",
    "tip": "kilavuz"
   },
   {
@@ -2423,7 +2423,7 @@
    "baslik": "2026-GUY Sınavı: Başvuruların Alınması",
    "url": "https://www.osym.gov.tr/2026guy-sinavi-basvurularin-alinmasi",
    "slug": "2026guy-sinavi-basvurularin-alinmasi",
-   "sinav": null,
+   "sinav": "GUY",
    "tip": "basvuru"
   },
   {
@@ -2431,7 +2431,7 @@
    "baslik": "2026 Türkiye Yurt Dışından Öğrenci Kabul Sınavı (2026-TR-YÖS/1) Başvurularının Alınması/Applications for 2026 Exam for Foreign Students For Higher Education in Türkiye (2026-TR-YÖS/1)",
    "url": "https://www.osym.gov.tr/2026-turkiye-yurt-disindan-ogrenci-kabul-sinavi-2026tryos1-basvurularinin-alinmasiapplications-for-2026-exam-for-foreign-students-for-higher-education-in-turkiye-2026tryos1",
    "slug": "2026-turkiye-yurt-disindan-ogrenci-kabul-sinavi-2026tryos1-basvurularinin-alinmasiapplications-for-2026-exam-for-foreign-students-for-higher-education-in-turkiye-2026tryos1",
-   "sinav": null,
+   "sinav": "TR-YÖS",
    "tip": "basvuru"
   },
   {
@@ -2439,7 +2439,7 @@
    "baslik": "2026 Elektronik İngilizce Yeterlik Sınavı/Electronic-Test of English Proficiency (e-TEP 2026/1): Başvuruların Alınması",
    "url": "https://www.osym.gov.tr/2026-elektronik-ingilizce-yeterlik-sinavielectronictest-of-english-proficiency-etep-20261-basvurularin-alinmasi",
    "slug": "2026-elektronik-ingilizce-yeterlik-sinavielectronictest-of-english-proficiency-etep-20261-basvurularin-alinmasi",
-   "sinav": null,
+   "sinav": "e-TEP",
    "tip": "basvuru"
   },
   {
@@ -2447,7 +2447,7 @@
    "baslik": "2026-EKPSS/Kura Tercih Kılavuzundan Yerleştirme İçin Tercih Yapan/Tercih Yapacak Adayların Dikkatine",
    "url": "https://www.osym.gov.tr/2026ekpsskura-tercih-kilavuzundan-yerlestirme-icin-tercih-yapantercih-yapacak-adaylarin-dikkatine",
    "slug": "2026ekpsskura-tercih-kilavuzundan-yerlestirme-icin-tercih-yapantercih-yapacak-adaylarin-dikkatine",
-   "sinav": null,
+   "sinav": "EKPSS",
    "tip": "tercih"
   },
   {
@@ -2455,7 +2455,7 @@
    "baslik": "Millî Eğitim Bakanlığı Akademi Giriş Sınavı (MEB-AGS) 2026 Akademi Giriş Sınavı (AGS) ile 2026 Öğretmenlik Alan Bilgisi Testi (ÖABT): Konu Dağılımları",
    "url": "https://www.osym.gov.tr/mill-egitim-bakanligi-akademi-giris-sinavi-mebags-2026-akademi-giris-sinavi-ags-ile-2026-ogretmenlik-alan-bilgisi-testi-oabt-konu-dagilimlari",
    "slug": "mill-egitim-bakanligi-akademi-giris-sinavi-mebags-2026-akademi-giris-sinavi-ags-ile-2026-ogretmenlik-alan-bilgisi-testi-oabt-konu-dagilimlari",
-   "sinav": null,
+   "sinav": "MEB-AGS",
    "tip": "diger"
   },
   {
@@ -2479,7 +2479,7 @@
    "baslik": "2026-EKPSS/Kura İle Engelli Kamu Personeli Yerleştirme Tercih Kılavuzu ve Tablolar",
    "url": "https://www.osym.gov.tr/2026ekpsskura-ile-engelli-kamu-personeli-yerlestirme-tercih-kilavuzu-ve-tablolar",
    "slug": "2026ekpsskura-ile-engelli-kamu-personeli-yerlestirme-tercih-kilavuzu-ve-tablolar",
-   "sinav": null,
+   "sinav": "EKPSS",
    "tip": "tercih"
   },
   {
@@ -2487,7 +2487,7 @@
    "baslik": "2026-EKPSS/Kura ile Engelli Kamu Personeli Yerleştirme: Bazı Kamu Kurum ve Kuruluşlarının Kadrolarına Yerleştirme Yapmak İçin Adaylardan Tercih Alınması",
    "url": "https://www.osym.gov.tr/2026ekpsskura-ile-engelli-kamu-personeli-yerlestirme-bazi-kamu-kurum-ve-kuruluslarinin-kadrolarina-yerlestirme-yapmak-icin-adaylardan-tercih-alinmasi",
    "slug": "2026ekpsskura-ile-engelli-kamu-personeli-yerlestirme-bazi-kamu-kurum-ve-kuruluslarinin-kadrolarina-yerlestirme-yapmak-icin-adaylardan-tercih-alinmasi",
-   "sinav": null,
+   "sinav": "EKPSS",
    "tip": "diger"
   },
   {
@@ -2551,7 +2551,7 @@
    "baslik": "2025-Kaymakamlık/2: Sınav Sonuçları Açıklandı",
    "url": "https://www.osym.gov.tr/2025kaymakamlik2-sinav-sonuclari-aciklandi",
    "slug": "2025kaymakamlik2-sinav-sonuclari-aciklandi",
-   "sinav": null,
+   "sinav": "Kaymakamlık",
    "tip": "sonuc_aciklandi"
   },
   {
@@ -2559,7 +2559,7 @@
    "baslik": "2025-Kaymakamlık/2: Cevap Kâğıtları ve Aday Cevapları Erişime Açıldı",
    "url": "https://www.osym.gov.tr/2025kaymakamlik2-cevap-kgitlari-ve-aday-cevaplari-erisime-acildi",
    "slug": "2025kaymakamlik2-cevap-kgitlari-ve-aday-cevaplari-erisime-acildi",
-   "sinav": null,
+   "sinav": "Kaymakamlık",
    "tip": "diger"
   },
   {
@@ -2567,7 +2567,7 @@
    "baslik": "2025-İSG Sınavı: Cevap Kâğıtları ve Aday Cevapları Erişime Açıldı",
    "url": "https://www.osym.gov.tr/2025isg-sinavi-cevap-kgitlari-ve-aday-cevaplari-erisime-acildi",
    "slug": "2025isg-sinavi-cevap-kgitlari-ve-aday-cevaplari-erisime-acildi",
-   "sinav": null,
+   "sinav": "İSG",
    "tip": "diger"
   },
   {
@@ -2575,7 +2575,7 @@
    "baslik": "2025-İSG: Sınav Sonuçları Açıklandı",
    "url": "https://www.osym.gov.tr/2025isg-sinav-sonuclari-aciklandi",
    "slug": "2025isg-sinav-sonuclari-aciklandi",
-   "sinav": null,
+   "sinav": "İSG",
    "tip": "sonuc_aciklandi"
   },
   {
@@ -2583,7 +2583,7 @@
    "baslik": "e-TEP 2026 Technical Reports",
    "url": "https://www.osym.gov.tr/e-tep-2026-technical-reports",
    "slug": "e-tep-2026-technical-reports",
-   "sinav": null,
+   "sinav": "e-TEP",
    "tip": "diger"
   }
  ]

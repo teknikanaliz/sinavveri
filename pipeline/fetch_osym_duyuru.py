@@ -85,12 +85,20 @@ def _tr_lower(s: str) -> str:
 # "e-YDS" içindeki "YDS" ve "YÖKDİL" içindeki "YDS" gibi tuzaklar var.
 # "YDUS" içindeki "DUS" ise harf-lookbehind ile zaten elenir (Y bir harf).
 SINAV_KODLARI = [
+    # Bileşik/özel kodlar ÖNCE gelir: "MEB-AGS" içinde "AGS" de eşleşir, "AGS" listede
+    # sonra olsa bile ilk-eşleşen-kazanır kuralı (sinav_bul) yüzünden MEB-AGS'i AGS'ye
+    # indirgemesin diye MEB-AGS önce denenir. (2026-08-04, 103 kayıtta sınav="—" bulununca eklendi)
+    ("MEB-AGS", r"meb-?ags"),
+    ("MEB-EKYS", r"meb-?ekys"),
     ("e-YDS", r"e-?yds"),
+    ("e-YDTS", r"e-?ydts"),
+    ("e-TEP", r"e-?tep"),
     ("YÖKDİL", r"yökdil|yokdil"),
     ("YDUS", r"ydus"),
     ("DHBT", r"dhbt"),
     ("ALES", r"ales"),
     ("KPSS", r"kpss"),
+    ("EKPSS", r"ekpss"),
     ("DGS", r"dgs"),
     ("TUS", r"tus"),
     ("DUS", r"dus"),
@@ -102,6 +110,21 @@ SINAV_KODLARI = [
     ("TYT", r"tyt"),
     ("AYT", r"ayt"),
     ("YDT", r"ydt"),
+    ("AGS", r"ags"),
+    ("ÖABT", r"öabt"),
+    ("ÖZYES", r"özyes"),
+    ("TR-YÖS", r"tr-?yös|tr-?yos"),
+    ("HMGS", r"hmgs"),
+    ("MBSTS", r"mbsts"),
+    ("Kaymakamlık", r"kaymakamlık"),
+    ("Adalet Bakanlığı Sınavları", r"adalet bakanlığı"),
+    ("ÖSYM Uzman Yardımcılığı", r"uzman yardımcılığı"),
+    ("GUY", r"guy"),
+    ("BKUBTS", r"bkubts"),
+    ("İSG", r"isg"),
+    ("CBRY", r"cbry"),
+    ("Sayıştay", r"sayıştay"),
+    ("ÖSYM Sözleşmeli Bilişim Personeli", r"sözleşmeli bilişim personeli"),
 ]
 # NEDEN özel sınır sınıfı: \b Türkçe harfleri (ı, ğ, ü…) kelime karakteri sayar
 # ama emin olmak için sınırı açıkça "Türkçe dahil harf DEĞİL" diye tanımlıyoruz.
