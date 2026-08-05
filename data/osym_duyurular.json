@@ -1,7 +1,23 @@
 {
- "guncelleme": "2026-08-05T10:00:07",
+ "guncelleme": "2026-08-05T10:30:05",
  "kaynak": "ÖSYM",
  "duyurular": [
+  {
+   "tarih": "2026-08-05",
+   "baslik": "2026-YDUS: Ek Yerleştirme Sonuçları Açıklandı",
+   "url": "https://www.osym.gov.tr/2026-ydus-ek-yerlestirme-sonuclari-aciklandi",
+   "slug": "2026-ydus-ek-yerlestirme-sonuclari-aciklandi",
+   "sinav": "YDUS",
+   "tip": "sonuc_aciklandi"
+  },
+  {
+   "tarih": "2026-08-05",
+   "baslik": "2026-YDUS Ek Yerleştirme Sonuçlarına İlişkin Sayısal Bilgiler",
+   "url": "https://www.osym.gov.tr/2026-ydus-1-donem-ek-yerlestirme-sonuclarina-iliskin-sayisal-bilgiler",
+   "slug": "2026-ydus-1-donem-ek-yerlestirme-sonuclarina-iliskin-sayisal-bilgiler",
+   "sinav": "YDUS",
+   "tip": "yerlestirme"
+  },
   {
    "tarih": "2026-08-05",
    "baslik": "2026-DUS 1. Dönem Ek Yerleştirme Sonuçlarına İlişkin Sayısal Bilgiler",
