@@ -1,7 +1,23 @@
 {
- "guncelleme": "2026-08-05T11:30:11",
+ "guncelleme": "2026-08-05T12:00:20",
  "kaynak": "MEB",
  "duyurular": [
+  {
+   "tarih": "2026-08-05",
+   "baslik": "LGS YERLEŞTİRME SONUÇLARI AÇIKLANDI",
+   "url": "https://odsgm.meb.gov.tr/www/lgs-yerlestirme-sonuclari-aciklandi/icerik/1714",
+   "slug": "www/lgs-yerlestirme-sonuclari-aciklandi/icerik/1714",
+   "sinav": "LGS",
+   "tip": "sonuc_aciklandi"
+  },
+  {
+   "tarih": "2026-08-05",
+   "baslik": "LGS KAPSAMINDAKİ İLK YERLEŞTİRME SONUÇLARININ RAPORU YAYIMLANDI",
+   "url": "https://odsgm.meb.gov.tr/www/lgs-kapsamindaki-ilk-yerlestirme-sonuclarinin-raporu-yayimlandi/icerik/1713",
+   "slug": "www/lgs-kapsamindaki-ilk-yerlestirme-sonuclarinin-raporu-yayimlandi/icerik/1713",
+   "sinav": "LGS",
+   "tip": "yerlestirme"
+  },
   {
    "tarih": "2026-07-10",
    "baslik": "\"2026 ORTAÖĞRETİME GEÇİŞ TERCİH VE YERLEŞTİRME KILAVUZU\" YAYIMLANDI",
