@@ -1,7 +1,23 @@
 {
- "guncelleme": "2026-08-05T13:30:13",
+ "guncelleme": "2026-08-05T14:00:05",
  "kaynak": "ÖSYM",
  "duyurular": [
+  {
+   "tarih": "2026-08-05",
+   "baslik": "e-YDS 2026/9 (İngilizce): Başvuruların Alınması",
+   "url": "https://www.osym.gov.tr/e-yds-20269-ingilizce-basvurularin-alinmasi",
+   "slug": "e-yds-20269-ingilizce-basvurularin-alinmasi",
+   "sinav": "e-YDS",
+   "tip": "basvuru"
+  },
+  {
+   "tarih": "2026-08-05",
+   "baslik": "2026-Elektronik Yabancı Dil Sınavı (2026 e-YDS) Kılavuzu",
+   "url": "https://www.osym.gov.tr/2026elektronik-yabanci-dil-sinavi-2026-eyds-kilavuzu",
+   "slug": "2026elektronik-yabanci-dil-sinavi-2026-eyds-kilavuzu",
+   "sinav": "e-YDS",
+   "tip": "kilavuz"
+  },
   {
    "tarih": "2026-08-05",
    "baslik": "2026-YDUS: Ek Yerleştirme Sonuçları Açıklandı",
@@ -2545,14 +2561,6 @@
    "slug": "eyds-20261-ingilizce-basvurularin-alinmasi",
    "sinav": "e-YDS",
    "tip": "basvuru"
-  },
-  {
-   "tarih": "2026-01-06",
-   "baslik": "2026-Elektronik Yabancı Dil Sınavı (2026 e-YDS) Kılavuzu",
-   "url": "https://www.osym.gov.tr/2026elektronik-yabanci-dil-sinavi-2026-eyds-kilavuzu",
-   "slug": "2026elektronik-yabanci-dil-sinavi-2026-eyds-kilavuzu",
-   "sinav": "e-YDS",
-   "tip": "kilavuz"
   },
   {
    "tarih": "2026-01-05",
