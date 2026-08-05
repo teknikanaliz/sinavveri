@@ -1,7 +1,23 @@
 {
- "guncelleme": "2026-08-05T09:30:11",
+ "guncelleme": "2026-08-05T10:00:07",
  "kaynak": "ÖSYM",
  "duyurular": [
+  {
+   "tarih": "2026-08-05",
+   "baslik": "2026-DUS 1. Dönem Ek Yerleştirme Sonuçlarına İlişkin Sayısal Bilgiler",
+   "url": "https://www.osym.gov.tr/2026-dus-1donem-ek-yerlestirme-sonuclarina-iliskin-sayisal-bilgiler",
+   "slug": "2026-dus-1donem-ek-yerlestirme-sonuclarina-iliskin-sayisal-bilgiler",
+   "sinav": "DUS",
+   "tip": "yerlestirme"
+  },
+  {
+   "tarih": "2026-08-05",
+   "baslik": "2026-DUS 1. Dönem: Ek Yerleştirme Sonuçları Açıklandı",
+   "url": "https://www.osym.gov.tr/2026-dus-1-donem-ek-yerlestirme-sonuclari-aciklandi",
+   "slug": "2026-dus-1-donem-ek-yerlestirme-sonuclari-aciklandi",
+   "sinav": "DUS",
+   "tip": "sonuc_aciklandi"
+  },
   {
    "tarih": "2026-08-03",
    "baslik": "2026 Türkiye Yurt Dışından Öğrenci Kabul Sınavı (2026-TR-YÖS/2): Başvuru Süresinin Uzatılması /Extension of the application period for 2026 Exam For Foreign Students For Higher Education in Türkiye (2026-TR-YÖS/2)",
