@@ -1,7 +1,15 @@
 {
- "guncelleme": "2026-08-06T14:30:06",
+ "guncelleme": "2026-08-06T15:00:07",
  "kaynak": "ÖSYM",
  "duyurular": [
+  {
+   "tarih": "2026-08-06",
+   "baslik": "2026-YÖKDİL/2 Sınavı İçin Sınav Günü Açık Tutulacak İl/İlçe Nüfus Müdürlükleri",
+   "url": "https://www.osym.gov.tr/2026-yokdil2-sinavi-icin-sinav-gunu-acik-tutulacak-ililce-nufus-mudurlukleri",
+   "slug": "2026-yokdil2-sinavi-icin-sinav-gunu-acik-tutulacak-ililce-nufus-mudurlukleri",
+   "sinav": "YÖKDİL",
+   "tip": "diger"
+  },
   {
    "tarih": "2026-08-06",
    "baslik": "2026-YKS Kapsamında Spor Bilimleri İçin Özel Yetenek Sınavı (ÖZYES): Sınava Giriş Belgeleri Erişime Açıldı",
