@@ -1,7 +1,23 @@
 {
- "guncelleme": "2026-08-09T15:00:10",
+ "guncelleme": "2026-08-09T15:30:04",
  "kaynak": "ÖSYM",
  "duyurular": [
+  {
+   "tarih": "2026-08-09",
+   "baslik": "2026-YÖKDİL/2: Temel Soru Kitapçıkları ve Cevap Anahtarları Yayımlandı",
+   "url": "https://www.osym.gov.tr/2026-yokdil2-temel-soru-kitapciklari-ve-cevap-anahtarlari-yayimlandi",
+   "slug": "2026-yokdil2-temel-soru-kitapciklari-ve-cevap-anahtarlari-yayimlandi",
+   "sinav": "YÖKDİL",
+   "tip": "diger"
+  },
+  {
+   "tarih": "2026-08-09",
+   "baslik": "2026-YÖKDİL/2 Sınavı Temel Soru Kitapçıklarının Yayımlanması (%10)",
+   "url": "https://www.osym.gov.tr/2026-yokdil2-sinavi-temel-soru-kitapciklarinin-yayimlanmasi-10",
+   "slug": "2026-yokdil2-sinavi-temel-soru-kitapciklarinin-yayimlanmasi-10",
+   "sinav": "YÖKDİL",
+   "tip": "diger"
+  },
   {
    "tarih": "2026-08-06",
    "baslik": "2026-YÖKDİL/2 Sınavı İçin Sınav Günü Açık Tutulacak İl/İlçe Nüfus Müdürlükleri",
