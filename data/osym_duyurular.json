@@ -1,7 +1,23 @@
 {
- "guncelleme": "2026-08-11T09:00:07",
+ "guncelleme": "2026-08-11T09:30:10",
  "kaynak": "ÖSYM",
  "duyurular": [
+  {
+   "tarih": "2026-08-11",
+   "baslik": "2026-HMGS/2 ve İYÖS: Kılavuz ve Başvuru Bilgileri",
+   "url": "https://www.osym.gov.tr/2026-hmgs2-ve-iyos-kilavuz-ve-basvuru-bilgileri",
+   "slug": "2026-hmgs2-ve-iyos-kilavuz-ve-basvuru-bilgileri",
+   "sinav": "HMGS",
+   "tip": "kilavuz"
+  },
+  {
+   "tarih": "2026-08-11",
+   "baslik": "2026-HMGS/2 ile İYÖS: Başvuruların Alınması",
+   "url": "https://www.osym.gov.tr/2026-hmgs2-ile-iyos-basvurularin-alinmasi",
+   "slug": "2026-hmgs2-ile-iyos-basvurularin-alinmasi",
+   "sinav": "HMGS",
+   "tip": "basvuru"
+  },
   {
    "tarih": "2026-08-09",
    "baslik": "2026-YÖKDİL/2: Temel Soru Kitapçıkları ve Cevap Anahtarları Yayımlandı",
