@@ -1,5 +1,5 @@
 {
- "guncelleme": "2026-08-13T14:30:09",
+ "guncelleme": "2026-08-13T15:00:07",
  "kaynak": "ÖSYM",
  "duyurular": [
   {
@@ -9,6 +9,14 @@
    "slug": "2026-tus-2-donem-sinavi-ile-2026-sts-tip-doktorlugu-2-donem-sinavi-sinava-giris-belgeleri-erisime-acildi",
    "sinav": "TUS",
    "tip": "giris_belgesi"
+  },
+  {
+   "tarih": "2026-08-13",
+   "baslik": "2026-ÖZYES İçin Sınav Günü Açık Tutulacak İl/İlçe Nüfus Müdürlükleri",
+   "url": "https://www.osym.gov.tr/2026-ozyes-icin-sinav-gunu-acik-tutulacak-ililce-nufus-mudurlukleri",
+   "slug": "2026-ozyes-icin-sinav-gunu-acik-tutulacak-ililce-nufus-mudurlukleri",
+   "sinav": "ÖZYES",
+   "tip": "diger"
   },
   {
    "tarih": "2026-08-11",
