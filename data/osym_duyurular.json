@@ -1,5 +1,5 @@
 {
- "guncelleme": "2026-08-14T10:00:06",
+ "guncelleme": "2026-08-14T10:30:03",
  "kaynak": "ÖSYM",
  "duyurular": [
   {
@@ -9,6 +9,14 @@
    "slug": "2026-ales2-sinav-sonuclari-aciklandi",
    "sinav": "ALES",
    "tip": "sonuc_aciklandi"
+  },
+  {
+   "tarih": "2026-08-14",
+   "baslik": "2026-ALES/2: Cevap Kâğıtları ve Aday Cevapları Erişime Açıldı",
+   "url": "https://www.osym.gov.tr/2026-ales2-cevap-kgitlari-ve-aday-cevaplari-erisime-acildi",
+   "slug": "2026-ales2-cevap-kgitlari-ve-aday-cevaplari-erisime-acildi",
+   "sinav": "ALES",
+   "tip": "diger"
   },
   {
    "tarih": "2026-08-13",
