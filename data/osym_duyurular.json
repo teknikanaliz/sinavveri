@@ -1,7 +1,15 @@
 {
- "guncelleme": "2026-08-14T09:30:07",
+ "guncelleme": "2026-08-14T10:00:06",
  "kaynak": "ÖSYM",
  "duyurular": [
+  {
+   "tarih": "2026-08-14",
+   "baslik": "2026-ALES/2: Sınav Sonuçları Açıklandı",
+   "url": "https://www.osym.gov.tr/2026-ales2-sinav-sonuclari-aciklandi",
+   "slug": "2026-ales2-sinav-sonuclari-aciklandi",
+   "sinav": "ALES",
+   "tip": "sonuc_aciklandi"
+  },
   {
    "tarih": "2026-08-13",
    "baslik": "2026-TUS 2. Dönem Sınavı ile 2026-STS Tıp Doktorluğu 2. Dönem Sınavı: Sınava Giriş Belgeleri Erişime Açıldı",
