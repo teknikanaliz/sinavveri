@@ -1,7 +1,23 @@
 {
- "guncelleme": "2026-08-17T08:30:05",
+ "guncelleme": "2026-08-18T00:00:10",
  "kaynak": "ÖSYM",
  "duyurular": [
+  {
+   "tarih": "2026-08-17",
+   "baslik": "2026-YKS Milli Sporcu Yerleştirme İşlemleri: Başvuru Bilgileri",
+   "url": "https://www.osym.gov.tr/2026-yks-milli-sporcu-yerlestirme-islemleri-basvuru-bilgileri",
+   "slug": "2026-yks-milli-sporcu-yerlestirme-islemleri-basvuru-bilgileri",
+   "sinav": "YKS",
+   "tip": "basvuru"
+  },
+  {
+   "tarih": "2026-08-17",
+   "baslik": "2026-YKS Millî Sporcuların Yükseköğretim Programlarına Yerleştirme İşlemleri: Tercihlerin Alınması",
+   "url": "https://www.osym.gov.tr/2026-yks-mill-sporcularin-yuksekogretim-programlarina-yerlestirme-islemleri-tercihlerin-alinmasi",
+   "slug": "2026-yks-mill-sporcularin-yuksekogretim-programlarina-yerlestirme-islemleri-tercihlerin-alinmasi",
+   "sinav": "YKS",
+   "tip": "tercih"
+  },
   {
    "tarih": "2026-08-14",
    "baslik": "2026-ALES/2: Sınav Sonuçları Açıklandı",
