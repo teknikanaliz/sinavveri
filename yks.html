@@ -217,6 +217,18 @@
     function fallback(){ try{ var ta=document.createElement('textarea'); ta.value=text; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); document.body.removeChild(ta); done(); }catch(e){} }
     try{ if(navigator.clipboard&&navigator.clipboard.writeText){ navigator.clipboard.writeText(text).then(done,fallback); } else { fallback(); } }catch(e){ fallback(); }
   };
+  // Sonuç tablolarını (tercih robotları) CSV indir — Excel/Sheets'te Türkçe karakter için UTF-8 BOM.
+  SV.downloadCSV = function(filename, headers, rows){
+    function cell(v){
+      v = v==null ? '' : String(v);
+      return /[",\n;]/.test(v) ? '"'+v.replace(/"/g,'""')+'"' : v;
+    }
+    var lines = [headers.map(cell).join(';')].concat(rows.map(function(r){ return r.map(cell).join(';'); }));
+    var blob = new Blob(['﻿'+lines.join('\r\n')], {type:'text/csv;charset=utf-8;'});
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement('a'); a.href=url; a.download=filename; document.body.appendChild(a); a.click();
+    document.body.removeChild(a); setTimeout(function(){ URL.revokeObjectURL(url); }, 1000);
+  };
   SV.fav = function(ns){
     var KEY='sv-fav-'+ns;
     function read(){ try{ return JSON.parse(localStorage.getItem(KEY)||'[]'); }catch(e){ return []; } }

@@ -178,6 +178,18 @@
     function fallback(){ try{ var ta=document.createElement('textarea'); ta.value=text; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); document.body.removeChild(ta); done(); }catch(e){} }
     try{ if(navigator.clipboard&&navigator.clipboard.writeText){ navigator.clipboard.writeText(text).then(done,fallback); } else { fallback(); } }catch(e){ fallback(); }
   };
+  // Sonuç tablolarını (tercih robotları) CSV indir — Excel/Sheets'te Türkçe karakter için UTF-8 BOM.
+  SV.downloadCSV = function(filename, headers, rows){
+    function cell(v){
+      v = v==null ? '' : String(v);
+      return /[",\n;]/.test(v) ? '"'+v.replace(/"/g,'""')+'"' : v;
+    }
+    var lines = [headers.map(cell).join(';')].concat(rows.map(function(r){ return r.map(cell).join(';'); }));
+    var blob = new Blob(['﻿'+lines.join('\r\n')], {type:'text/csv;charset=utf-8;'});
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement('a'); a.href=url; a.download=filename; document.body.appendChild(a); a.click();
+    document.body.removeChild(a); setTimeout(function(){ URL.revokeObjectURL(url); }, 1000);
+  };
   SV.fav = function(ns){
     var KEY='sv-fav-'+ns;
     function read(){ try{ return JSON.parse(localStorage.getItem(KEY)||'[]'); }catch(e){ return []; } }
@@ -317,23 +329,34 @@
     <div><label style="font-size:12px;color:var(--fg-faded);font-weight:700">LGS Puanın</label>
       <input id="rPuan" type="text" inputmode="decimal" placeholder="örn. 420,5" style="width:100%;margin-top:4px;padding:9px 10px;border:1px solid var(--border);border-radius:8px;background:var(--bg-card-alt);color:var(--fg);font-family:inherit;font-size:14px"></div>
     <div><label style="font-size:12px;color:var(--fg-faded);font-weight:700">İl</label><select id="rf0" class="btn btn-ghost" style="text-align:left;width:100%;margin-top:4px"><option value="">Tümü</option></select></div><div><label style="font-size:12px;color:var(--fg-faded);font-weight:700">İlçe</label><select id="rf1" class="btn btn-ghost" style="text-align:left;width:100%;margin-top:4px"><option value="">Tümü</option></select></div><div><label style="font-size:12px;color:var(--fg-faded);font-weight:700">Tür</label><select id="rf2" class="btn btn-ghost" style="text-align:left;width:100%;margin-top:4px"><option value="">Tümü</option></select></div><div><label style="font-size:12px;color:var(--fg-faded);font-weight:700">Yabancı Dil</label><select id="rf3" class="btn btn-ghost" style="text-align:left;width:100%;margin-top:4px"><option value="">Tümü</option></select></div>
+    <div><label style="font-size:12px;color:var(--fg-faded);font-weight:700">Taban (en az, ops.)</label>
+      <input id="rTMin" type="text" inputmode="decimal" placeholder="örn. 300" style="width:100%;margin-top:4px;padding:9px 10px;border:1px solid var(--border);border-radius:8px;background:var(--bg-card-alt);color:var(--fg);font-family:inherit;font-size:14px"></div>
+    <div><label style="font-size:12px;color:var(--fg-faded);font-weight:700">Taban (en çok, ops.)</label>
+      <input id="rTMax" type="text" inputmode="decimal" placeholder="örn. 400" style="width:100%;margin-top:4px;padding:9px 10px;border:1px solid var(--border);border-radius:8px;background:var(--bg-card-alt);color:var(--fg);font-family:inherit;font-size:14px"></div>
     <button type="button" class="btn btn-primary" id="rBtn">Yerleşebileceklerimi Göster</button>
+    <button type="button" class="btn btn-ghost" id="rCsv">⬇️ CSV İndir</button>
   </div>
   <div class="filter-chips" id="chips" style="display:none"></div>
   <div id="rstatus" style="margin-top:14px;font-size:14px;color:var(--accent);font-weight:700"></div>
 </div>
 <div class="data-table-wrap">
-<table class="data-table" data-live="1"><thead><tr><th data-tip="Kayıt adı." data-type="text">Ad</th><th data-tip="Kurumun/programın bulunduğu il." data-type="text">İl</th><th data-tip="Okulun bulunduğu ilçe." data-type="text">İlçe</th><th data-tip="Kurum/kontenjan türü." data-type="text">Tür</th><th data-tip="İlan edilen kontenjan (alınacak öğrenci/personel sayısı)." data-type="num">Kontenjan</th><th>Yüzdelik Dilim</th><th data-tip="Yerleşen son adayın puanı (en düşük yerleşme puanı)." data-type="num">Taban</th><th data-tip="Girdiğin puana göre yerleşme şansı: Rahat (güvenli), Olası, Sınırda (riskli)." data-type="text">Şans</th><th data-nosort data-tip="Geçmiş yıl taban puanlarını gösterir.">ⓘ</th><th data-nosort data-tip="Kaydı ⭐ ile tercih listene ekle.">⭐</th></tr></thead><tbody id="rbody"></tbody></table>
+<table class="data-table" data-live="1"><thead><tr><th data-tip="Kayıt adı." data-type="text">Ad</th><th data-tip="Kurumun/programın bulunduğu il." data-type="text">İl</th><th data-tip="Okulun bulunduğu ilçe." data-type="text">İlçe</th><th data-tip="Kurum/kontenjan türü." data-type="text">Tür</th><th data-tip="İlan edilen kontenjan (alınacak öğrenci/personel sayısı)." data-type="num">Kontenjan</th><th>Yüzdelik Dilim</th><th data-tip="Yerleşen son adayın puanı (en düşük yerleşme puanı)." data-type="num">Taban</th><th data-tip="Girdiğin puana göre yerleşme şansı: Rahat (güvenli), Olası, Sınırda (riskli)." data-type="text">Şans</th><th data-nosort data-tip="Geçmiş yıl taban puanlarını gösterir.">ⓘ</th><th data-nosort data-tip="Kaydı ⭐ ile tercih listene ekle.">⭐</th><th data-nosort data-tip="En fazla 4 kaydı işaretleyip yan yana karşılaştırın.">⚖️</th></tr></thead><tbody id="rbody"></tbody></table>
 </div>
 <nav id="rPager"></nav>
 <div id="rhint" style="display:none;font-size:12px;color:var(--fg-faded);margin-top:10px;text-align:center"></div>
+<div id="cmpBar" style="display:none;align-items:center;gap:10px;margin-top:14px;padding:10px 14px;background:var(--bg-card-alt);border:1px solid var(--border);border-radius:10px">
+  <b id="cmpCount" style="font-size:13px">0/4 seçili</b>
+  <button type="button" class="btn btn-primary" id="cmpGoBtn" disabled>⚖️ Karşılaştır</button>
+  <button type="button" class="btn btn-ghost" id="cmpClrBtn">Temizle</button>
+</div>
+<div id="cmpBox" style="margin-top:14px"></div>
 <div class="notice"><b>Nasıl çalışır?</b> Puanın bir programın/kadronun taban puanından <b>yüksek veya eşitse</b> oraya yerleşebilirsin.
 "Şans" payı güvenliği gösterir: <b>Rahat</b> (geniş pay), <b>Olası</b>, <b>Sınırda</b>. Bu bir tahmindir; gelecek yıl taban puanları
 kontenjan ve tercih yoğunluğuna göre değişir. <b>Kaynak:</b> MEB 2025 LGS yerleştirme verisi. Resmî tercih için <a href="https://www.osym.gov.tr" target="_blank" rel="noopener">ÖSYM</a> esastır.</div>
 <script nonce="__NONCE__">
 (function(){
-  var CFG={"file": "/veri/liseler.json", "nb": 2, "ns": null, "show": [[0, "İl"], [1, "İlçe"], [3, "Tür"], [4, "Kontenjan"], [6, "Yüzdelik Dilim"]], "taban": 5, "filters": [[0, "İl"], [1, "İlçe"], [3, "Tür"], [10, "Yabancı Dil"]], "noun": "liseye", "t1": 15, "t2": 4, "ns_key": "lgs", "hist": [{"yil": 2025, "t": 5}, {"yil": 2024, "t": 7}, {"yil": 2023, "t": 8}], "histHasSira": false, "maps": {"3": {"F": "Fen Lisesi", "S": "Sosyal Bilimler Lisesi", "A": "Anadolu Lisesi", "I": "Anadolu İmam Hatip Lisesi", "M": "Mesleki ve Teknik Anadolu Lisesi", "G": "Güzel Sanatlar Lisesi", "P": "Spor Lisesi", "D": "Diğer"}}}, SV=window.SV||{}, NCOL=CFG.show.length+4+(CFG.hist?1:0);
-  var data=[],byId={};
+  var CFG={"file": "/veri/liseler.json", "nb": 2, "ns": null, "show": [[0, "İl"], [1, "İlçe"], [3, "Tür"], [4, "Kontenjan"], [6, "Yüzdelik Dilim"]], "taban": 5, "filters": [[0, "İl"], [1, "İlçe"], [3, "Tür"], [10, "Yabancı Dil"]], "noun": "liseye", "t1": 15, "t2": 4, "ns_key": "lgs", "hist": [{"yil": 2025, "t": 5}, {"yil": 2024, "t": 7}, {"yil": 2023, "t": 8}], "histHasSira": false, "maps": {"3": {"F": "Fen Lisesi", "S": "Sosyal Bilimler Lisesi", "A": "Anadolu Lisesi", "I": "Anadolu İmam Hatip Lisesi", "M": "Mesleki ve Teknik Anadolu Lisesi", "G": "Güzel Sanatlar Lisesi", "P": "Spor Lisesi", "D": "Diğer"}}}, SV=window.SV||{}, NCOL=CFG.show.length+5+(CFG.hist?1:0);
+  var data=[],byId={},cmpData={},cmpSel=[];
   var pf0=function(n){return n==null?'—':Number(n).toLocaleString('tr-TR',{minimumFractionDigits:2,maximumFractionDigits:2});};
   // Kodlu kolonlar (ör. LGS tür harfi 'F'→'Fen Lisesi') — CFG.maps={idx:{kod:etiket}} varsa uygulanır.
   function mapped(idx,v){ var m=CFG.maps&&CFG.maps[idx]; return m&&m[v]!=null? m[v] : v; }
@@ -377,21 +400,28 @@ kontenjan ve tercih yoğunluğuna göre değişir. <b>Kaynak:</b> MEB 2025 LGS y
   function applyQS(){
     var qs=SV.qsGet?SV.qsGet():{};
     if(qs.puan!=null)el('rPuan').value=qs.puan;
+    if(qs.tmin!=null&&el('rTMin'))el('rTMin').value=qs.tmin;
+    if(qs.tmax!=null&&el('rTMax'))el('rTMax').value=qs.tmax;
     CFG.filters.forEach(function(f,n){var s=el('rf'+n);if(s&&qs['f'+n]!=null)s.value=qs['f'+n];});
     if(qs.puan){run();}else{drawChips();}
   }
   function syncQS(){
     var o={};var p=el('rPuan').value.trim();if(p)o.puan=p;
+    var tmin=el('rTMin')&&el('rTMin').value.trim();if(tmin)o.tmin=tmin;
+    var tmax=el('rTMax')&&el('rTMax').value.trim();if(tmax)o.tmax=tmax;
     CFG.filters.forEach(function(f,n){var s=el('rf'+n);if(s&&s.value)o['f'+n]=s.value;});
     if(SV.qsSet)SV.qsSet(o);drawChips();
   }
   function drawChips(){
     if(!SV.chips)return;var items=[];var p=el('rPuan').value.trim();
     if(p)items.push({key:'puan',label:'Puan: '+p});
+    var tmin=el('rTMin')&&el('rTMin').value.trim(), tmax=el('rTMax')&&el('rTMax').value.trim();
+    if(tmin||tmax)items.push({key:'trange',label:'Taban: '+(tmin||'—')+' – '+(tmax||'—')});
     CFG.filters.forEach(function(f,n){var s=el('rf'+n);if(s&&s.value)items.push({key:'f'+n,label:f[1]+': '+s.value});});
     SV.chips('chips',items,function(key){
-      if(key==='__all__'){el('rPuan').value='';CFG.filters.forEach(function(f,n){var s=el('rf'+n);if(s)s.value='';});}
+      if(key==='__all__'){el('rPuan').value='';if(el('rTMin'))el('rTMin').value='';if(el('rTMax'))el('rTMax').value='';CFG.filters.forEach(function(f,n){var s=el('rf'+n);if(s)s.value='';});}
       else if(key==='puan')el('rPuan').value='';
+      else if(key==='trange'){if(el('rTMin'))el('rTMin').value='';if(el('rTMax'))el('rTMax').value='';}
       else CFG.filters.forEach(function(f,n){if('f'+n===key){var s=el('rf'+n);if(s)s.value='';}});
       initFilters();run();
     });
@@ -422,9 +452,12 @@ kontenjan ve tercih yoğunluğuna göre değişir. <b>Kaynak:</b> MEB 2025 LGS y
       var det=CFG.hist?detailRow(r,NCOL):'';
       var dbtn=det? '<td style="text-align:center"><button type="button" class="pdet" data-ri="'+ri+'" aria-expanded="false" aria-label="Geçmiş yıl verilerini göster">ℹ️</button></td>' : (CFG.hist?'<td></td>':'');
       var k=rkey(r);byId[k]={id:k,name:String(r[CFG.nb]||''),sub:(CFG.ns!=null?String(r[CFG.ns]||''):''),meta:'taban '+pf(r[CFG.taban])};
+      cmpData[k]=r;
       var on=fav&&fav.has(k);
       var star='<td style="text-align:center"><button type="button" class="fav-star'+(on?' on':'')+'" data-fid="'+k.replace(/"/g,'&quot;')+'" aria-label="Tercih listeme ekle">'+(on?'★':'☆')+'</button></td>';
-      out.push('<tr>'+name+show+'<td><strong>'+pf(r[CFG.taban])+'</strong></td><td>'+safe+'</td>'+dbtn+star+'</tr>');
+      var onCmp=cmpSel.indexOf(k)>=0;
+      var cmp='<td style="text-align:center"><input type="checkbox" class="cmp-chk" data-cid="'+k.replace(/"/g,'&quot;')+'"'+(onCmp?' checked':'')+' aria-label="Karşılaştırmaya ekle"></td>';
+      out.push('<tr>'+name+show+'<td><strong>'+pf(r[CFG.taban])+'</strong></td><td>'+safe+'</td>'+dbtn+star+cmp+'</tr>');
       if(det) out.push(det.replace('<tr class="pdet-row">','<tr class="pdet-row" data-ri="'+ri+'" hidden>'));
     });
     tb.innerHTML=out.join('');
@@ -432,15 +465,42 @@ kontenjan ve tercih yoğunluğuna göre değişir. <b>Kaynak:</b> MEB 2025 LGS y
     else if(pgr)pgr.reset();
     el('rhint').style.display='block';
     el('rhint').textContent='Sütun başlığına tıklayarak sıralayabilir, filtrelerle listeyi daraltabilirsiniz.';
+    cmpBar();
+  }
+  // Program karşılaştırma — sonuç tablosundan seçilen 2-4 kaydı yan yana (transpoze) gösterir.
+  // Seçim yalnız bu oturumda tutulur (localStorage yok — ⭐ Tercih Listem zaten kalıcı seçenek).
+  function cmpBar(){
+    var bar=el('cmpBar'); if(!bar)return;
+    bar.style.display=cmpSel.length?'flex':'none';
+    var lbl=el('cmpCount'); if(lbl)lbl.textContent=cmpSel.length+'/4 seçili';
+    var btn=el('cmpGoBtn'); if(btn)btn.disabled=cmpSel.length<2;
+  }
+  function renderCompare(){
+    var box=el('cmpBox'); if(!box)return;
+    var cols=cmpSel.map(function(k){return cmpData[k];}).filter(Boolean);
+    if(cols.length<2){box.innerHTML='';return;}
+    var head='<tr><th>Program</th>'+cols.map(function(r){return '<td><strong>'+(r[CFG.nb]||'')+'</strong>'+(CFG.ns!=null?'<br><small>'+(r[CFG.ns]||'')+'</small>':'')+'</td>';}).join('')+'</tr>';
+    var body=CFG.show.map(function(c){
+      return '<tr><th>'+c[1]+'</th>'+cols.map(function(r){var v=r[c[0]];return '<td>'+(v==null||v===''?'—':mapped(c[0],v))+'</td>';}).join('')+'</tr>';
+    }).join('')+'<tr><th>Taban</th>'+cols.map(function(r){return '<td><strong>'+pf(r[CFG.taban])+'</strong></td>';}).join('')+'</tr>';
+    box.innerHTML='<div class="data-table-wrap"><table class="data-table"><thead>'+head+'</thead><tbody>'+body+'</tbody></table></div>'
+      +'<button type="button" class="btn btn-ghost" id="cmpClearBtn" style="margin-top:8px">✕ Karşılaştırmayı Kapat</button>';
+    box.scrollIntoView({behavior:'smooth',block:'nearest'});
   }
   function run(){
     syncQS();
     var p=parseFloat((el('rPuan').value||'').replace(',','.').replace(/[^0-9.]/g,''));
     if(isNaN(p)||p<=0){el('rstatus').textContent='Lütfen geçerli bir puan girin.';el('rbody').innerHTML='';return;}
     userP=p;
+    var tMin=parseFloat((el('rTMin')&&el('rTMin').value||'').replace(',','.'));
+    var tMax=parseFloat((el('rTMax')&&el('rTMax').value||'').replace(',','.'));
     lastReach=data.filter(function(r){
       for(var k=0;k<CFG.filters.length;k++){var s=el('rf'+k);if(s&&s.value&&String(r[CFG.filters[k][0]])!==s.value)return false;}
-      var t=r[CFG.taban];return t!=null&&t<=p+CFG.t2;  // erişebildiklerin + biraz üstündeki sınırda olanlar
+      var t=r[CFG.taban];
+      if(t==null||t>p+CFG.t2)return false;  // erişebildiklerin + biraz üstündeki sınırda olanlar
+      if(!isNaN(tMin)&&t<tMin)return false;
+      if(!isNaN(tMax)&&t>tMax)return false;
+      return true;
     });
     sortReach();
     el('rstatus').innerHTML='<b>'+lastReach.length.toLocaleString('tr-TR')+'</b> '+CFG.noun+' şansın var (Rahat/Olası/Sınırda · puanın: '+pf(p)+')';
@@ -451,6 +511,15 @@ kontenjan ve tercih yoğunluğuna göre değişir. <b>Kaynak:</b> MEB 2025 LGS y
     if(b.classList&&b.classList.contains('fav-star')){
       var k=b.getAttribute('data-fid');if(fav&&byId[k])fav.toggle(byId[k]);return;
     }
+    if(b.classList&&b.classList.contains('cmp-chk')){
+      var ck=b.getAttribute('data-cid'), i=cmpSel.indexOf(ck);
+      if(i>=0){cmpSel.splice(i,1);}
+      else{
+        if(cmpSel.length>=4){b.checked=false;el('rhint').textContent='En fazla 4 program karşılaştırabilirsiniz — önce birini çıkarın.';return;}
+        cmpSel.push(ck);
+      }
+      cmpBar();return;
+    }
     if(b.classList&&b.classList.contains('pdet')){
       var ri=b.getAttribute('data-ri');
       var row=el('rbody').querySelector('.pdet-row[data-ri="'+ri+'"]');
@@ -460,9 +529,31 @@ kontenjan ve tercih yoğunluğuna göre değişir. <b>Kaynak:</b> MEB 2025 LGS y
       b.setAttribute('aria-expanded',open?'true':'false');
     }
   });
+  var cmpBox=el('cmpBox');
+  if(cmpBox)cmpBox.addEventListener('click',function(e){
+    if(e.target&&e.target.id==='cmpClearBtn')cmpBox.innerHTML='';
+  });
+  var cmpGoBtn=el('cmpGoBtn'); if(cmpGoBtn)cmpGoBtn.addEventListener('click',renderCompare);
+  var cmpClrBtn=el('cmpClrBtn'); if(cmpClrBtn)cmpClrBtn.addEventListener('click',function(){cmpSel=[];cmpBar();if(cmpBox)cmpBox.innerHTML='';draw();});
+  var csvBtn=el('rCsv');
+  if(csvBtn)csvBtn.addEventListener('click',function(){
+    if(!lastReach.length)return;
+    var headers=[CFG.ns!=null?'Program':'Ad'];
+    if(CFG.ns!=null)headers.push('Üniversite/Kurum');
+    CFG.show.forEach(function(c){headers.push(c[1]);});
+    headers.push('Taban','Şans');
+    var rows=lastReach.map(function(r){
+      var m=userP-r[CFG.taban], sans=m>=CFG.t1?'Rahat':(m>=0?'Olası':'Sınırda');
+      var row=[r[CFG.nb]||'']; if(CFG.ns!=null)row.push(r[CFG.ns]||'');
+      CFG.show.forEach(function(c){var v=r[c[0]];row.push(v==null||v===''?'':mapped(c[0],v));});
+      row.push(r[CFG.taban],sans); return row;
+    });
+    SV.downloadCSV('sinavveri-'+(CFG.ns_key||'sonuclar')+'.csv',headers,rows);
+  });
   el('rBtn').addEventListener('click',run);
   el('rPuan').addEventListener('keydown',function(e){if(e.key==='Enter')run();});
   el('rPuan').addEventListener('input',function(){if(el('rPuan').value.trim())run();});
+  [el('rTMin'),el('rTMax')].forEach(function(e){if(e)e.addEventListener('change',function(){if(el('rPuan').value.trim())run();else syncQS();});});
   // Filtre değişince cascade + otomatik yeniden hesapla (puan girilmişse)
   CFG.filters.forEach(function(f,n){var s=el('rf'+n);if(s)s.addEventListener('change',function(){
     initFilters(); if(el('rPuan').value.trim())run(); else syncQS();

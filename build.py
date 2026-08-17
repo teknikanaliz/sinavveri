@@ -231,6 +231,18 @@ SV_HELPER_JS = r"""<script nonce="__NONCE__">
     function fallback(){ try{ var ta=document.createElement('textarea'); ta.value=text; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); document.body.removeChild(ta); done(); }catch(e){} }
     try{ if(navigator.clipboard&&navigator.clipboard.writeText){ navigator.clipboard.writeText(text).then(done,fallback); } else { fallback(); } }catch(e){ fallback(); }
   };
+  // Sonuç tablolarını (tercih robotları) CSV indir — Excel/Sheets'te Türkçe karakter için UTF-8 BOM.
+  SV.downloadCSV = function(filename, headers, rows){
+    function cell(v){
+      v = v==null ? '' : String(v);
+      return /[",\n;]/.test(v) ? '"'+v.replace(/"/g,'""')+'"' : v;
+    }
+    var lines = [headers.map(cell).join(';')].concat(rows.map(function(r){ return r.map(cell).join(';'); }));
+    var blob = new Blob(['﻿'+lines.join('\r\n')], {type:'text/csv;charset=utf-8;'});
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement('a'); a.href=url; a.download=filename; document.body.appendChild(a); a.click();
+    document.body.removeChild(a); setTimeout(function(){ URL.revokeObjectURL(url); }, 1000);
+  };
   SV.fav = function(ns){
     var KEY='sv-fav-'+ns;
     function read(){ try{ return JSON.parse(localStorage.getItem(KEY)||'[]'); }catch(e){ return []; } }
@@ -2678,6 +2690,7 @@ ROBOT_JS = r"""<script nonce="__NONCE__">
   var PTL={say:'Sayısal',ea:'Eşit Ağırlık',soz:'Sözel',dil:'Dil',tyt:'TYT (Önlisans)'};
   var SV=window.SV||{};
   var data=[],cache={},byId={},pgr=null;   // sayfalama: TrVeri STANDART pager.js (rule 3.17)
+  var cmpData={},cmpSel=[];
   var fav=SV.initFav?SV.initFav({ns:'yks',barId:'favBar',panelId:'favPanel',btnId:'favBtn'}):null;
   var nf=function(n){return n==null?'—':n.toLocaleString('tr-TR');};
   var pf=function(n){return n==null?'—':n.toLocaleString('tr-TR',{minimumFractionDigits:2,maximumFractionDigits:2});};
@@ -2697,6 +2710,8 @@ ROBOT_JS = r"""<script nonce="__NONCE__">
     var o={pt:el('rPt').value};var s=el('rSira').value.replace(/\D/g,'');if(s)o.sira=s;
     if(gv('rIl'))o.il=gv('rIl');if(gv('rTur'))o.tur=gv('rTur');
     if(gv('rDil'))o.dil=gv('rDil');if(gv('rUni'))o.uni=gv('rUni');if(gv('rBol'))o.bol=gv('rBol');
+    var smin=el('rSMin')&&el('rSMin').value.replace(/\D/g,'');if(smin)o.smin=smin;
+    var smax=el('rSMax')&&el('rSMax').value.replace(/\D/g,'');if(smax)o.smax=smax;
     if(SV.qsSet)SV.qsSet(o);drawChips();
   }
   function drawChips(){
@@ -2707,10 +2722,14 @@ ROBOT_JS = r"""<script nonce="__NONCE__">
     if(gv('rDil'))items.push({key:'dil',label:'Dil: '+gv('rDil')});
     if(gv('rUni'))items.push({key:'uni',label:'Üni: '+gv('rUni')});
     if(gv('rBol'))items.push({key:'bol',label:'Bölüm: '+gv('rBol')});
+    var smin=el('rSMin')&&el('rSMin').value.trim(), smax=el('rSMax')&&el('rSMax').value.trim();
+    if(smin||smax)items.push({key:'srange',label:'Başarı Sırası: '+(smin||'—')+' – '+(smax||'—')});
     SV.chips('chips',items,function(key){
       if(key==='pt')return;
-      if(key==='__all__'){el('rSira').value='';sv('rIl','');sv('rTur','');sv('rDil','');sv('rUni','');sv('rBol','');}
-      else if(key==='sira')el('rSira').value='';else sv('r'+key.charAt(0).toUpperCase()+key.slice(1),'');
+      if(key==='__all__'){el('rSira').value='';sv('rIl','');sv('rTur','');sv('rDil','');sv('rUni','');sv('rBol','');if(el('rSMin'))el('rSMin').value='';if(el('rSMax'))el('rSMax').value='';}
+      else if(key==='sira')el('rSira').value='';
+      else if(key==='srange'){if(el('rSMin'))el('rSMin').value='';if(el('rSMax'))el('rSMax').value='';}
+      else sv('r'+key.charAt(0).toUpperCase()+key.slice(1),'');
       run();
     });
   }
@@ -2784,14 +2803,16 @@ ROBOT_JS = r"""<script nonce="__NONCE__">
   }
   function draw(){
     var tb=el('rbody'); byId={};
-    if(!lastReach.length){tb.innerHTML='';if(SV.empty)SV.empty('rbody',8,'Bu sıralama ve filtrelerle yerleşebileceğin program bulunamadı. Filtreyi gevşetmeyi deneyin.');el('rhint').style.display='none';if(pgr)pgr.reset();return;}
+    if(!lastReach.length){tb.innerHTML='';if(SV.empty)SV.empty('rbody',9,'Bu sıralama ve filtrelerle yerleşebileceğin program bulunamadı. Filtreyi gevşetmeyi deneyin.');el('rhint').style.display='none';if(pgr)pgr.reset();return;}
     if(!KOSUL) fetch('/veri/kosul_map.json').then(function(r){return r.json();}).then(function(j){KOSUL=j;}).catch(function(){KOSUL={};});
     var out=[];
     lastReach.forEach(function(r,ri){
       var ratio=r[IDX.sira]/lastSira;  // taban sıra / senin sıran (>1 = taban daha geride = güvenli)
       var safe = ratio>=1.20 ? '<span class="tag tag-lgs">Rahat</span>' : (ratio>=1.0 ? '<span class="tag tag-kpss">Olası</span>' : '<span class="tag tag-other">Sınırda</span>');
       var k=rkey(r); byId[k]={id:k,name:r[IDX.b]||'',sub:r[IDX.u]||'',meta:'taban sıra '+nf(r[IDX.sira])};
+      cmpData[k]=r;
       var on=fav&&fav.has(k);
+      var onCmp=cmpSel.indexOf(k)>=0;
       var rozet='';
       if(KAPANAN.has(r[IDX.k])) rozet=' <span class="tag tag-other" title="ÖSYM'+"'"+'nin güncel kılavuzunda bu program bulunamadı">⛔ Bu yıl alım yapmıyor</span>';
       else if(r[IDX.t24]==null&&r[IDX.t23]==null) rozet=' <span class="tag tag-other" title="Önceki yıllarda taban puan kaydı yok — yeni açılmış veya ilk kez ilan edilmiş olabilir">🆕 Yeni</span>';
@@ -2801,14 +2822,36 @@ ROBOT_JS = r"""<script nonce="__NONCE__">
         '<td>'+(r[IDX.il]||'—')+'</td>'+'<td>'+(TUR[r[IDX.t]]||'—')+'</td>'+
         '<td>'+nf(r[IDX.kont])+'</td>'+
         '<td><strong>'+pf(r[IDX.tp])+'</strong></td>'+'<td>'+nf(r[IDX.sira])+' '+ibtn+'</td>'+'<td>'+safe+'</td>'+
-        '<td style="text-align:center"><button type="button" class="fav-star'+(on?' on':'')+'" data-fid="'+k.replace(/"/g,'&quot;')+'" aria-label="Tercih listeme ekle">'+(on?'★':'☆')+'</button></td></tr>');
-      if(hasDet) out.push('<tr class="pdet-row" data-ri="'+ri+'" hidden><td colspan="8"></td></tr>');
+        '<td style="text-align:center"><button type="button" class="fav-star'+(on?' on':'')+'" data-fid="'+k.replace(/"/g,'&quot;')+'" aria-label="Tercih listeme ekle">'+(on?'★':'☆')+'</button></td>'+
+        '<td style="text-align:center"><input type="checkbox" class="cmp-chk" data-cid="'+k.replace(/"/g,'&quot;')+'"'+(onCmp?' checked':'')+' aria-label="Karşılaştırmaya ekle"></td></tr>');
+      if(hasDet) out.push('<tr class="pdet-row" data-ri="'+ri+'" hidden><td colspan="9"></td></tr>');
     });
     tb.innerHTML=out.join('');
     if(!pgr&&window.TVPager)pgr=window.TVPager.attach({grid:tb.parentNode,per:25,mount:el('rPager')});
     else if(pgr)pgr.reset();
     el('rhint').style.display='block';
     el('rhint').textContent='Sütun başlığına tıklayarak sıralayabilir, il/tür/dil filtreleriyle listeyi daraltabilirsiniz. ℹ️ ile program detayını görebilirsiniz.';
+    cmpBar();
+  }
+  // Program karşılaştırma — sonuç tablosundan seçilen 2-4 kaydı yan yana (transpoze) gösterir.
+  function cmpBar(){
+    var bar=el('cmpBar'); if(!bar)return;
+    bar.style.display=cmpSel.length?'flex':'none';
+    var lbl=el('cmpCount'); if(lbl)lbl.textContent=cmpSel.length+'/4 seçili';
+    var btn=el('cmpGoBtn'); if(btn)btn.disabled=cmpSel.length<2;
+  }
+  function renderCompare(){
+    var box=el('cmpBox'); if(!box)return;
+    var cols=cmpSel.map(function(k){return cmpData[k];}).filter(Boolean);
+    if(cols.length<2){box.innerHTML='';return;}
+    var head='<tr><th>Program</th>'+cols.map(function(r){return '<td><strong>'+(r[IDX.b]||'')+'</strong><br><small>'+(r[IDX.u]||'')+'</small></td>';}).join('')+'</tr>';
+    var rowsDef=[['İl',function(r){return r[IDX.il]||'—';}],['Tür',function(r){return TUR[r[IDX.t]]||'—';}],
+      ['Öğrenim Dili',function(r){return r[IDX.dil]||'—';}],['Kontenjan',function(r){return nf(r[IDX.kont]);}],
+      ['Taban Puan',function(r){return '<strong>'+pf(r[IDX.tp])+'</strong>';}],['Başarı Sırası',function(r){return nf(r[IDX.sira]);}]];
+    var body=rowsDef.map(function(d){return '<tr><th>'+d[0]+'</th>'+cols.map(function(r){return '<td>'+d[1](r)+'</td>';}).join('')+'</tr>';}).join('');
+    box.innerHTML='<div class="data-table-wrap"><table class="data-table"><thead>'+head+'</thead><tbody>'+body+'</tbody></table></div>'
+      +'<button type="button" class="btn btn-ghost" id="cmpClearBtn" style="margin-top:8px">✕ Karşılaştırmayı Kapat</button>';
+    box.scrollIntoView({behavior:'smooth',block:'nearest'});
   }
   function run(){
     var pt=el('rPt').value;
@@ -2817,6 +2860,8 @@ ROBOT_JS = r"""<script nonce="__NONCE__">
       var sira=parseInt((el('rSira').value||'').replace(/\D/g,''),10);
       if(!sira||sira<1){el('rstatus').textContent='Lütfen geçerli bir başarı sıranızı girin.';el('rbody').innerHTML='';return;}
       var il=gv('rIl'), tur=gv('rTur'), dilSel=gv('rDil'), uni=gv('rUni'), bol=gv('rBol');
+      var sMin=parseInt((el('rSMin')&&el('rSMin').value||'').replace(/\D/g,''),10);
+      var sMax=parseInt((el('rSMax')&&el('rSMax').value||'').replace(/\D/g,''),10);
       lastSira=sira;
       lastReach=data.filter(function(r){
         if(r[IDX.sira]==null)return false;
@@ -2825,7 +2870,10 @@ ROBOT_JS = r"""<script nonce="__NONCE__">
         if(dilSel&&bdil(r[IDX.dil])!==dilSel)return false;
         if(uni&&r[IDX.u]!==uni)return false;
         if(bol&&r[IDX.g]!==bol)return false;
-        return r[IDX.sira]>=sira*0.80;  // erişebildiklerin + biraz üstündeki olası/sınırda programlar (2023-25 oynaklığına göre kalibre)
+        if(!(r[IDX.sira]>=sira*0.80))return false;  // erişebildiklerin + biraz üstündeki olası/sınırda programlar (2023-25 oynaklığına göre kalibre)
+        if(!isNaN(sMin)&&r[IDX.sira]<sMin)return false;
+        if(!isNaN(sMax)&&r[IDX.sira]>sMax)return false;
+        return true;
       });
       sortReach();
       el('rstatus').innerHTML='<b>'+lastReach.length.toLocaleString('tr-TR')+'</b> program — şansın olan bölümler (Rahat/Olası/Sınırda · sıran: '+sira.toLocaleString('tr-TR')+')';
@@ -2836,6 +2884,15 @@ ROBOT_JS = r"""<script nonce="__NONCE__">
     var b=e.target;
     if(b.classList&&b.classList.contains('fav-star')){
       var k=b.getAttribute('data-fid');if(fav&&byId[k])fav.toggle(byId[k]);return;
+    }
+    if(b.classList&&b.classList.contains('cmp-chk')){
+      var ck=b.getAttribute('data-cid'), i=cmpSel.indexOf(ck);
+      if(i>=0){cmpSel.splice(i,1);}
+      else{
+        if(cmpSel.length>=4){b.checked=false;el('rhint').textContent='En fazla 4 program karşılaştırabilirsiniz — önce birini çıkarın.';return;}
+        cmpSel.push(ck);
+      }
+      cmpBar();return;
     }
     if(b.classList&&b.classList.contains('pdet')){
       var ri=b.getAttribute('data-ri');
@@ -2851,9 +2908,29 @@ ROBOT_JS = r"""<script nonce="__NONCE__">
       b.setAttribute('aria-expanded',open?'true':'false');
     }
   });
+  var cmpBox=el('cmpBox');
+  if(cmpBox)cmpBox.addEventListener('click',function(e){
+    if(e.target&&e.target.id==='cmpClearBtn')cmpBox.innerHTML='';
+  });
+  var cmpGoBtn=el('cmpGoBtn'); if(cmpGoBtn)cmpGoBtn.addEventListener('click',renderCompare);
+  var cmpClrBtn=el('cmpClrBtn'); if(cmpClrBtn)cmpClrBtn.addEventListener('click',function(){cmpSel=[];cmpBar();if(cmpBox)cmpBox.innerHTML='';draw();});
+  var csvBtn=el('rCsv');
+  if(csvBtn)csvBtn.addEventListener('click',function(){
+    if(!lastReach.length)return;
+    var headers=['Bölüm','Üniversite','İl','Tür','Kontenjan','Taban Puan','Başarı Sırası','Şans'];
+    var rows=lastReach.map(function(r){
+      var ratio=r[IDX.sira]/lastSira;
+      var sans=ratio>=1.20?'Rahat':(ratio>=1.0?'Olası':'Sınırda');
+      return [r[IDX.b]||'',r[IDX.u]||'',r[IDX.il]||'',TUR[r[IDX.t]]||'',r[IDX.kont],r[IDX.tp],r[IDX.sira],sans];
+    });
+    SV.downloadCSV('sinavveri-yks-tercih-robotu.csv',headers,rows);
+  });
   el('rBtn').addEventListener('click',run);
   el('rSira').addEventListener('keydown',function(e){if(e.key==='Enter')run();});
   el('rSira').addEventListener('input',function(){if((el('rSira').value||'').replace(/\D/g,''))run();});
+  [el('rSMin'),el('rSMax')].forEach(function(e){if(e)e.addEventListener('change',function(){
+    if((el('rSira').value||'').replace(/\D/g,''))run(); else syncQS();
+  });});
   // Filtre değişince otomatik yeniden hesapla (sıra girilmişse)
   ['rIl','rTur','rDil','rUni','rBol','rPt'].forEach(function(id){var e=el(id);if(e)e.addEventListener('change',function(){
     if((el('rSira').value||'').replace(/\D/g,''))run(); else syncQS();
@@ -2872,6 +2949,8 @@ ROBOT_JS = r"""<script nonce="__NONCE__">
     if(qs.il){var s=el('rIl');var o=document.createElement('option');o.value=qs.il;o.textContent=qs.il;o.selected=true;s.appendChild(o);}
     if(qs.dil&&el('rDil')){var sd=el('rDil');var od=document.createElement('option');od.value=qs.dil;od.textContent=qs.dil;od.selected=true;sd.appendChild(od);}
     ['uni','bol'].forEach(function(kk){var idm={uni:'rUni',bol:'rBol'};if(qs[kk]&&el(idm[kk])){var se=el(idm[kk]);var oo=document.createElement('option');oo.value=qs[kk];oo.textContent=qs[kk];oo.selected=true;se.appendChild(oo);}});
+    if(qs.smin!=null&&el('rSMin'))el('rSMin').value=qs.smin;
+    if(qs.smax!=null&&el('rSMax'))el('rSMax').value=qs.smax;
     if(qs.sira){el('rSira').value=qs.sira;run();}else{drawChips();}
   })();
 })();
@@ -2941,7 +3020,12 @@ def page_tercih_robotu():
       <select id="rUni" class="btn btn-ghost" style="text-align:left;width:100%;margin-top:4px"><option value="">Tüm üniversiteler</option></select></div>
     <div><label style="font-size:12px;color:var(--fg-faded);font-weight:700">Bölüm (ops.)</label>
       <select id="rBol" class="btn btn-ghost" style="text-align:left;width:100%;margin-top:4px"><option value="">Tüm bölümler</option></select></div>
+    <div><label style="font-size:12px;color:var(--fg-faded);font-weight:700">Başarı Sırası (en az, ops.)</label>
+      <input id="rSMin" type="text" inputmode="numeric" placeholder="örn. 30000" style="width:100%;margin-top:4px;padding:9px 10px;border:1px solid var(--border);border-radius:8px;background:var(--bg-card-alt);color:var(--fg);font-family:inherit;font-size:14px"></div>
+    <div><label style="font-size:12px;color:var(--fg-faded);font-weight:700">Başarı Sırası (en çok, ops.)</label>
+      <input id="rSMax" type="text" inputmode="numeric" placeholder="örn. 60000" style="width:100%;margin-top:4px;padding:9px 10px;border:1px solid var(--border);border-radius:8px;background:var(--bg-card-alt);color:var(--fg);font-family:inherit;font-size:14px"></div>
     <button type="button" class="btn btn-primary" id="rBtn">Programları Göster</button>
+    <button type="button" class="btn btn-ghost" id="rCsv">⬇️ CSV İndir</button>
   </div>
   <div class="filter-chips" id="chips" style="display:none"></div>
   <div id="rstatus" style="margin-top:14px;font-size:14px;color:var(--accent);font-weight:700"></div>
@@ -2949,12 +3033,18 @@ def page_tercih_robotu():
 
 <div class="data-table-wrap">
 <table class="data-table" data-live="1">
-<thead><tr><th data-tip="Programın YÖK Atlas'taki tam adı ve bağlı olduğu üniversite." data-type="text">Program / Üniversite</th><th data-tip="Programın bulunduğu il." data-type="text">İl</th><th data-tip="Üniversite türü: Devlet, Vakıf, KKTC veya özel kontenjan türü." data-type="text">Tür</th><th data-tip="Programın 2025 genel kontenjanı (kaç kişi alındığı)." data-type="num">Kontenjan</th><th data-tip="Programa 2025'te en son yerleşen adayın YKS yerleştirme puanı." data-type="num">Taban Puan</th><th data-tip="Programın 2025 taban başarı sırası. Küçük sıra = daha yüksek başarı. ℹ️ ile 2024/2023 geçmişini görebilirsiniz." data-type="num">Başarı Sırası</th><th data-tip="Girdiğin sıraya göre yerleşme şansı: Rahat (güvenli), Olası (sıraya yakın), Sınırda (riskli)." data-type="text">Şans</th><th data-nosort data-tip="Programı ⭐ ile tercih listene ekle.">⭐</th></tr></thead>
+<thead><tr><th data-tip="Programın YÖK Atlas'taki tam adı ve bağlı olduğu üniversite." data-type="text">Program / Üniversite</th><th data-tip="Programın bulunduğu il." data-type="text">İl</th><th data-tip="Üniversite türü: Devlet, Vakıf, KKTC veya özel kontenjan türü." data-type="text">Tür</th><th data-tip="Programın 2025 genel kontenjanı (kaç kişi alındığı)." data-type="num">Kontenjan</th><th data-tip="Programa 2025'te en son yerleşen adayın YKS yerleştirme puanı." data-type="num">Taban Puan</th><th data-tip="Programın 2025 taban başarı sırası. Küçük sıra = daha yüksek başarı. ℹ️ ile 2024/2023 geçmişini görebilirsiniz." data-type="num">Başarı Sırası</th><th data-tip="Girdiğin sıraya göre yerleşme şansı: Rahat (güvenli), Olası (sıraya yakın), Sınırda (riskli)." data-type="text">Şans</th><th data-nosort data-tip="Programı ⭐ ile tercih listene ekle.">⭐</th><th data-nosort data-tip="En fazla 4 programı işaretleyip yan yana karşılaştırın.">⚖️</th></tr></thead>
 <tbody id="rbody"></tbody>
 </table>
 </div>
 <nav id="rPager"></nav>
 <div id="rhint" style="display:none;font-size:12px;color:var(--fg-faded);margin-top:10px;text-align:center"></div>
+<div id="cmpBar" style="display:none;align-items:center;gap:10px;margin-top:14px;padding:10px 14px;background:var(--bg-card-alt);border:1px solid var(--border);border-radius:10px">
+  <b id="cmpCount" style="font-size:13px">0/4 seçili</b>
+  <button type="button" class="btn btn-primary" id="cmpGoBtn" disabled>⚖️ Karşılaştır</button>
+  <button type="button" class="btn btn-ghost" id="cmpClrBtn">Temizle</button>
+</div>
+<div id="cmpBox" style="margin-top:14px"></div>
 
 <div class="notice"><b>Nasıl çalışır?</b> Sıranı girdiğinde hem rahat yerleşeceğin hem de <b>şansın olan</b> programlar listelenir.
 "Şans": <b>Rahat</b> (taban sıran senden epey geride — güvenli), <b>Olası</b> (sıraya yakın), <b>Sınırda</b> (taban senden biraz daha iyi — riskli ama 2026'da değişebileceği için denenebilir).
@@ -3001,8 +3091,8 @@ Bu bir tahmindir; 2026 taban sıraları kontenjan ve tercih yoğunluğuna göre 
 # ───────────────────────── BÖLÜM (program grubu) SAYFALARI ─────────────────────────
 PUAN_ROBOT_JS = r"""<script nonce="__NONCE__">
 (function(){
-  var CFG=__CFG__, SV=window.SV||{}, NCOL=CFG.show.length+4+(CFG.hist?1:0);
-  var data=[],byId={};
+  var CFG=__CFG__, SV=window.SV||{}, NCOL=CFG.show.length+5+(CFG.hist?1:0);
+  var data=[],byId={},cmpData={},cmpSel=[];
   var pf0=function(n){return n==null?'—':Number(n).toLocaleString('tr-TR',{minimumFractionDigits:2,maximumFractionDigits:2});};
   // Kodlu kolonlar (ör. LGS tür harfi 'F'→'Fen Lisesi') — CFG.maps={idx:{kod:etiket}} varsa uygulanır.
   function mapped(idx,v){ var m=CFG.maps&&CFG.maps[idx]; return m&&m[v]!=null? m[v] : v; }
@@ -3046,21 +3136,28 @@ PUAN_ROBOT_JS = r"""<script nonce="__NONCE__">
   function applyQS(){
     var qs=SV.qsGet?SV.qsGet():{};
     if(qs.puan!=null)el('rPuan').value=qs.puan;
+    if(qs.tmin!=null&&el('rTMin'))el('rTMin').value=qs.tmin;
+    if(qs.tmax!=null&&el('rTMax'))el('rTMax').value=qs.tmax;
     CFG.filters.forEach(function(f,n){var s=el('rf'+n);if(s&&qs['f'+n]!=null)s.value=qs['f'+n];});
     if(qs.puan){run();}else{drawChips();}
   }
   function syncQS(){
     var o={};var p=el('rPuan').value.trim();if(p)o.puan=p;
+    var tmin=el('rTMin')&&el('rTMin').value.trim();if(tmin)o.tmin=tmin;
+    var tmax=el('rTMax')&&el('rTMax').value.trim();if(tmax)o.tmax=tmax;
     CFG.filters.forEach(function(f,n){var s=el('rf'+n);if(s&&s.value)o['f'+n]=s.value;});
     if(SV.qsSet)SV.qsSet(o);drawChips();
   }
   function drawChips(){
     if(!SV.chips)return;var items=[];var p=el('rPuan').value.trim();
     if(p)items.push({key:'puan',label:'Puan: '+p});
+    var tmin=el('rTMin')&&el('rTMin').value.trim(), tmax=el('rTMax')&&el('rTMax').value.trim();
+    if(tmin||tmax)items.push({key:'trange',label:'Taban: '+(tmin||'—')+' – '+(tmax||'—')});
     CFG.filters.forEach(function(f,n){var s=el('rf'+n);if(s&&s.value)items.push({key:'f'+n,label:f[1]+': '+s.value});});
     SV.chips('chips',items,function(key){
-      if(key==='__all__'){el('rPuan').value='';CFG.filters.forEach(function(f,n){var s=el('rf'+n);if(s)s.value='';});}
+      if(key==='__all__'){el('rPuan').value='';if(el('rTMin'))el('rTMin').value='';if(el('rTMax'))el('rTMax').value='';CFG.filters.forEach(function(f,n){var s=el('rf'+n);if(s)s.value='';});}
       else if(key==='puan')el('rPuan').value='';
+      else if(key==='trange'){if(el('rTMin'))el('rTMin').value='';if(el('rTMax'))el('rTMax').value='';}
       else CFG.filters.forEach(function(f,n){if('f'+n===key){var s=el('rf'+n);if(s)s.value='';}});
       initFilters();run();
     });
@@ -3091,9 +3188,12 @@ PUAN_ROBOT_JS = r"""<script nonce="__NONCE__">
       var det=CFG.hist?detailRow(r,NCOL):'';
       var dbtn=det? '<td style="text-align:center"><button type="button" class="pdet" data-ri="'+ri+'" aria-expanded="false" aria-label="Geçmiş yıl verilerini göster">ℹ️</button></td>' : (CFG.hist?'<td></td>':'');
       var k=rkey(r);byId[k]={id:k,name:String(r[CFG.nb]||''),sub:(CFG.ns!=null?String(r[CFG.ns]||''):''),meta:'taban '+pf(r[CFG.taban])};
+      cmpData[k]=r;
       var on=fav&&fav.has(k);
       var star='<td style="text-align:center"><button type="button" class="fav-star'+(on?' on':'')+'" data-fid="'+k.replace(/"/g,'&quot;')+'" aria-label="Tercih listeme ekle">'+(on?'★':'☆')+'</button></td>';
-      out.push('<tr>'+name+show+'<td><strong>'+pf(r[CFG.taban])+'</strong></td><td>'+safe+'</td>'+dbtn+star+'</tr>');
+      var onCmp=cmpSel.indexOf(k)>=0;
+      var cmp='<td style="text-align:center"><input type="checkbox" class="cmp-chk" data-cid="'+k.replace(/"/g,'&quot;')+'"'+(onCmp?' checked':'')+' aria-label="Karşılaştırmaya ekle"></td>';
+      out.push('<tr>'+name+show+'<td><strong>'+pf(r[CFG.taban])+'</strong></td><td>'+safe+'</td>'+dbtn+star+cmp+'</tr>');
       if(det) out.push(det.replace('<tr class="pdet-row">','<tr class="pdet-row" data-ri="'+ri+'" hidden>'));
     });
     tb.innerHTML=out.join('');
@@ -3101,15 +3201,42 @@ PUAN_ROBOT_JS = r"""<script nonce="__NONCE__">
     else if(pgr)pgr.reset();
     el('rhint').style.display='block';
     el('rhint').textContent='Sütun başlığına tıklayarak sıralayabilir, filtrelerle listeyi daraltabilirsiniz.';
+    cmpBar();
+  }
+  // Program karşılaştırma — sonuç tablosundan seçilen 2-4 kaydı yan yana (transpoze) gösterir.
+  // Seçim yalnız bu oturumda tutulur (localStorage yok — ⭐ Tercih Listem zaten kalıcı seçenek).
+  function cmpBar(){
+    var bar=el('cmpBar'); if(!bar)return;
+    bar.style.display=cmpSel.length?'flex':'none';
+    var lbl=el('cmpCount'); if(lbl)lbl.textContent=cmpSel.length+'/4 seçili';
+    var btn=el('cmpGoBtn'); if(btn)btn.disabled=cmpSel.length<2;
+  }
+  function renderCompare(){
+    var box=el('cmpBox'); if(!box)return;
+    var cols=cmpSel.map(function(k){return cmpData[k];}).filter(Boolean);
+    if(cols.length<2){box.innerHTML='';return;}
+    var head='<tr><th>Program</th>'+cols.map(function(r){return '<td><strong>'+(r[CFG.nb]||'')+'</strong>'+(CFG.ns!=null?'<br><small>'+(r[CFG.ns]||'')+'</small>':'')+'</td>';}).join('')+'</tr>';
+    var body=CFG.show.map(function(c){
+      return '<tr><th>'+c[1]+'</th>'+cols.map(function(r){var v=r[c[0]];return '<td>'+(v==null||v===''?'—':mapped(c[0],v))+'</td>';}).join('')+'</tr>';
+    }).join('')+'<tr><th>Taban</th>'+cols.map(function(r){return '<td><strong>'+pf(r[CFG.taban])+'</strong></td>';}).join('')+'</tr>';
+    box.innerHTML='<div class="data-table-wrap"><table class="data-table"><thead>'+head+'</thead><tbody>'+body+'</tbody></table></div>'
+      +'<button type="button" class="btn btn-ghost" id="cmpClearBtn" style="margin-top:8px">✕ Karşılaştırmayı Kapat</button>';
+    box.scrollIntoView({behavior:'smooth',block:'nearest'});
   }
   function run(){
     syncQS();
     var p=parseFloat((el('rPuan').value||'').replace(',','.').replace(/[^0-9.]/g,''));
     if(isNaN(p)||p<=0){el('rstatus').textContent='Lütfen geçerli bir puan girin.';el('rbody').innerHTML='';return;}
     userP=p;
+    var tMin=parseFloat((el('rTMin')&&el('rTMin').value||'').replace(',','.'));
+    var tMax=parseFloat((el('rTMax')&&el('rTMax').value||'').replace(',','.'));
     lastReach=data.filter(function(r){
       for(var k=0;k<CFG.filters.length;k++){var s=el('rf'+k);if(s&&s.value&&String(r[CFG.filters[k][0]])!==s.value)return false;}
-      var t=r[CFG.taban];return t!=null&&t<=p+CFG.t2;  // erişebildiklerin + biraz üstündeki sınırda olanlar
+      var t=r[CFG.taban];
+      if(t==null||t>p+CFG.t2)return false;  // erişebildiklerin + biraz üstündeki sınırda olanlar
+      if(!isNaN(tMin)&&t<tMin)return false;
+      if(!isNaN(tMax)&&t>tMax)return false;
+      return true;
     });
     sortReach();
     el('rstatus').innerHTML='<b>'+lastReach.length.toLocaleString('tr-TR')+'</b> '+CFG.noun+' şansın var (Rahat/Olası/Sınırda · puanın: '+pf(p)+')';
@@ -3120,6 +3247,15 @@ PUAN_ROBOT_JS = r"""<script nonce="__NONCE__">
     if(b.classList&&b.classList.contains('fav-star')){
       var k=b.getAttribute('data-fid');if(fav&&byId[k])fav.toggle(byId[k]);return;
     }
+    if(b.classList&&b.classList.contains('cmp-chk')){
+      var ck=b.getAttribute('data-cid'), i=cmpSel.indexOf(ck);
+      if(i>=0){cmpSel.splice(i,1);}
+      else{
+        if(cmpSel.length>=4){b.checked=false;el('rhint').textContent='En fazla 4 program karşılaştırabilirsiniz — önce birini çıkarın.';return;}
+        cmpSel.push(ck);
+      }
+      cmpBar();return;
+    }
     if(b.classList&&b.classList.contains('pdet')){
       var ri=b.getAttribute('data-ri');
       var row=el('rbody').querySelector('.pdet-row[data-ri="'+ri+'"]');
@@ -3129,9 +3265,31 @@ PUAN_ROBOT_JS = r"""<script nonce="__NONCE__">
       b.setAttribute('aria-expanded',open?'true':'false');
     }
   });
+  var cmpBox=el('cmpBox');
+  if(cmpBox)cmpBox.addEventListener('click',function(e){
+    if(e.target&&e.target.id==='cmpClearBtn')cmpBox.innerHTML='';
+  });
+  var cmpGoBtn=el('cmpGoBtn'); if(cmpGoBtn)cmpGoBtn.addEventListener('click',renderCompare);
+  var cmpClrBtn=el('cmpClrBtn'); if(cmpClrBtn)cmpClrBtn.addEventListener('click',function(){cmpSel=[];cmpBar();if(cmpBox)cmpBox.innerHTML='';draw();});
+  var csvBtn=el('rCsv');
+  if(csvBtn)csvBtn.addEventListener('click',function(){
+    if(!lastReach.length)return;
+    var headers=[CFG.ns!=null?'Program':'Ad'];
+    if(CFG.ns!=null)headers.push('Üniversite/Kurum');
+    CFG.show.forEach(function(c){headers.push(c[1]);});
+    headers.push('Taban','Şans');
+    var rows=lastReach.map(function(r){
+      var m=userP-r[CFG.taban], sans=m>=CFG.t1?'Rahat':(m>=0?'Olası':'Sınırda');
+      var row=[r[CFG.nb]||'']; if(CFG.ns!=null)row.push(r[CFG.ns]||'');
+      CFG.show.forEach(function(c){var v=r[c[0]];row.push(v==null||v===''?'':mapped(c[0],v));});
+      row.push(r[CFG.taban],sans); return row;
+    });
+    SV.downloadCSV('sinavveri-'+(CFG.ns_key||'sonuclar')+'.csv',headers,rows);
+  });
   el('rBtn').addEventListener('click',run);
   el('rPuan').addEventListener('keydown',function(e){if(e.key==='Enter')run();});
   el('rPuan').addEventListener('input',function(){if(el('rPuan').value.trim())run();});
+  [el('rTMin'),el('rTMax')].forEach(function(e){if(e)e.addEventListener('change',function(){if(el('rPuan').value.trim())run();else syncQS();});});
   // Filtre değişince cascade + otomatik yeniden hesapla (puan girilmişse)
   CFG.filters.forEach(function(f,n){var s=el('rf'+n);if(s)s.addEventListener('change',function(){
     initFilters(); if(el('rPuan').value.trim())run(); else syncQS();
@@ -3169,12 +3327,14 @@ def robot_nav(active):
 
 
 def puan_robot_page(slug, title, desc, h1, sub, veri_file, nb, ns, show, taban, filters,
-                    noun, t1, t2, intro, kaynak, puan_label, ph, hist=None, hist_has_sira=False, maps=None):
+                    noun, t1, t2, intro, kaynak, puan_label, ph, hist=None, hist_has_sira=False, maps=None,
+                    kilavuz_url=None):
     """Generic puan-bazlı tercih robotu. nb/ns: ad sütun idx (bold/alt). show: [(idx,label)] ek sütun.
     taban: taban puan idx. filters: [(idx,label)]. t1/t2: 'Rahat'/'Olası' eşik (puan farkı).
     hist: [{"yil":2024,"t":idx,"s":idx|None}, …] — verilirse ⓘ açılır satırında geçmiş yıl
     taban(+sıra) tablosu gösterilir VE "🆕 Yeni" rozeti (tüm hist alanları boşsa) devreye girer.
-    maps: {idx: {kod: etiket}} — kodlu bir `show` kolonunu insan-okur etikete çevirir (ör. LGS türü)."""
+    maps: {idx: {kod: etiket}} — kodlu bir `show` kolonunu insan-okur etikete çevirir (ör. LGS türü).
+    kilavuz_url: verilirse resmî ÖSYM kılavuzu bilgi kutusu eklenir (bkz. SINAV_KILAVUZ_URL)."""
     fhtml = ""
     for n, (idx, label) in enumerate(filters):
         fhtml += (f'<div><label style="font-size:12px;color:var(--fg-faded);font-weight:700">{label}</label>'
@@ -3183,17 +3343,25 @@ def puan_robot_page(slug, title, desc, h1, sub, veri_file, nb, ns, show, taban, 
     thead = (th_html("Program" if ns is not None else "Ad") + "".join(th_html(l) for _, l in show)
              + th_html("Taban") + th_html("Şans")
              + (('<th data-nosort data-tip="Geçmiş yıl taban puanlarını gösterir.">ⓘ</th>') if hist else "")
-             + '<th data-nosort data-tip="Kaydı ⭐ ile tercih listene ekle.">⭐</th>')
+             + '<th data-nosort data-tip="Kaydı ⭐ ile tercih listene ekle.">⭐</th>'
+             + '<th data-nosort data-tip="En fazla 4 kaydı işaretleyip yan yana karşılaştırın.">⚖️</th>')
     ns_key = slug.replace("-tercih-robotu.html", "").replace(".html", "")
     cfg = {"file": veri_file, "nb": nb, "ns": ns, "show": [[i, l] for i, l in show],
            "taban": taban, "filters": [[i, l] for i, l in filters], "noun": noun, "t1": t1, "t2": t2, "ns_key": ns_key,
            "hist": hist, "histHasSira": hist_has_sira,
            "maps": {str(i): m for i, m in maps.items()} if maps else None}
     js = PUAN_ROBOT_JS.replace("__CFG__", json.dumps(cfg, ensure_ascii=False))
+    kilavuz_box = (f"""<div class="info-box" style="margin-bottom:16px">
+  <b>📋 Resmî ÖSYM Kılavuzu</b>
+  <div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:8px">
+    <a class="btn btn-ghost" href="{kilavuz_url}" target="_blank" rel="noopener">📄 Kılavuz ve Program Bilgileri →</a>
+  </div>
+  <div style="font-size:12.5px;color:var(--fg-faded);margin-top:8px">Program kodu, kontenjan ve tercih koşulları için ÖSYM'nin güncel resmî kılavuzunu kontrol edin — kodlar yıldan yıla değişebilir.</div>
+</div>""" if kilavuz_url else "")
     body = f"""
 <div class="crumb"><a href="/index.html">Ana Sayfa</a> / <a href="/tercih-robotu.html">Tercih Robotu</a> / {h1}</div>
 <div class="page-title"><h1>{h1}</h1><span class="sub">{sub}</span></div>
-{robot_nav(slug)}
+{robot_nav(slug)}{kilavuz_box}
 <div class="fav-bar" id="favBar"><button type="button" class="fav-toggle" id="favBtn">⭐ Tercih Listem (0)</button></div>
 <div class="fav-panel" id="favPanel"></div>
 <div class="info-box">{intro}</div>
@@ -3202,7 +3370,12 @@ def puan_robot_page(slug, title, desc, h1, sub, veri_file, nb, ns, show, taban, 
     <div><label style="font-size:12px;color:var(--fg-faded);font-weight:700">{puan_label}</label>
       <input id="rPuan" type="text" inputmode="decimal" placeholder="{ph}" style="width:100%;margin-top:4px;padding:9px 10px;border:1px solid var(--border);border-radius:8px;background:var(--bg-card-alt);color:var(--fg);font-family:inherit;font-size:14px"></div>
     {fhtml}
+    <div><label style="font-size:12px;color:var(--fg-faded);font-weight:700">Taban (en az, ops.)</label>
+      <input id="rTMin" type="text" inputmode="decimal" placeholder="örn. 300" style="width:100%;margin-top:4px;padding:9px 10px;border:1px solid var(--border);border-radius:8px;background:var(--bg-card-alt);color:var(--fg);font-family:inherit;font-size:14px"></div>
+    <div><label style="font-size:12px;color:var(--fg-faded);font-weight:700">Taban (en çok, ops.)</label>
+      <input id="rTMax" type="text" inputmode="decimal" placeholder="örn. 400" style="width:100%;margin-top:4px;padding:9px 10px;border:1px solid var(--border);border-radius:8px;background:var(--bg-card-alt);color:var(--fg);font-family:inherit;font-size:14px"></div>
     <button type="button" class="btn btn-primary" id="rBtn">Yerleşebileceklerimi Göster</button>
+    <button type="button" class="btn btn-ghost" id="rCsv">⬇️ CSV İndir</button>
   </div>
   <div class="filter-chips" id="chips" style="display:none"></div>
   <div id="rstatus" style="margin-top:14px;font-size:14px;color:var(--accent);font-weight:700"></div>
@@ -3212,6 +3385,12 @@ def puan_robot_page(slug, title, desc, h1, sub, veri_file, nb, ns, show, taban, 
 </div>
 <nav id="rPager"></nav>
 <div id="rhint" style="display:none;font-size:12px;color:var(--fg-faded);margin-top:10px;text-align:center"></div>
+<div id="cmpBar" style="display:none;align-items:center;gap:10px;margin-top:14px;padding:10px 14px;background:var(--bg-card-alt);border:1px solid var(--border);border-radius:10px">
+  <b id="cmpCount" style="font-size:13px">0/4 seçili</b>
+  <button type="button" class="btn btn-primary" id="cmpGoBtn" disabled>⚖️ Karşılaştır</button>
+  <button type="button" class="btn btn-ghost" id="cmpClrBtn">Temizle</button>
+</div>
+<div id="cmpBox" style="margin-top:14px"></div>
 <div class="notice"><b>Nasıl çalışır?</b> Puanın bir programın/kadronun taban puanından <b>yüksek veya eşitse</b> oraya yerleşebilirsin.
 "Şans" payı güvenliği gösterir: <b>Rahat</b> (geniş pay), <b>Olası</b>, <b>Sınırda</b>. Bu bir tahmindir; gelecek yıl taban puanları
 kontenjan ve tercih yoğunluğuna göre değişir. <b>Kaynak:</b> {kaynak} Resmî tercih için <a href="https://www.osym.gov.tr" target="_blank" rel="noopener">ÖSYM</a> esastır.</div>
@@ -3233,7 +3412,8 @@ def page_dgs_robot():
         "DGS puanını girin; o puanla yerleşebileceğin (taban puanı ≤ senin puanın) tüm lisans programlarını en yüksek tabandan başlayarak listeler. "
         "DGS net hesaplama için <a href='/dgs-puan-hesaplama.html'>DGS puan hesaplama</a>.",
         "2025 DGS resmî ÖSYM yerleştirme verisi.", "DGS Puanın", "örn. 290,5",
-        hist=[{"yil": 2025, "t": 3}, {"yil": 2024, "t": 5}, {"yil": 2023, "t": 6}])
+        hist=[{"yil": 2025, "t": 3}, {"yil": 2024, "t": 5}, {"yil": 2023, "t": 6}],
+        kilavuz_url="https://www.osym.gov.tr/SinavGrubu/Index/8")
 
 
 def page_tus_robot():
@@ -3248,7 +3428,8 @@ def page_tus_robot():
         "TUS puanını girin; o puanla girebileceğin (taban ≤ puanın) kurum ve uzmanlık dallarını en yüksek tabandan başlayarak listeler. "
         "Uzmanlık dalı ve kontenjan türüne göre filtreleyebilirsin. TUS hesaplama için <a href='/yks-puan-hesaplama.html'>puan araçları</a>.",
         "2025 TUS 1. dönem resmî ÖSYM yerleştirme verisi.", "TUS Puanın", "örn. 58,40",
-        hist=[{"yil": 2025, "t": 4}, {"yil": 2024, "t": 6}, {"yil": 2023, "t": 7}])
+        hist=[{"yil": 2025, "t": 4}, {"yil": 2024, "t": 6}, {"yil": 2023, "t": 7}],
+        kilavuz_url="https://www.osym.gov.tr/SinavGrubu/Index/6")
 
 
 def page_dus_robot():
@@ -3263,7 +3444,8 @@ def page_dus_robot():
         "DUS puanını girin; o puanla girebileceğin (taban ≤ puanın) kurum ve diş hekimliği uzmanlık dallarını listeler. "
         "Uzmanlık dalı ve kontenjan türüne göre filtreleyebilirsin.",
         "2025 DUS resmî ÖSYM yerleştirme verisi.", "DUS Puanın", "örn. 55,20",
-        hist=[{"yil": 2025, "t": 4}, {"yil": 2024, "t": 6}, {"yil": 2023, "t": 7}])
+        hist=[{"yil": 2025, "t": 4}, {"yil": 2024, "t": 6}, {"yil": 2023, "t": 7}],
+        kilavuz_url="https://www.osym.gov.tr/SinavGrubu/Index/9")
 
 
 def page_kpss_robot():
@@ -3283,7 +3465,8 @@ def page_kpss_robot():
         "<p style='margin:0 0 9px'>⏳ Kendi sınav puanın üzerinden, senin kişisel özelliklerine ve önceliklerine göre, konusunda uzman bir KPSS rehberi eşliğinde senin için sıralı, kişiye özel tercih listeni hazırlayalım. <a href='/kpss-tercih-raporu.html' style='color:#fde047;font-weight:700;text-decoration:underline'>Detaylar ve örnek rapor →</a></p>"
         "<p style='margin:0'>👨‍🏫 Tercihte yalnız kalma. KPSS uzmanı + SınavVeri verisi = sana özel, sıralı, gerekçeli tercih raporu; garanti odaklı strateji. <a href='/kpss-tercih-raporu.html' style='color:#fde047;font-weight:700;text-decoration:underline'>Örnek raporu incele →</a></p></div>",
         "ÖSYM 2025 KPSS resmî yerleştirme verisi (2025/1–2025/5).", "KPSS Puanın", "örn. 85,40",
-        hist=[{"yil": 2025, "t": 6}, {"yil": 2024, "t": 8}])
+        hist=[{"yil": 2025, "t": 6}, {"yil": 2024, "t": 8}],
+        kilavuz_url="https://www.osym.gov.tr/SinavGrubu/Menu/338")
 
 
 def page_lgs_robot(lgs):
