@@ -1,7 +1,15 @@
 {
- "guncelleme": "2026-08-18T09:00:11",
+ "guncelleme": "2026-08-18T09:30:16",
  "kaynak": "ÖSYM",
  "duyurular": [
+  {
+   "tarih": "2026-08-18",
+   "baslik": "2026-YKS Yerleştirme Sonuçlarına İlişkin Sayısal Bilgiler",
+   "url": "https://www.osym.gov.tr/2026-yks-yerlestirme-sonuclarina-iliskin-sayisal-bilgiler",
+   "slug": "2026-yks-yerlestirme-sonuclarina-iliskin-sayisal-bilgiler",
+   "sinav": "YKS",
+   "tip": "yerlestirme"
+  },
   {
    "tarih": "2026-08-18",
    "baslik": "2026-YKS: Yerleştirme Sonuçları Açıklandı",
