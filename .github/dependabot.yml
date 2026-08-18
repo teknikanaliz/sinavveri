@@ -1,0 +1,19 @@
+# Dependabot — bagimlilik guncelleme + guvenlik yamalari
+#
+# POLITIKA (2026-08-18, olculerek secildi):
+#   • github-actions AYLIK, gruplu  — action surumleri yavas degisir; haftalik = gurultu.
+#   • groups → minor+patch TEK PR. MAJOR gruba GIRMEZ, ayri PR gelir (kirici olabilir).
+#   • open-pull-requests-limit: 3 (varsayilan 5).
+version: 2
+updates:
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "monthly"
+    open-pull-requests-limit: 3
+    labels: ["dependencies", "github-actions"]
+    commit-message:
+      prefix: "ci"
+    groups:
+      actions:
+        patterns: ["*"]
