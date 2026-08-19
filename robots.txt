@@ -1,27 +1,60 @@
-# TrVeri BOT-KORUMA STANDARDI — AI Bot Hibrit Politikasi (KARAR-1)
-# 2026-08-18: Google-Extended hem Allow hem Disallow olarak gecmesin diye tek
-# blokta toplandi (o bir AI-EGITIM sinyali → ENGEL tarafinda).
+# TrVeri BOT-KORUMA STANDARDI — AI Bot Hibrit Politikası (KARAR-1)
+# Kanonik şablon: servermimari/assets/robots-canonical.txt · sinavveri.com ile üretilir.
+#
+# İZİN VER : arama + AI-ALINTI botları — siteyi KAYNAK GÖSTERİRLER, trafik/görünürlük getirir.
+# ENGELLE  : yalnızca AI-EĞİTİM / scrape botları — karşılıksız veri çekimi.
+#
+# NEDEN BU AYRIM GÜVENLİ (2026-08-18 araştırmasıyla doğrulandı):
+#  · GPTBot (eğitim) ile OAI-SearchBot (arama) AYRI sistemlerdir. GPTBot'u engellemek
+#    ChatGPT alıntılarını ETKİLEMEZ — ChatGPT cevapları OAI-SearchBot indeksinden gelir.
+#  · Aynı ayrım Anthropic'te de var: ClaudeBot=eğitim (engelli), Claude-User + 
+#    Claude-SearchBot=alıntı/arama (izinli).
+#  · Google-Extended'i engellemek AI Overviews görünürlüğünü ETKİLEMEZ — AIO normal
+#    Googlebot verisiyle çalışır. Yalnızca Gemini eğitim kullanımını kapatır.
+# ⚠ Alıntı botları (aşağıdaki İZİN listesi) ASLA bloklanmaz — bloklamak = AI görünürlüğü kaybı.
 
-# === IZIN VER — arama ve AI-alinti botlari ===
+# === İZİN VER — arama ve AI-alıntı botları ===
+# Google arama + AI Overviews (AIO Googlebot verisiyle çalışır)
 User-agent: Googlebot
 Allow: /
 
+# Bing arama + Copilot
 User-agent: Bingbot
 Allow: /
 
+# ChatGPT arama/alıntı — GPTBot'tan AYRI indeks
 User-agent: OAI-SearchBot
 Allow: /
 
+# ChatGPT kullanıcı isteğiyle sayfa çekimi
 User-agent: ChatGPT-User
 Allow: /
 
+# Perplexity indeksi
 User-agent: PerplexityBot
 Allow: /
 
+# Perplexity kullanıcı isteğiyle sayfa çekimi
 User-agent: Perplexity-User
 Allow: /
 
-# === ENGELLE — AI egitim / scrape botlari ===
+# Claude kullanıcı isteğiyle sayfa çekimi (Anthropic, 2026-02 doküman)
+User-agent: Claude-User
+Allow: /
+
+# Claude arama indeksi — ClaudeBot'tan AYRI
+User-agent: Claude-SearchBot
+Allow: /
+
+# Apple/Siri arama (Applebot-Extended AYRI: o eğitim, engelli)
+User-agent: Applebot
+Allow: /
+
+# DuckDuckGo arama
+User-agent: DuckDuckBot
+Allow: /
+
+# === ENGELLE — AI eğitim / scrape botları ===
 User-agent: GPTBot
 Disallow: /
 
@@ -73,6 +106,7 @@ Disallow: /
 User-agent: DataForSeoBot
 Disallow: /
 
+# === Diğer tüm botlar ===
 User-agent: *
 Allow: /
 

@@ -2665,6 +2665,18 @@ Allow: /
 User-agent: Perplexity-User
 Allow: /
 
+User-agent: Claude-User
+Allow: /
+
+User-agent: Claude-SearchBot
+Allow: /
+
+User-agent: Applebot
+Allow: /
+
+User-agent: DuckDuckBot
+Allow: /
+
 # === ENGELLE — AI egitim / scrape botlari ===
 User-agent: GPTBot
 Disallow: /
