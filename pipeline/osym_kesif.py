@@ -266,6 +266,10 @@ def guncelle(yillar=None, dogrulama=True, dry_run=False):
             print(f"    ✓ {len(gecerli)} doğrulanmış min-max PDF")
             if gecerli:
                 kay.setdefault(exam, {})[str(yil)] = gecerli
+                # ARTIMLI YAZ: keşif uzun sürüyor (KPSS bir yılda 15+ PDF doğrular).
+                # Sona bırakılırsa kesinti/timeout TÜM turun sonucunu çöpe atıyordu.
+                if not dry_run:
+                    sicil_yaz(sicil)
     if not dry_run:
         sicil_yaz(sicil)
         print(f"\n  sicil → {SICIL.relative_to(ROOT)}")

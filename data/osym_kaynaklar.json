@@ -1,5 +1,5 @@
 {
- "guncelleme": "2026-08-19T06:07:54+03:00",
+ "guncelleme": "2026-08-19T06:26:25+03:00",
  "kaynaklar": {
   "tus": {
    "2026": [
@@ -69,6 +69,56 @@
      "ek": false,
      "tip": "ana"
     }
+   ],
+   "2024": [
+    {
+     "url": "https://dokuman.osym.gov.tr/pdfdokuman/2024/TUSDONEM-1/TERCIH/EK/minmax29072024.pdf",
+     "duzey": null,
+     "donem": "2024/1 (Genel)",
+     "duyuru": "/2024tus-1-donem-ek-yerlestirme-sonuclarina-iliskin-sayisal-bilgiler",
+     "ek": true,
+     "tip": "ek"
+    },
+    {
+     "url": "https://dokuman.osym.gov.tr/pdfdokuman/2024/TUSDONEM-1/TERCIH/DALDEG/minmax26092024.pdf",
+     "duzey": null,
+     "donem": "2024/1 (Genel)",
+     "duyuru": "/2024tus-1-donem-uzmanlik-dali-degisikligi-yerlestirme-sonuclarina-iliskin-sayisal-bilgiler",
+     "ek": false,
+     "tip": "dal"
+    },
+    {
+     "url": "https://dokuman.osym.gov.tr/pdfdokuman/2024/TUSDONEM-1/TERCIH/minmax_td03062024.pdf",
+     "duzey": null,
+     "donem": "2024/1 (Genel)",
+     "duyuru": "/2024tus-1-donem-yerlestirme-sonuclarina-iliskin-sayisal-bilgiler",
+     "ek": false,
+     "tip": "ana"
+    },
+    {
+     "url": "https://dokuman.osym.gov.tr/pdfdokuman/2024/TUSDONEM-2/TERCIH/EK/tusek_minmax_20122024.pdf",
+     "duzey": null,
+     "donem": "2024/2 (Genel)",
+     "duyuru": "/2024tus-2-donem-ek-yerlestirme-sonuclarina-iliskin-sayisal-bilgiler",
+     "ek": true,
+     "tip": "ek"
+    },
+    {
+     "url": "https://dokuman.osym.gov.tr/pdfdokuman/2024/TUSDONEM-2/TERCIH/DALDEG/tus_minmax_29042025.pdf",
+     "duzey": null,
+     "donem": "2024/2 (Genel)",
+     "duyuru": "/2024tus-2-donem-uzmanlik-dali-degisikligi-yerlestirme-sonuclarina-iliskin-sayisal-bilgiler",
+     "ek": false,
+     "tip": "dal"
+    },
+    {
+     "url": "https://dokuman.osym.gov.tr/pdfdokuman/2024/TUSDONEM-2/TERCIH/minmax_yd05112024.pdf",
+     "duzey": null,
+     "donem": "2024/2 (Genel)",
+     "duyuru": "/2024tus-2-donem-yerlestirme-sonuclarina-iliskin-sayisal-bilgiler",
+     "ek": false,
+     "tip": "ana"
+    }
    ]
   },
   "dus": {
@@ -115,6 +165,32 @@
      "ek": false,
      "tip": "ana"
     }
+   ],
+   "2024": [
+    {
+     "url": "https://dokuman.osym.gov.tr/pdfdokuman/2024/DUSDONEM-1/TERCIH/EK/minmax_dsed27082024.pdf",
+     "duzey": null,
+     "donem": "2024/1 (Genel)",
+     "duyuru": "/2024dus-1donem-ek-yerlestirme-sonuclarina-iliskin-sayisal-bilgiler",
+     "ek": true,
+     "tip": "ek"
+    },
+    {
+     "url": "https://dokuman.osym.gov.tr/pdfdokuman/2024/DUSDONEM-1/TERCIH/minmax03072024.pdf",
+     "duzey": null,
+     "donem": "2024/1 (Genel)",
+     "duyuru": "/2024dus-1donem-yerlestirme-sonuclarina-iliskin-sayisal-bilgiler",
+     "ek": false,
+     "tip": "ana"
+    },
+    {
+     "url": "https://dokuman.osym.gov.tr/pdfdokuman/2024/DUSDONEM-2/TERCIH/minmax_ds2d17122024.pdf",
+     "duzey": null,
+     "donem": "2024/2 (Genel)",
+     "duyuru": "/2024dus-2-donem-yerlestirme-sonuclarina-iliskin-sayisal-bilgiler",
+     "ek": false,
+     "tip": "ana"
+    }
    ]
   },
   "dgs": {
@@ -132,6 +208,24 @@
      "duzey": null,
      "donem": "2025 (Genel)",
      "duyuru": "/2025dgs-yerlestirme-sonuclarina-iliskin-sayisal-bilgiler",
+     "ek": false,
+     "tip": "ana"
+    }
+   ],
+   "2024": [
+    {
+     "url": "https://dokuman.osym.gov.tr/pdfdokuman/2024/DGS/TERCIH/EK/minmax_ded07112024.pdf",
+     "duzey": null,
+     "donem": "2024 (Genel)",
+     "duyuru": "/2024dgs-ek-yerlestirme-sonuclarina-iliskin-sayisal-bilgiler",
+     "ek": true,
+     "tip": "ek"
+    },
+    {
+     "url": "https://dokuman.osym.gov.tr/pdfdokuman/2024/DGS/TERCIH/minmax27092024.pdf",
+     "duzey": null,
+     "donem": "2024 (Genel)",
+     "duyuru": "/2024dgs-yerlestirme-sonuclarina-iliskin-sayisal-bilgiler",
      "ek": false,
      "tip": "ana"
     }
@@ -282,6 +376,160 @@
      "duzey": "Ortaöğretim",
      "donem": "2025/5 (Sağlık Bak.)",
      "duyuru": "/kpss20255-saglik-bakanliginin-sozlesmeli-saglik-personeli-pozisyonlarinin-yerlestirme-sonuclarina-iliskin-sayisal-bilgiler",
+     "ek": false,
+     "tip": "ana"
+    }
+   ],
+   "2024": [
+    {
+     "url": "https://dokuman.osym.gov.tr/pdfdokuman/2024/KPSS/TERCIH1/minmaxlisans29072024.pdf",
+     "duzey": "Lisans",
+     "donem": "2024/1 (Genel)",
+     "duyuru": "/kpss20241-bazi-kamu-kurum-ve-kuruluslarin-kadro-ve-pozisyonlarina-yerlestirme-sonuclarina-iliskin-sayisal-bilgiler",
+     "ek": false,
+     "tip": "ana"
+    },
+    {
+     "url": "https://dokuman.osym.gov.tr/pdfdokuman/2024/KPSS/TERCIH1/minmaxonl29072024.pdf",
+     "duzey": "Önlisans",
+     "donem": "2024/1 (Genel)",
+     "duyuru": "/kpss20241-bazi-kamu-kurum-ve-kuruluslarin-kadro-ve-pozisyonlarina-yerlestirme-sonuclarina-iliskin-sayisal-bilgiler",
+     "ek": false,
+     "tip": "ana"
+    },
+    {
+     "url": "https://dokuman.osym.gov.tr/pdfdokuman/2024/KPSS/TERCIH1/minmaxort29072024.pdf",
+     "duzey": "Ortaöğretim",
+     "donem": "2024/1 (Genel)",
+     "duyuru": "/kpss20241-bazi-kamu-kurum-ve-kuruluslarin-kadro-ve-pozisyonlarina-yerlestirme-sonuclarina-iliskin-sayisal-bilgiler",
+     "ek": false,
+     "tip": "ana"
+    },
+    {
+     "url": "https://dokuman.osym.gov.tr/pdfdokuman/2024/KPSS/TERCIH2/minmaxlisans03012025.pdf",
+     "duzey": "Lisans",
+     "donem": "2024/2 (Genel)",
+     "duyuru": "/kpss20242-bazi-kamu-kurum-ve-kuruluslarin-kadro-ve-pozisyonlarina-yerlestirme-sonuclarina-iliskin-sayisal-bilgiler",
+     "ek": false,
+     "tip": "ana"
+    },
+    {
+     "url": "https://dokuman.osym.gov.tr/pdfdokuman/2024/KPSS/TERCIH2/minmaxonl03012025.pdf",
+     "duzey": "Önlisans",
+     "donem": "2024/2 (Genel)",
+     "duyuru": "/kpss20242-bazi-kamu-kurum-ve-kuruluslarin-kadro-ve-pozisyonlarina-yerlestirme-sonuclarina-iliskin-sayisal-bilgiler",
+     "ek": false,
+     "tip": "ana"
+    },
+    {
+     "url": "https://dokuman.osym.gov.tr/pdfdokuman/2024/KPSS/TERCIH2/minmaxort03012025.pdf",
+     "duzey": "Ortaöğretim",
+     "donem": "2024/2 (Genel)",
+     "duyuru": "/kpss20242-bazi-kamu-kurum-ve-kuruluslarin-kadro-ve-pozisyonlarina-yerlestirme-sonuclarina-iliskin-sayisal-bilgiler",
+     "ek": false,
+     "tip": "ana"
+    },
+    {
+     "url": "https://dokuman.osym.gov.tr/pdfdokuman/2024/KPSS/TERCIH3/minmax_ld02022024.pdf",
+     "duzey": null,
+     "donem": "2024/3 (Genel)",
+     "duyuru": "/kpss20243-milli-egitim-bakanliginin-sozlesmeli-personel-pozisyonlarinin-yerlestirme-sonuclarina-iliskin-sayisal-bilgiler",
+     "ek": false,
+     "tip": "ana"
+    },
+    {
+     "url": "https://dokuman.osym.gov.tr/pdfdokuman/2024/KPSS/TERCIH3/minmax_old02022024.pdf",
+     "duzey": null,
+     "donem": "2024/3 (Genel)",
+     "duyuru": "/kpss20243-milli-egitim-bakanliginin-sozlesmeli-personel-pozisyonlarinin-yerlestirme-sonuclarina-iliskin-sayisal-bilgiler",
+     "ek": false,
+     "tip": "ana"
+    },
+    {
+     "url": "https://dokuman.osym.gov.tr/pdfdokuman/2024/KPSS/TERCIH4/minmaxlisans_tobd19022024.pdf",
+     "duzey": "Lisans",
+     "donem": "2024/4 (Genel)",
+     "duyuru": "/kpss20244-tarim-ve-orman-bakanliginin-sozlesmeli-personel-pozisyonlarinin-yerlestirme-sonuclarina-iliskin-sayisal-bilgiler",
+     "ek": false,
+     "tip": "ana"
+    },
+    {
+     "url": "https://dokuman.osym.gov.tr/pdfdokuman/2024/KPSS/TERCIH4/minmaxonlisans_tobd19022024.pdf",
+     "duzey": "Önlisans",
+     "donem": "2024/4 (Genel)",
+     "duyuru": "/kpss20244-tarim-ve-orman-bakanliginin-sozlesmeli-personel-pozisyonlarinin-yerlestirme-sonuclarina-iliskin-sayisal-bilgiler",
+     "ek": false,
+     "tip": "ana"
+    },
+    {
+     "url": "https://dokuman.osym.gov.tr/pdfdokuman/2024/KPSS/TERCIH4/minmaxortaogretim_tobd19022024.pdf",
+     "duzey": "Ortaöğretim",
+     "donem": "2024/4 (Genel)",
+     "duyuru": "/kpss20244-tarim-ve-orman-bakanliginin-sozlesmeli-personel-pozisyonlarinin-yerlestirme-sonuclarina-iliskin-sayisal-bilgiler",
+     "ek": false,
+     "tip": "ana"
+    },
+    {
+     "url": "https://dokuman.osym.gov.tr/pdfdokuman/2024/KPSS/TERCIH5/minmax_lisansdt04032024.pdf",
+     "duzey": "Lisans",
+     "donem": "2024/5 (Genel)",
+     "duyuru": "/kpss20245-saglik-bakanliginin-sozlesmeli-saglik-personeli-pozisyonlarinin-yerlestirme-sonuclarina-iliskin-sayisal-bilgiler",
+     "ek": false,
+     "tip": "ana"
+    },
+    {
+     "url": "https://dokuman.osym.gov.tr/pdfdokuman/2024/KPSS/TERCIH5/minmax_onlisansdt04032024.pdf",
+     "duzey": "Önlisans",
+     "donem": "2024/5 (Genel)",
+     "duyuru": "/kpss20245-saglik-bakanliginin-sozlesmeli-saglik-personeli-pozisyonlarinin-yerlestirme-sonuclarina-iliskin-sayisal-bilgiler",
+     "ek": false,
+     "tip": "ana"
+    },
+    {
+     "url": "https://dokuman.osym.gov.tr/pdfdokuman/2024/KPSS/TERCIH5/minmax_ortaogretimdt04032024.pdf",
+     "duzey": "Ortaöğretim",
+     "donem": "2024/5 (Genel)",
+     "duyuru": "/kpss20245-saglik-bakanliginin-sozlesmeli-saglik-personeli-pozisyonlarinin-yerlestirme-sonuclarina-iliskin-sayisal-bilgiler",
+     "ek": false,
+     "tip": "ana"
+    },
+    {
+     "url": "https://dokuman.osym.gov.tr/pdfdokuman/2024/KPSS/TERCIH6/minmax_onl18072024.pdf",
+     "duzey": "Önlisans",
+     "donem": "2024/6 (Genel)",
+     "duyuru": "/kpss20246-milli-egitim-bakanliginin-sozlesmeli-personel-pozisyonlarinin-yerlestirme-sonuclarina-iliskin-sayisal-bilgiler",
+     "ek": false,
+     "tip": "ana"
+    },
+    {
+     "url": "https://dokuman.osym.gov.tr/pdfdokuman/2024/KPSS/TERCIH6/minmax_ort18072024.pdf",
+     "duzey": "Ortaöğretim",
+     "donem": "2024/6 (Genel)",
+     "duyuru": "/kpss20246-milli-egitim-bakanliginin-sozlesmeli-personel-pozisyonlarinin-yerlestirme-sonuclarina-iliskin-sayisal-bilgiler",
+     "ek": false,
+     "tip": "ana"
+    },
+    {
+     "url": "https://dokuman.osym.gov.tr/pdfdokuman/2024/KPSS/TERCIH7/minmaxlisans_kdd11122024.pdf",
+     "duzey": "Lisans",
+     "donem": "2024/7 (Genel)",
+     "duyuru": "/kpss20247-kentsel-donusum-baskanliginin-sozlesmeli-personel-pozisyonlarinin-yerlestirme-sonuclarina-iliskin-sayisal-bilgiler",
+     "ek": false,
+     "tip": "ana"
+    },
+    {
+     "url": "https://dokuman.osym.gov.tr/pdfdokuman/2024/KPSS/TERCIH7/minmaxonlisans_kdd11122024.pdf",
+     "duzey": "Önlisans",
+     "donem": "2024/7 (Genel)",
+     "duyuru": "/kpss20247-kentsel-donusum-baskanliginin-sozlesmeli-personel-pozisyonlarinin-yerlestirme-sonuclarina-iliskin-sayisal-bilgiler",
+     "ek": false,
+     "tip": "ana"
+    },
+    {
+     "url": "https://dokuman.osym.gov.tr/pdfdokuman/2024/KPSS/TERCIH7/minmaxortaogretim_kdd11122024.pdf",
+     "duzey": "Ortaöğretim",
+     "donem": "2024/7 (Genel)",
+     "duyuru": "/kpss20247-kentsel-donusum-baskanliginin-sozlesmeli-personel-pozisyonlarinin-yerlestirme-sonuclarina-iliskin-sayisal-bilgiler",
      "ek": false,
      "tip": "ana"
     }

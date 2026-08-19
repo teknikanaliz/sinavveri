@@ -85,6 +85,8 @@ TH_TIPS = {
     "Doluluk": ("Doluluk = yerleşen ÷ kontenjan. %100 kontenjanın tamamen dolduğunu gösterir.", "num"),
     "Taban": ("Yerleşen son adayın puanı (en düşük yerleşme puanı).", "num"),
     "Tavan": ("Yerleşen ilk adayın puanı (en yüksek yerleşme puanı).", "num"),
+    "Önceki Yıl": ("Aynı kurum/il/kadronun bir önceki yılki (aynı tür) yerleştirme tabanı. "
+                   "KPSS atamaları tek-seferlik ilan olduğundan eşleşme kısmidir.", "num"),
     "2025 Taban": ("2025'te yerleşen son adayın puanı (en düşük yerleşme puanı).", "num"),
     "2024": ("2024 yılı taban puanı; yıllar arası değişimi görmek için.", "num"),
     "2023": ("2023 yılı taban puanı; yıllar arası değişimi görmek için.", "num"),
@@ -5958,7 +5960,7 @@ def page_kpss_atama(hubs=None):
         f"KPSS Atama Taban Puanları {osym_yil('kpss')}", f"Kadro/pozisyon bazında atama puanları · ÖSYM resmî · {osym_yil('kpss')} tüm yerleştirmeler",
         "/veri/kpss.json",
         [(1, "Kadro", "b"), (0, "Kurum", "t"), (2, "İl", "t"), (3, "Düzey", "t"), (4, "Dönem", "t"),
-         (6, f"{osym_yil('kpss')} Taban", "p"), (8, f"{osym_yil('kpss')-1}", "pv"), (9, "Trend", "t"), (7, "Tavan", "pv")],
+         (6, "Taban", "p"), (8, "Önceki Yıl", "pv"), (9, "Trend", "t"), (7, "Tavan", "pv")],
         [(2, "İl"), (3, "Düzey"), (4, "Dönem")], [0, 1],
         "KPSS ile atanılan her kadro/pozisyon için ÖSYM'nin açıkladığı taban ve tavan puanlar. "
         "Kadro veya kurum arayın; il, öğrenim düzeyi ve yerleştirme dönemine göre filtreleyin. "
@@ -6014,9 +6016,11 @@ def hub_cols(exam):
     puan = [(f"{y} Taban", "tp", "p"), (f"{y-1}", "tp24", "p"), (f"{y-2}", "tp23", "p"),
             ("Trend", None, "trend"), ("Tavan", "tavan", "p")]
     if exam == "kpss":
+        # KPSS tablosu cari + önceki yılın yerleştirmelerini birlikte içerir → satırların
+        # yılı farklı. Bu yüzden sütun sabit yıl DEĞİL; hangi dönem olduğu "Dönem" sütununda.
         return ([("Kurum", "kurum", "t"), ("İl", "il", "t"), ("Düzey", "duzey", "t"),
                  ("Dönem", "donem", "t"), ("Kont.", "kont", "n"),
-                 (f"{y} Taban", "tp", "p"), (f"{y-1}", "tp24", "p"),
+                 ("Taban", "tp", "p"), ("Önceki Yıl", "tp24", "p"),
                  ("Trend", None, "trend"), ("Tavan", "tavan", "p")])
     if exam == "dgs":
         return [("Üniversite", "uni", "t"), ("Kont.", "kont", "n")] + puan

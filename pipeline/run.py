@@ -97,7 +97,8 @@ def main():
         print("\n=== ÖSYM KAYNAK KEŞFİ ===", flush=True)
         try:
             bu_yil = date.today().year
-            kesif.guncelle([bu_yil, bu_yil - 1], dogrulama=True)
+            # 3 yıl: cari (yeni yerleştirme) + cari-1 (KPSS iki-yıllık tablo) + cari-2 (trend sütunu)
+            kesif.guncelle([bu_yil, bu_yil - 1, bu_yil - 2], dogrulama=True)
             results["osym_kesif"] = True
         except Exception as e:
             print(f"  ! keşif başarısız ({e}) — mevcut sicil kullanılacak")

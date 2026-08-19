@@ -375,49 +375,76 @@ def _kpss_key(r):
     return _mkey(r["kurum"]) + "|" + _mkey(r.get("il", "")) + "|" + _mkey(r["kadro"]) + "|" + (r["duzey"] or "")
 
 
-def enrich_kpss_history(kpss, cari):
-    """Cari yıl KPSS satırlarına tp24 (= cari-1 yılı tabanı) ekler; aynı TÜR yerleştirmeyle
-    isim eşleşmesi yapılır (KPSS atamaları tek-seferlik ilanlar olduğundan eşleşme kısmidir).
+def _donem_yili(donem, varsayilan):
+    m = re.match(r"\s*(20\d{2})", donem or "")
+    return int(m.group(1)) if m else varsayilan
 
-    ⚠️ 2026-08-19: önceki yıl artık SABİT 2024 değil — sicilden `cari-1` çekilir. Aksi hâlde
-    cari 2026'ya geçtiğinde 'bir önceki yıl' sütunu 2024 verisi gösterip 2025 diye etiketlenirdi."""
-    onceki = cari - 1
-    kay = kesif.ana_kayitlar("kpss", onceki)
-    if kay:
-        gruplar = {}
-        for b in kay:
-            m = re.search(r"\(([^)]+)\)", b.get("donem") or "")
-            gruplar.setdefault(m.group(1) if m else "Genel", []).append(
-                (b["url"], b.get("duzey") or "Lisans"))
-    else:
-        print(f"    ! KPSS {onceki} sicilde yok → sabit yedek geçmiş listesi")
-        gruplar = KPSS_HIST
-    maps = {}
+
+def _kpss_yil_haritasi(yil):
+    """{kurum_tipi: {kadro_anahtarı: taban}} — o yılın yerleştirmelerinden."""
+    kay = kesif.ana_kayitlar("kpss", yil)
+    if not kay:
+        return {}
+    gruplar = {}
+    for b in kay:
+        m = re.search(r"\(([^)]+)\)", b.get("donem") or "")
+        gruplar.setdefault(m.group(1) if m else "Genel", []).append(
+            (b["url"], b.get("duzey") or "Lisans"))
+    out = {}
     for typ, urls in gruplar.items():
         m = {}
         for url, duz in urls:
             try:
-                for r in norm_kpss(parse_rows(fetch_pdf_text(url)), duz, str(onceki)):
+                for r in norm_kpss(parse_rows(fetch_pdf_text(url)), duz, str(yil)):
                     if r["tp"] is not None:
                         m[_kpss_key(r)] = r["tp"]
-            except Exception as e:
-                print(f"    KPSS {onceki} {typ} HATA: {url.split('/')[-1]} {e}")
-        maps[typ] = m
-        print(f"    KPSS {onceki} {typ}: {len(m)} kadro")
+            except Exception as e:  # noqa: BLE001
+                print(f"    KPSS {yil} {typ} HATA: {url.split('/')[-1]} {e}")
+        out[typ] = m
+        print(f"    KPSS {yil} {typ}: {len(m)} kadro")
+    return out
+
+
+def enrich_kpss_history(kpss, cari):
+    """Her satıra KENDİ yılının bir öncesindeki tabanı ekler (tp24 = satır_yılı - 1).
+
+    ⚠️ 2026-08-19: veri seti artık iki yıl birden içeriyor (cari + cari-1), bu yüzden
+    'önceki yıl' satır bazında hesaplanır — tüm tabloya tek sabit yıl uygulanamaz.
+    Sütun başlığı da bu yüzden 'Önceki Yıl' (sabit bir yıl değil)."""
+    haritalar = {}
+    for y in (cari - 1, cari - 2):
+        h = _kpss_yil_haritasi(y)
+        if not h and y == cari - 1:
+            print(f"    ! KPSS {y} sicilde yok → sabit yedek geçmiş listesi")
+            h = {}
+            for typ, urls in KPSS_HIST.items():
+                m = {}
+                for url, duz in urls:
+                    try:
+                        for r in norm_kpss(parse_rows(fetch_pdf_text(url)), duz, str(y)):
+                            if r["tp"] is not None:
+                                m[_kpss_key(r)] = r["tp"]
+                    except Exception as e:  # noqa: BLE001
+                        print(f"    KPSS {y} {typ} HATA: {e}")
+                h[typ] = m
+        haritalar[y] = h
     hit = 0
     for r in kpss:
+        hedef = _donem_yili(r.get("donem"), cari) - 1
+        h = haritalar.get(hedef)
+        if not h:
+            continue
         m = re.search(r"\(([^)]+)\)", r.get("donem", ""))
-        mp = maps.get(m.group(1) if m else "")
-        if mp is None:
-            # tür eşleşmezse (ör. cari 'Genel', geçmiş yalnız 'Sağlık Bak.') tüm haritalarda ara
+        mp = h.get(m.group(1) if m else "")
+        if mp is None:                      # tür eşleşmezse tüm haritalarda ara
             mp = {}
-            for x in maps.values():
+            for x in h.values():
                 mp.update(x)
         v = mp.get(_kpss_key(r))
         if v is not None:
             r["tp24"] = v
             hit += 1
-    print(f"    KPSS tp24 (={onceki}) eşleşme: {hit}/{len(kpss)} (%{100*hit//len(kpss) if kpss else 0})")
+    print(f"    KPSS önceki-yıl eşleşme: {hit}/{len(kpss)} (%{100*hit//len(kpss) if kpss else 0})")
     return kpss
 
 
@@ -464,10 +491,18 @@ def main():
         print(f"    {len(norm)} satır, {len(withp)} puanlı → osym_{exam}.json")
 
     # KPSS (çok dosya birleşik)
+    # KPSS: cari yılda genelde tek yerleştirme olur (2026/1 = 1.106 kadro) — yalnız onu
+    # göstermek içeriği %90 daraltıyordu. Bu yüzden CARİ + ÖNCEKİ yılın TÜM yerleştirmeleri
+    # birleştirilir (2026/1 + 2025/1..5). Satır hangi döneme ait, "Dönem" sütununda görünür.
     kpss = []
     kpss_yil = cari_yil("kpss")
     yillar["kpss"] = kpss_yil
-    for url, duzey, donem in sources("kpss", kpss_yil):
+    kpss_kaynak = list(sources("kpss", kpss_yil))
+    onceki_kaynak = kesif.ana_kayitlar("kpss", kpss_yil - 1)
+    if onceki_kaynak:
+        kpss_kaynak += [(b["url"], b.get("duzey") or "Lisans", b.get("donem") or str(kpss_yil - 1))
+                        for b in onceki_kaynak]
+    for url, duzey, donem in kpss_kaynak:
         print(f"  KPSS {donem} {duzey}: {url.split('/')[-1]}")
         try:
             rows = parse_rows(fetch_pdf_text(url))
