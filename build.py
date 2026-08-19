@@ -8,6 +8,7 @@ import json
 import re
 from datetime import date, datetime
 from pathlib import Path
+from ldjson_safe import ld_escape, ld_json   # guvenlik: <script> icine gomerken etiket kacisi
 
 
 def html_escape(s):
@@ -475,7 +476,7 @@ def base(slug, title, desc, body, *, extra_head="", extra_ld=None, og_image=None
 <meta name="twitter:title" content="{title}">
 <meta name="twitter:description" content="{desc}">
 <meta name="twitter:image" content="{og_url}">
-<script nonce="__NONCE__" type="application/ld+json">{ld}</script>
+<script nonce="__NONCE__" type="application/ld+json">{ld_escape(ld)}</script>
 <script nonce="__NONCE__">
   (function(){{ try {{ if (localStorage.getItem('sinavveri-theme') === 'dark') document.documentElement.setAttribute('data-theme','dark'); }} catch(e){{}} }})();
 </script>
