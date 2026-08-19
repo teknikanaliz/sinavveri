@@ -1,25 +1,58 @@
-# TrVeri BOT-KORUMA STANDARDI — AI Bot Hibrit Politikası (KARAR-1)
+# TrVeri BOT-KORUMA + GÖRÜNÜRLÜK STANDARDI (KARAR-1)
 # Kanonik şablon: servermimari/assets/robots-canonical.txt · sinavveri.com ile üretilir.
+# Elle düzenlemeyin — şablonu güncelleyip tüm siteleri yeniden üretin.
 #
-# İZİN VER : arama + AI-ALINTI botları — siteyi KAYNAK GÖSTERİRLER, trafik/görünürlük getirir.
-# ENGELLE  : yalnızca AI-EĞİTİM / scrape botları — karşılıksız veri çekimi.
+# AMAÇ: (1) TÜM arama motorlarında (Google · Bing · Yandex · DuckDuckGo · Apple · Yahoo)
+#       ve (2) TÜM AI cevap motorlarında (AI Overviews · ChatGPT · Perplexity · Claude ·
+#       Copilot) görünürlüğü MAKSİMUM tutmak; buna karşılık
+#       (3) karşılıksız AI-EĞİTİM/scrape çekimini engellemek.
 #
-# NEDEN BU AYRIM GÜVENLİ (2026-08-18 araştırmasıyla doğrulandı):
-#  · GPTBot (eğitim) ile OAI-SearchBot (arama) AYRI sistemlerdir. GPTBot'u engellemek
-#    ChatGPT alıntılarını ETKİLEMEZ — ChatGPT cevapları OAI-SearchBot indeksinden gelir.
-#  · Aynı ayrım Anthropic'te de var: ClaudeBot=eğitim (engelli), Claude-User + 
-#    Claude-SearchBot=alıntı/arama (izinli).
-#  · Google-Extended'i engellemek AI Overviews görünürlüğünü ETKİLEMEZ — AIO normal
-#    Googlebot verisiyle çalışır. Yalnızca Gemini eğitim kullanımını kapatır.
-# ⚠ Alıntı botları (aşağıdaki İZİN listesi) ASLA bloklanmaz — bloklamak = AI görünürlüğü kaybı.
+# ⚠ AYNI MARKANIN İKİ AYRI BOTU VAR — KARIŞTIRMAYIN:
+#   GPTBot(eğitim,ENGEL)      ≠ OAI-SearchBot/ChatGPT-User(alıntı,İZİN)
+#   ClaudeBot(eğitim,ENGEL)   ≠ Claude-SearchBot/Claude-User(alıntı,İZİN)
+#   Google-Extended(eğitim,ENGEL) ≠ Googlebot(arama+AI Overviews,İZİN)
+#   Applebot-Extended(eğitim,ENGEL) ≠ Applebot(arama,İZİN)
+#   FacebookBot(eğitim,ENGEL) ≠ facebookexternalhit(link önizleme,İZİN)
+#
+# NEDEN ENGELLEMEK GÖRÜNÜRLÜĞÜ DÜŞÜRMÜYOR (2026-08-18 araştırmasıyla doğrulandı):
+#  · GPTBot'u engellemek ChatGPT alıntılarını ETKİLEMEZ — cevaplar OAI-SearchBot indeksinden gelir.
+#  · Google-Extended'i engellemek AI Overviews'u ETKİLEMEZ — AIO normal Googlebot verisiyle çalışır.
+#
+# ⚠ robots.txt TEK BAŞINA YETMEZ: Cloudflare `ai_bots_protection` / Super Bot Fight Mode
+#   edge'de 403 verebilir. Değişiklikten sonra gerçek bot User-Agent'ıyla CANLI test edin
+#   (analiz-sistem.com ve resmitatilveri.com'da tam bu yüzden AI botları görünmezdi).
 
-# === İZİN VER — arama ve AI-alıntı botları ===
+# === İZİN VER — arama motorları + AI-alıntı + link önizleme ===
 # Google arama + AI Overviews (AIO Googlebot verisiyle çalışır)
 User-agent: Googlebot
 Allow: /
 
-# Bing arama + Copilot
+# Bing arama + Microsoft Copilot
 User-agent: Bingbot
+Allow: /
+
+# Yandex arama (TR'de anlamlı pazar payı)
+User-agent: YandexBot
+Allow: /
+
+# DuckDuckGo arama
+User-agent: DuckDuckBot
+Allow: /
+
+# Apple/Siri/Spotlight arama — Applebot-Extended AYRI (o eğitim → engelli)
+User-agent: Applebot
+Allow: /
+
+# Yahoo arama
+User-agent: Slurp
+Allow: /
+
+# Baidu arama
+User-agent: Baiduspider
+Allow: /
+
+# Seznam (CZ) arama
+User-agent: Seznambot
 Allow: /
 
 # ChatGPT arama/alıntı — GPTBot'tan AYRI indeks
@@ -38,7 +71,7 @@ Allow: /
 User-agent: Perplexity-User
 Allow: /
 
-# Claude kullanıcı isteğiyle sayfa çekimi (Anthropic, 2026-02 doküman)
+# Claude kullanıcı isteğiyle sayfa çekimi (Anthropic, 2026-02)
 User-agent: Claude-User
 Allow: /
 
@@ -46,15 +79,23 @@ Allow: /
 User-agent: Claude-SearchBot
 Allow: /
 
-# Apple/Siri arama (Applebot-Extended AYRI: o eğitim, engelli)
-User-agent: Applebot
+# Facebook/WhatsApp link ÖNİZLEME — FacebookBot AYRI (o eğitim → engelli)
+User-agent: facebookexternalhit
 Allow: /
 
-# DuckDuckGo arama
-User-agent: DuckDuckBot
+# X/Twitter kart önizleme
+User-agent: Twitterbot
 Allow: /
 
-# === ENGELLE — AI eğitim / scrape botları ===
+# LinkedIn link önizleme
+User-agent: LinkedInBot
+Allow: /
+
+# Telegram link önizleme
+User-agent: TelegramBot
+Allow: /
+
+# === ENGELLE — AI eğitim / scrape / SEO-casus botları ===
 User-agent: GPTBot
 Disallow: /
 
@@ -104,6 +145,21 @@ User-agent: Ai2Bot
 Disallow: /
 
 User-agent: DataForSeoBot
+Disallow: /
+
+User-agent: AhrefsBot
+Disallow: /
+
+User-agent: SemrushBot
+Disallow: /
+
+User-agent: MJ12bot
+Disallow: /
+
+User-agent: DotBot
+Disallow: /
+
+User-agent: BLEXBot
 Disallow: /
 
 # === Diğer tüm botlar ===
