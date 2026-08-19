@@ -21,7 +21,7 @@ ama HTML ayrıştırıcı artık hiçbir etiket sınırı göremez.
 """
 import json as _json
 
-__all__ = ["ld_escape", "ld_json"]
+__all__ = ["ld_escape", "ld_json", "ld_text"]
 
 _MAP = (("<", "\\u003c"), (">", "\\u003e"), ("&", "\\u0026"),
         (" ", "\\u2028"), (" ", "\\u2029"))
@@ -40,3 +40,18 @@ def ld_json(obj, **kw):
     """json.dumps + kaçış (tek adım). ensure_ascii varsayılan False."""
     kw.setdefault("ensure_ascii", False)
     return ld_escape(_json.dumps(obj, **kw))
+
+
+def ld_text(value):
+    """ELLE YAZILMIŞ JSON literaline gömülecek bir METİN değeri güvenli hale getirir.
+
+    Bazı üreticiler JSON-LD'yi json.dumps ile değil, f-string içinde ELLE yazıyor:
+        <script type="application/ld+json">{{"name":"{ad}", ...}}</script>
+    Burada `ad` dışarıdan geliyorsa iki ayrı kırılma olur: (1) içinde tırnak/ters bölü
+    varsa JSON bozulur, (2) kapanış etiketi varsa <script> erken kapanır → XSS.
+
+    ld_text() önce JSON string kaçışı uygular (tırnak/ters bölü/kontrol karakteri),
+    sonra etiket kaçışı ekler. ÇEVRELEYEN TIRNAKLARI DÖNDÜRMEZ — literaldeki
+    tırnakların arasına konur:  "name":"{ld_text(ad)}"
+    """
+    return ld_escape(_json.dumps("" if value is None else str(value))[1:-1])
