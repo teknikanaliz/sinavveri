@@ -176,9 +176,20 @@ def _registry(anahtar):
     return None
 
 
+def _dosya(yol):
+    """webserver'da anahtarlar REGISTRY.env yerine tek satırlık dosyalarda tutuluyor."""
+    try:
+        v = Path(yol).read_text(encoding="utf-8").strip()
+        return v or None
+    except Exception:  # noqa: BLE001
+        return None
+
+
 def telegram(metin):
-    tok = os.environ.get("TG_CLAUDE_BOT_TOKEN") or _registry("TG_CLAUDE_BOT_TOKEN") or _registry("TG_BOT_TOKEN")
-    chat = os.environ.get("TG_CLAUDE_CHAT_ID") or _registry("TG_CLAUDE_CHAT_ID") or _registry("TG_CHAT_ID")
+    tok = (os.environ.get("TG_CLAUDE_BOT_TOKEN") or _registry("TG_CLAUDE_BOT_TOKEN")
+           or _registry("TG_BOT_TOKEN") or _dosya("/root/.telegram_token"))
+    chat = (os.environ.get("TG_CLAUDE_CHAT_ID") or _registry("TG_CLAUDE_CHAT_ID")
+            or _registry("TG_CHAT_ID") or _dosya("/root/.telegram_chat"))
     if not (tok and chat):
         print("  ! Telegram anahtarı bulunamadı — bildirim atlandı")
         return False
