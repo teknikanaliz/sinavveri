@@ -9,7 +9,10 @@ import re
 import subprocess
 import tempfile
 import urllib.request
+from datetime import date
 from pathlib import Path
+
+from . import osym_kesif as kesif
 
 ROOT = Path(__file__).resolve().parent.parent
 DATA = ROOT / "data"
@@ -21,7 +24,11 @@ HDRS = {
 }
 B = "https://dokuman.osym.gov.tr/pdfdokuman/2025/"
 
-SOURCES = {
+# ⚠️ AŞAĞIDAKİ SABİT LİSTE ARTIK YALNIZ YEDEKTİR (2026-08-19).
+# ÖSYM 2026 Temmuz'da PDF URL kalıbını TAHMİN EDİLEMEZ rastgele hash'e çevirdi
+# (`/web/2026/7/kpss-20261-...-24q42vum.pdf`). Bu yüzden asıl kaynak `pipeline/osym_kesif.py`
+# sicilidir; keşif başarısız olursa ESKİ bilinen-iyi URL'lere düşülür (sessiz veri kaybı olmaz).
+LEGACY_SOURCES = {
     "tus": [B + "TUSDONEM-1/TERCIH/minmax03062025.pdf"],
     "dus": [B + "DUSDONEM-1/TERCIH/minmax_ds1d04072025.pdf"],
     "dgs": [B + "DGS/TERCIH/minmax_dgd08092025.pdf"],
@@ -41,6 +48,37 @@ SOURCES = {
         (B + "KPSS/TERCIH5/minmax_lisanssb5d14052025.pdf", "Lisans", "2025/5 (Sağlık Bak.)"),
     ],
 }
+LEGACY_YIL = 2025
+
+
+def cari_yil(exam):
+    """Sınav için EN YENİ veri yılı — sicilden. DGS 2026 yerleştirmesi henüz yapılmadığı
+    için otomatik 2025'te kalır; TUS/DUS/KPSS 2026'ya geçer. SABİT YAZILMAZ."""
+    y = kesif.en_son_yil(exam, azami=date.today().year)
+    return y or LEGACY_YIL
+
+
+def sources(exam, yil):
+    """(exam, yıl) için min-max PDF kaynakları. Sicil boşsa sabit yedek listeye düşer."""
+    kay = kesif.ana_kayitlar(exam, yil)
+    if not kay:
+        print(f"    ! {exam.upper()} {yil} sicilde yok → sabit yedek liste kullanılıyor")
+        return LEGACY_SOURCES[exam]
+    if exam == "kpss":
+        return [(b["url"], b.get("duzey") or "Lisans", b.get("donem") or str(yil)) for b in kay]
+    return [b["url"] for b in kay]
+
+
+def gecmis_kaynaklar(exam, yil):
+    """[(yıl, url)] — cari yıldan geriye 2 yıl. Önce sicil, yoksa sabit LEGACY_HIST.
+    Sıralı: [cari-1, cari-2] — ÇIKTI ANAHTARLARI KONUMSALDIR (tp24 = cari-1, tp23 = cari-2)."""
+    out = []
+    for y in (yil - 1, yil - 2):
+        kay = kesif.ana_kayitlar(exam, y)
+        url = kay[0]["url"] if kay else LEGACY_HIST.get(exam, {}).get(y)
+        if url:
+            out.append((y, url))
+    return out
 
 
 def fetch_pdf_text(url):
@@ -127,7 +165,8 @@ def norm_dgs(rows):
 # Çok-yıllık trend için resmî ÖSYM 'En Küçük ve En Büyük Puanlar' PDF'leri (sınav → {yıl: URL}).
 # Geçmiş yıllar program/kadro KODU ile eşleştirilir (kod yıllar arası büyük oranda stabildir).
 # TUS/DUS: aynı dönem (1. dönem) yıllar arası karşılaştırılır.
-HIST_URLS = {
+# Sicilde bulunmayan eski yıllar için sabit yedek (2024/2023 — kalıp o dönemde stabildi).
+LEGACY_HIST = {
     "dgs": {
         2024: "https://dokuman.osym.gov.tr/pdfdokuman/2024/DGS/TERCIH/minmax27092024.pdf",
         2023: "https://dokuman.osym.gov.tr/pdfdokuman/2023/DGS/TERCIH/minmax11092023.pdf",
@@ -170,14 +209,15 @@ def _corekey(kurum, dal, tur):
 
 # ÖSYM kontenjan tablosu (kadro türü = ÜNİ/SBA/EAH/MSB/… kod ile). Aynı kurum+dal'da
 # birden çok program ayrımı buradan gelir. Kod yıl-içinde UNIQUE → güvenli join.
-CUR_YEAR = 2025
 KONT_URLS = {
     "tus": {
+        2026: "https://dokuman.osym.gov.tr/pdfdokuman/2026/TUSDONEM-1/kont_tablo07052026.pdf",
         2025: "https://dokuman.osym.gov.tr/pdfdokuman/2025/TUSDONEM-1/TERCIH/konttablo_ts1d21052025.pdf",
         2024: "https://dokuman.osym.gov.tr/pdfdokuman/2024/TUSDONEM-1/TERCIH/okontenjan_20052024.pdf",
         2023: "https://dokuman.osym.gov.tr/pdfdokuman/2023/TUSDONEM1/TERCIH/kontenjanlar01062023.pdf",
     },
     "dus": {
+        2026: "https://dokuman.osym.gov.tr/pdfdokuman/2026/DUSDONEM-1/TERCIH/ktablosu_dus1d10062026.pdf",
         2025: "https://dokuman.osym.gov.tr/pdfdokuman/2025/DUSDONEM-1/TERCIH/konttablo25062025.pdf",
     },
 }
@@ -221,15 +261,21 @@ def taban_maps_name(url):
     return full, core_seen
 
 
-def enrich_history(norm, exam):
-    """Mevcut yıl satırlarını önceki yılların tabanıyla zenginleştir (tp24, tp23).
+# ÇIKTI ANAHTARLARI KONUMSALDIR (2026-08-19): "tp24" = cari-1, "tp23" = cari-2.
+# Adlar tarihsel (2024/2023 döneminden kalma) ama ANLAMI konumdur; gerçek yıl etiketleri
+# data/osym_meta.json["yillar"] içinde tutulur ve sayfa başlıkları oradan üretilir.
+_GECMIS_ANAHTAR = ["tp24", "tp23"]
+
+
+def enrich_history(norm, exam, cari):
+    """Mevcut yıl satırlarını önceki 2 yılın tabanıyla zenginleştir (tp24=cari-1, tp23=cari-2).
     DGS: kodla (üniversite kodları stabil). TUS/DUS: isim + KADRO TÜRÜ anahtarıyla — ÖSYM
     program kodları yıllar arası yeniden atandığından isimle, aynı kurum+dal'daki SBA/ÜNİ/EAH
     çoklu programlarını ayırmak için kadro türüyle eşleşir (her iki yılda da kont tablosu varsa).
     Belirsiz çekirdek eşleşmeler atlanır; kötü veri build'i bozmaz."""
     if exam == "dgs":
-        for year, url in HIST_URLS.get(exam, {}).items():
-            key = "tp%s" % str(year)[2:]
+        for i, (year, url) in enumerate(gecmis_kaynaklar(exam, cari)):
+            key = _GECMIS_ANAHTAR[i]
             try:
                 m = taban_map_kod(url)
                 hit = sum(1 for r in norm if _set_if(r, key, m.get(r["kod"])))
@@ -244,9 +290,9 @@ def enrich_history(norm, exam):
     placed = [r for r in norm if r["tp"] is not None]
     cnt_full25 = Counter(_tdkey(r["kurum"], r["dal"], r["tur"]) for r in placed)
     cnt_core25 = Counter(_corekey(r["kurum"], r["dal"], r["tur"]) for r in placed)
-    for year, url in HIST_URLS.get(exam, {}).items():
-        key = "tp%s" % str(year)[2:]
-        use_kadro = CUR_YEAR in KONT_URLS.get(exam, {}) and year in KONT_URLS.get(exam, {})
+    for i, (year, url) in enumerate(gecmis_kaynaklar(exam, cari)):
+        key = _GECMIS_ANAHTAR[i]
+        use_kadro = cari in KONT_URLS.get(exam, {}) and year in KONT_URLS.get(exam, {})
         try:
             mm = norm_tus_dus(parse_rows(fetch_pdf_text(url)))
             kadY = kadro_map(KONT_URLS[exam][year]) if use_kadro else {}
@@ -307,6 +353,7 @@ def _set_if(r, key, v):
 # KPSS geçmiş (2024) — TÜR-duyarlı: postingler tek-seferlik olduğundan aynı TÜR yerleştirmeyle
 # (Genel↔Genel, Sağlık Bak.↔Sağlık Bak.) kurum+il+kadro+düzey isim anahtarıyla eşleşir.
 _KB = "https://dokuman.osym.gov.tr/pdfdokuman/2024/KPSS/"
+# Sabit YEDEK geçmiş (sicilde cari-1 yoksa). Kalıcı çözüm: osym_kesif sicili.
 KPSS_HIST = {
     "Genel": [
         (_KB + "TERCIH1/minmaxlisans29072024.pdf", "Lisans"),
@@ -328,30 +375,49 @@ def _kpss_key(r):
     return _mkey(r["kurum"]) + "|" + _mkey(r.get("il", "")) + "|" + _mkey(r["kadro"]) + "|" + (r["duzey"] or "")
 
 
-def enrich_kpss_history(kpss):
-    """2025 KPSS satırlarına tp24 ekle (aynı tür 2024 yerleştirmesiyle isim eşleşmesi)."""
+def enrich_kpss_history(kpss, cari):
+    """Cari yıl KPSS satırlarına tp24 (= cari-1 yılı tabanı) ekler; aynı TÜR yerleştirmeyle
+    isim eşleşmesi yapılır (KPSS atamaları tek-seferlik ilanlar olduğundan eşleşme kısmidir).
+
+    ⚠️ 2026-08-19: önceki yıl artık SABİT 2024 değil — sicilden `cari-1` çekilir. Aksi hâlde
+    cari 2026'ya geçtiğinde 'bir önceki yıl' sütunu 2024 verisi gösterip 2025 diye etiketlenirdi."""
+    onceki = cari - 1
+    kay = kesif.ana_kayitlar("kpss", onceki)
+    if kay:
+        gruplar = {}
+        for b in kay:
+            m = re.search(r"\(([^)]+)\)", b.get("donem") or "")
+            gruplar.setdefault(m.group(1) if m else "Genel", []).append(
+                (b["url"], b.get("duzey") or "Lisans"))
+    else:
+        print(f"    ! KPSS {onceki} sicilde yok → sabit yedek geçmiş listesi")
+        gruplar = KPSS_HIST
     maps = {}
-    for typ, urls in KPSS_HIST.items():
+    for typ, urls in gruplar.items():
         m = {}
         for url, duz in urls:
             try:
-                for r in norm_kpss(parse_rows(fetch_pdf_text(url)), duz, "2024"):
+                for r in norm_kpss(parse_rows(fetch_pdf_text(url)), duz, str(onceki)):
                     if r["tp"] is not None:
                         m[_kpss_key(r)] = r["tp"]
             except Exception as e:
-                print(f"    KPSS 2024 {typ} HATA: {url.split('/')[-1]} {e}")
+                print(f"    KPSS {onceki} {typ} HATA: {url.split('/')[-1]} {e}")
         maps[typ] = m
-        print(f"    KPSS 2024 {typ}: {len(m)} kadro")
+        print(f"    KPSS {onceki} {typ}: {len(m)} kadro")
     hit = 0
     for r in kpss:
         m = re.search(r"\(([^)]+)\)", r.get("donem", ""))
         mp = maps.get(m.group(1) if m else "")
-        if mp:
-            v = mp.get(_kpss_key(r))
-            if v is not None:
-                r["tp24"] = v
-                hit += 1
-    print(f"    KPSS tp24 eşleşme: {hit}/{len(kpss)} (%{100*hit//len(kpss) if kpss else 0})")
+        if mp is None:
+            # tür eşleşmezse (ör. cari 'Genel', geçmiş yalnız 'Sağlık Bak.') tüm haritalarda ara
+            mp = {}
+            for x in maps.values():
+                mp.update(x)
+        v = mp.get(_kpss_key(r))
+        if v is not None:
+            r["tp24"] = v
+            hit += 1
+    print(f"    KPSS tp24 (={onceki}) eşleşme: {hit}/{len(kpss)} (%{100*hit//len(kpss) if kpss else 0})")
     return kpss
 
 
@@ -375,21 +441,23 @@ def norm_kpss(rows, duzey, donem):
 
 
 def main():
-    # TUS
+    yillar = {}
     for exam in ("tus", "dus", "dgs"):
-        url = SOURCES[exam][0]
-        print(f"  {exam.upper()}: {url.split('/')[-1]}")
+        cari = cari_yil(exam)
+        yillar[exam] = cari
+        url = sources(exam, cari)[0]
+        print(f"  {exam.upper()} {cari}: {url.split('/')[-1]}")
         rows = parse_rows(fetch_pdf_text(url))
         norm = norm_tus_dus(rows) if exam in ("tus", "dus") else norm_dgs(rows)
-        if exam in ("tus", "dus") and CUR_YEAR in KONT_URLS.get(exam, {}):
+        if exam in ("tus", "dus") and cari in KONT_URLS.get(exam, {}):
             try:
-                kad = kadro_map(KONT_URLS[exam][CUR_YEAR])
+                kad = kadro_map(KONT_URLS[exam][cari])
                 for r in norm:
                     r["kadro"] = kad.get(r["kod"], "")
                 print(f"    {exam.upper()} kadro türü: {sum(1 for r in norm if r.get('kadro'))}/{len(norm)} eşleşti")
             except Exception as e:
                 print(f"    {exam.upper()} kadro HATA (atlandı): {e}")
-        enrich_history(norm, exam)  # tp24/tp23 ekle (çok-yıllık trend)
+        enrich_history(norm, exam, cari)  # tp24=cari-1, tp23=cari-2
         withp = [x for x in norm if x["tp"]]
         (DATA / f"osym_{exam}.json").write_text(
             json.dumps(norm, ensure_ascii=False, separators=(",", ":")), encoding="utf-8")
@@ -397,7 +465,9 @@ def main():
 
     # KPSS (çok dosya birleşik)
     kpss = []
-    for url, duzey, donem in SOURCES["kpss"]:
+    kpss_yil = cari_yil("kpss")
+    yillar["kpss"] = kpss_yil
+    for url, duzey, donem in sources("kpss", kpss_yil):
         print(f"  KPSS {donem} {duzey}: {url.split('/')[-1]}")
         try:
             rows = parse_rows(fetch_pdf_text(url))
@@ -405,13 +475,17 @@ def main():
             print(f"    +{len(rows)}")
         except Exception as e:
             print(f"    HATA: {e}")
-    enrich_kpss_history(kpss)  # tp24 (tür-duyarlı 2024 eşleşmesi)
+    enrich_kpss_history(kpss, kpss_yil)  # tp24 = kpss_yil-1 (tür-duyarlı eşleşme)
     (DATA / "osym_kpss.json").write_text(
         json.dumps(kpss, ensure_ascii=False, separators=(",", ":")), encoding="utf-8")
     print(f"  KPSS toplam: {len(kpss)} kadro → osym_kpss.json")
+    # Sınav BAŞINA yıl: DGS 2026 yerleştirmesi henüz yapılmadı → 2025'te kalır, diğerleri 2026.
     (DATA / "osym_meta.json").write_text(json.dumps(
-        {"kaynak": "ÖSYM 2025 'En Küçük ve En Büyük Puanlar' (resmî, dokuman.osym.gov.tr)", "yil": 2025},
+        {"kaynak": "ÖSYM 'En Küçük ve En Büyük Puanlar' (resmî, dokuman.osym.gov.tr)",
+         "yil": max(yillar.values()), "yillar": yillar,
+         "guncelleme": date.today().isoformat()},
         ensure_ascii=False, indent=2), encoding="utf-8")
+    print(f"  veri yılları: {yillar}")
 
 
 if __name__ == "__main__":

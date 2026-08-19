@@ -440,3 +440,28 @@ footer a[href*="trveri.com"]:hover { color: var(--accent-light) !important; }
 .uk-embed { width: 100%; height: 340px; border: 1px solid var(--border); border-radius: 12px; }
 .uk-vtitle { font-size: 13px; color: var(--fg-faded); margin-bottom: 7px; font-weight: 600; }
 .uk-copy { background: none; border: 1px solid var(--border); border-radius: 6px; color: var(--accent); font-size: 11px; cursor: pointer; padding: 1px 8px; }
+
+/* ── Dinamik tarih durum çipi (build.py `gun_rozet`) ────────────────────
+   Sınav/sonuç/tercih tarihleri bugüne göre çekimlenir: geçmişse "✓ tamamlandı",
+   yaklaşıyorsa "⏳ N gün kaldı". Renkler tema değişkenlerinden gelir → açık/koyu uyumlu. */
+.tarih-cip {
+  display: inline-block;
+  margin-left: 8px;
+  padding: 1px 9px;
+  border-radius: 999px;
+  font-size: 0.78em;
+  font-weight: 600;
+  line-height: 1.7;
+  white-space: nowrap;
+  vertical-align: baseline;
+  background: var(--bg-soft);
+  color: var(--fg-muted);
+  border: 1px solid var(--border);
+}
+.tarih-cip.gecmis { background: var(--good-bg); color: var(--good-fg); border-color: transparent; }
+.tarih-cip.yakin  { background: var(--warn-bg); color: var(--warn-fg); border-color: var(--warn-border); }
+.tarih-cip.bugun  { background: var(--accent); color: #fff; border-color: transparent; }
+
+@media (max-width: 520px) {
+  .tarih-cip { margin-left: 6px; padding: 1px 7px; font-size: 0.74em; }
+}

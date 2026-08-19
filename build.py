@@ -6,6 +6,7 @@ Inline <script>'lar nonce="__NONCE__" taşır (nginx sub_filter ile per-request 
 Inline event handler (onclick/onload) YOK — addEventListener kullanılır (CSP strict-dynamic)."""
 import json
 import re
+from datetime import date, datetime
 from pathlib import Path
 
 
@@ -14,7 +15,7 @@ def html_escape(s):
 
 ROOT = Path(__file__).parent
 SITE = "https://sinavveri.com"
-ASSET_VER = "20260719a"
+ASSET_VER = "20260819a"
 
 # Kişiye Özel KPSS Tercih Raporu — hizmet yapılandırması
 # whatsapp: "905XXXXXXXXX" (boşsa WhatsApp butonu gizlenir) · email: sipariş e-postası
@@ -108,9 +109,20 @@ TH_TIPS = {
 }
 
 
+_YIL_BASLIK_RE = re.compile(r"^(20\d{2})( Taban(?: Puan)?)?$")
+
+
 def th_html(label, extra=""):
     """<th> üretir; başlık TH_TIPS'te tanımlıysa data-tip + data-type ekler (rule 3.17)."""
     t = TH_TIPS.get(label)
+    if not t:
+        # Yıl başlıkları artık dinamik ("2026 Taban", "2025"…) — sözlükte sabit anahtar
+        # tutmak yerine kalıptan açıklama üretilir, böylece her yıl otomatik doğru olur.
+        m = _YIL_BASLIK_RE.match(label)
+        if m:
+            y = m.group(1)
+            t = ((f"{y} yılında yerleşen son adayın puanı (en düşük yerleşme puanı)." if m.group(2)
+                  else f"{y} yılı taban puanı; yıllar arası değişimi görmek için."), "num")
     if not t:
         return f"<th{(' ' + extra) if extra else ''}>{label}</th>"
     tip = t[0].replace('"', "&quot;")
@@ -804,6 +816,39 @@ def trend_chart(group_recs, divid):
 
 # ───────────────────────── TAKVİM VERİSİ ─────────────────────────
 CAL = json.loads((ROOT / "data" / "takvim-2026.json").read_text(encoding="utf-8"))
+# ── VERİ YILLARI — SABİT YAZILMAZ, meta dosyalarından okunur ─────────────────
+# NEDEN (2026-08-19): sayfa başlıkları/kaynak notları "YÖK Atlas {YKS_YIL}", "MEB {LGS_YIL} LGS",
+# "2025 Taban" diye elle yazılıydı. Veri 2026'ya geçtiğinde etiketler 2025 kalıyor ve
+# site YANLIŞ YIL gösteriyordu. Artık her etiket ilgili çekicinin meta dosyasından gelir.
+def _meta(ad):
+    f = ROOT / "data" / ad
+    try:
+        return json.loads(f.read_text(encoding="utf-8")) if f.exists() else {}
+    except Exception:
+        return {}
+
+
+YOKATLAS_META = _meta("yokatlas_meta.json")
+# taban_yili = taban puanı/başarı sırasının ait olduğu YERLEŞTİRME yılı (kılavuz yılından
+# farklı olabilir: kılavuz Temmuz'da çıkar, o yılın yerleştirmesi Ağustos'ta biter).
+YKS_YIL = int(YOKATLAS_META.get("taban_yili") or YOKATLAS_META.get("yil") or 2025)
+YKS_HIST = [int(x) for x in (YOKATLAS_META.get("hist_yillari") or [YKS_YIL - 1, YKS_YIL - 2, YKS_YIL - 3])]
+YKS_KILAVUZ_YIL = int(YOKATLAS_META.get("yil") or YKS_YIL)
+
+LGS_META = _meta("lgs_meta.json")
+LGS_YIL = int(LGS_META.get("yil") or 2025)
+LGS_HIST = [int(x) for x in (LGS_META.get("yillar") or [LGS_YIL, LGS_YIL - 1, LGS_YIL - 2, LGS_YIL - 3])][1:]
+
+OSYM_META = _meta("osym_meta.json")
+
+
+def osym_yil(exam):
+    """TUS/DUS/DGS/KPSS için veri yılı. DGS 2026 yerleştirmesi henüz yapılmadığı için
+    sınav başına AYRI yıl tutulur — hepsini tek yıla sabitlemek yanlış etiket üretir."""
+    y = OSYM_META.get("yillar") or {}
+    return int(y.get(exam) or OSYM_META.get("yil") or 2025)
+
+
 _demo_p = ROOT / "data" / "demografi.json"
 DEMOGRAFI = json.loads(_demo_p.read_text(encoding="utf-8")) if _demo_p.exists() else {}
 _univ_p = ROOT / "data" / "universiteler.json"
@@ -987,7 +1032,7 @@ def gen_uni_og(slug, u, info, recs):
 
     # Alt bar metni
     d.text((70, H - 52), "SınavVeri.com", font=_font(30, True), fill=(245, 158, 11))
-    d.text((W - 430, H - 50), "2025 Taban Puanları · YÖK Atlas", font=_font(26), fill=(200, 208, 225))
+    d.text((W - 430, H - 50), f"{YKS_YIL} Taban Puanları · YÖK Atlas", font=_font(26), fill=(200, 208, 225))
 
     img.save(dest, "PNG")
     return f"/assets/og/uni/{slug}.png"
@@ -1040,7 +1085,7 @@ def uni_analiz(u, info, recs):
         s.append(f"Üniversitede toplam <b>{nf_tr(ogr)} öğrenci</b> öğrenim görmektedir.")
 
     # 3. Program zenginliği + güçlü bölümler
-    p3 = f"YÖK Atlas 2025 verisine göre {nprog} programı"
+    p3 = f"YÖK Atlas {YKS_YIL} verisine göre {nprog} programı"
     if fak:
         p3 += f" ve {fak} fakülte/birimi"
     p3 += " bulunan üniversitenin"
@@ -1168,6 +1213,307 @@ def fmt_date(iso):
         return iso
 
 
+# ───────────────────── DİNAMİK TARİH / ÇEKİM MOTORU ─────────────────────
+# NEDEN (2026-08-19): sayfalarda "2026'da TYT 20 Haziran'da yapılacaktır" gibi SABİT
+# çekimli cümleler vardı — sınav geçtikten sonra bile "yapılacaktır" yazıyordu. Artık
+# tüm tarih ifadeleri BUILD ANINDA bugüne göre çekimlenir. build.py cron'da 3 saatte bir
+# koştuğu için sayfa kendini gün içinde en geç 3 saatte doğru çekime çevirir.
+#
+# İKİNCİ KATMAN — GERÇEKLEŞEN tarih düzeltmesi: planlanan takvim ile ÖSYM'nin fiilî
+# duyuru tarihi ayrışabiliyor (ör. 2026-YKS sonucu takvimde 22 Tem, fiilen 21 Tem
+# açıklandı). `GERCEKLESEN` tablosu duyuru arşivinden türetilir ve planlanan tarihi ezer.
+
+BUGUN = date.today()
+# Takvim verisi hem tam ("6 Şubat") hem kısa ("6 Şub") ay adı kullanıyor — ikisi de tanınır.
+AY_KISA = ["", "Oca", "Şub", "Mar", "Nis", "May", "Haz", "Tem", "Ağu", "Eyl", "Eki", "Kas", "Ara"]
+_AY_NO = {a: i for i, a in enumerate(AY_TR) if a}
+_AY_NO.update({a: i for i, a in enumerate(AY_KISA) if a})
+# Uzun adlar ÖNCE: alternatifte "Mart" | "Mar" sırası korunmazsa "Mart" yalnız "Mar" eşleşir.
+AY_RE = "|".join(sorted((a for a in _AY_NO), key=len, reverse=True))
+TR_TARIH_RE = re.compile(r"\b(\d{1,2})\s+(" + AY_RE + r")\s+(20\d{2})\b")
+
+# Yıl için Türkçe bulunma-hâli eki: okunuşun SON kelimesine göre (2026 'yirmi altı' → 'da').
+_YIL_EK_BIRLER = {1: "de", 2: "de", 3: "te", 4: "te", 5: "te", 6: "da", 7: "de", 8: "de", 9: "da"}
+_YIL_EK_ONLAR = {1: "da", 2: "de", 3: "da", 4: "ta", 5: "de", 6: "ta", 7: "te", 8: "de", 9: "da"}
+
+
+def yil_lok(y):
+    """2026 → "2026'da", 2025 → "2025'te" (bulunma hâli, okunuşa göre doğru ek)."""
+    y = int(y)
+    b, o = y % 10, (y % 100) // 10
+    ek = _YIL_EK_BIRLER.get(b) or _YIL_EK_ONLAR.get(o) or "de"
+    return f"{y}'{ek}"
+
+
+def _d(iso):
+    """ISO metni → date; çözülemezse None (muğlak 'Haziran 2026 sonu' gibi değerler)."""
+    if not iso or not isinstance(iso, str):
+        return None
+    try:
+        return date.fromisoformat(iso[:10])
+    except ValueError:
+        return None
+
+
+def gecmis_mi(iso):
+    d = _d(iso)
+    return d is not None and d < BUGUN
+
+
+def bugun_mu(iso):
+    return _d(iso) == BUGUN
+
+
+def kalan_gun(iso):
+    """Bugünden hedefe kalan gün (geçmişse negatif); çözülemezse None."""
+    d = _d(iso)
+    return None if d is None else (d - BUGUN).days
+
+
+def cekim(iso, gelecek, gecmis, bugun=None):
+    """Tarihe göre fiil/ifade seçer. Tarih çözülemezse GELECEK biçimi (güvenli varsayılan)."""
+    d = _d(iso)
+    if d is None:
+        return gelecek
+    if d < BUGUN:
+        return gecmis
+    if d == BUGUN:
+        return bugun or gelecek
+    return gelecek
+
+
+def tarih_ifade(iso, gelecek="yapılacak", gecmis="yapıldı", bugun=None):
+    """'20 Haziran 2026 tarihinde yapıldı' — 'tarihinde' bilinçli: yıl ekini (2026'da/2025'te)
+    cümlenin ortasında tekrar üretmek gerekmez, her yıl için doğru okunur."""
+    d = _d(iso)
+    if d is None:
+        return ""
+    return f"{fmt_date(iso)} tarihinde {cekim(iso, gelecek, gecmis, bugun)}"
+
+
+def gun_rozet(iso, gecmis_lbl="tamamlandı", bugun_lbl="bugün"):
+    """Liste maddelerinin sonuna eklenen küçük durum çipi. Boş dönerse çip basılmaz."""
+    d = _d(iso)
+    if d is None:
+        return ""
+    fark = (d - BUGUN).days
+    if fark < 0:
+        return f'<span class="tarih-cip gecmis">✓ {gecmis_lbl}</span>'
+    if fark == 0:
+        return f'<span class="tarih-cip bugun">● {bugun_lbl}</span>'
+    if fark == 1:
+        return '<span class="tarih-cip yakin">⏳ yarın</span>'
+    if fark <= 30:
+        return f'<span class="tarih-cip yakin">⏳ {fark} gün kaldı</span>'
+    return f'<span class="tarih-cip">⏳ {fark} gün kaldı</span>'
+
+
+def _metinden_son_tarih(metin):
+    """Metindeki SON 'GG Ay YYYY' tarihini ISO olarak döndürür.
+    NEDEN sonuncusu: 'Başvuru: 6 Şubat – 2 Mart 2026' gibi aralıklarda durum BİTİŞ
+    tarihine göre belirlenir (başvuru 2 Mart'ta kapanır, 6 Şubat'ta değil)."""
+    son = None
+    for m in TR_TARIH_RE.finditer(metin):
+        g, ay, y = m.group(1), m.group(2), m.group(3)
+        ay_no = _AY_NO.get(ay)
+        if not ay_no:
+            continue
+        try:
+            son = f"{int(y):04d}-{ay_no:02d}-{int(g):02d}"
+        except ValueError:
+            continue
+    return son
+
+
+def tarih_durumlu(metin, gecmis_lbl="tamamlandı"):
+    """İçinde 'GG Ay YYYY' tarihi geçen SERBEST METNE bugüne göre durum çipi ekler.
+    Tüm sınav rehberi 'Tarihleri' listeleri bundan geçer → tek yerden, her sayfada
+    doğru çekim. Tarih yoksa metin AYNEN döner (zarar vermez)."""
+    iso = _metinden_son_tarih(metin)
+    if not iso:
+        return metin
+    cip = gun_rozet(iso, gecmis_lbl=gecmis_lbl)
+    return f"{metin} {cip}" if cip else metin
+
+
+# ── GERÇEKLEŞEN tarihler: ÖSYM/MEB duyuru arşivinden (planlanan takvimi ezer) ──
+# ⚠ Arşiv 2015'e kadar uzanıyor ve duyuru TARİHİ ile SINAV YILI aynı değil
+# (ör. "2025-DUS 1. Dönem: Yerleştirme Sonuçları Açıklandı" duyurusu 24 Nis 2026'da yayımlandı).
+# Bu yüzden anahtar BAŞLIKTAN okunan sınav yılıdır, duyurunun yayım tarihi değil.
+_SINAVLAR_RE = "YKS|LGS|KPSS|EKPSS|DGS|ALES|TUS|DUS|YDUS|YDS|YÖKDİL|MSÜ|STS"
+# İki yazım da var: "2026-YKS" (yıl önde) ve "KPSS-2025/2" (yıl arkada).
+_SINAV_YIL_RE = re.compile(r"\b(20\d{2})\s*[-–—]?\s*(?:" + _SINAVLAR_RE + r")\b")
+_SINAV_YIL_RE2 = re.compile(r"\b(?:" + _SINAVLAR_RE + r")\s*[-–—/]?\s*(20\d{2})\b")
+
+
+def _gerceklesen_yukle():
+    """duyuru arşivi → {(sınav, yıl, aşama): 'YYYY-MM-DD'} — FİİLEN gerçekleşmiş tarihler.
+    Aşama: 'sonuc' (sınav sonucu açıklandı) · 'yerlestirme' · 'tercih'.
+    Duyuru arşivi 30 dk'da bir tazelendiği için bu tablo kendiliğinden güncel kalır."""
+    out = {}
+    for ad in ("osym_duyurular.json", "meb_duyurular.json"):
+        f = ROOT / "data" / ad
+        if not f.exists():
+            continue
+        try:
+            kayitlar = json.loads(f.read_text(encoding="utf-8")).get("duyurular", [])
+        except Exception:
+            continue
+        for k in kayitlar:
+            sinav, baslik, tarih = k.get("sinav"), (k.get("baslik") or ""), (k.get("tarih") or "")
+            if not sinav or len(tarih) < 10:
+                continue
+            if "Ek Yerleştirme" in baslik:      # ek yerleştirme ana takvim aşaması değil
+                continue
+            if "Yerleştirme Sonuçları" in baslik:
+                asama = "yerlestirme"
+            elif "Sınav Sonuçları" in baslik or "Sonuçları Açıklandı" in baslik:
+                asama = "sonuc"
+            elif k.get("tip") == "tercih" and "Tercihlerin Alınması" in baslik:
+                asama = "tercih"
+            else:
+                continue
+            m = _SINAV_YIL_RE.search(baslik) or _SINAV_YIL_RE2.search(baslik)
+            # başlıkta sınav yılı yoksa (çoğunlukla MEB/LGS) duyuru yılına düşülür —
+            # LGS aşamaları aynı takvim yılı içinde duyurulur, bu güvenli.
+            yil = int(m.group(1)) if m else int(tarih[:4])
+            anahtar = (sinav, yil, asama)
+            # aynı sınav+yıl+aşama için EN ERKEN duyuru esas (sonraki düzeltme duyuruları değil)
+            if anahtar not in out or tarih < out[anahtar]:
+                out[anahtar] = tarih[:10]
+    return out
+
+
+GERCEKLESEN = _gerceklesen_yukle()
+
+
+def fmt_gunay(iso):
+    """'2026-06-20' → '20 Haziran' (yıl cümlede zaten geçiyorsa tekrar etmemek için)."""
+    d = _d(iso)
+    return f"{d.day} {AY_TR[d.month]}" if d else (iso or "")
+
+
+def cal_bul(*parcalar):
+    """Takvimden adında verilen parçaların HEPSİ geçen ilk sınavı bulur ({} = yok)."""
+    for sv in CAL["sinavlar"]:
+        if all(x in sv["ad"] for x in parcalar):
+            return sv
+    return {}
+
+
+# Takvimdeki en ileri sınav yılı — sayfa başlıklarında "2026" SABİT yazılmasın diye.
+TAKVIM_YILI = max((int(sv["sinav"][:4]) for sv in CAL["sinavlar"]
+                   if isinstance(sv.get("sinav"), str) and sv["sinav"][:4].isdigit()),
+                  default=BUGUN.year)
+
+
+def sinav_aralik_metni(isolar):
+    """['2026-06-20','2026-06-21'] → '20-21 Haziran 2026' (aynı ay) / tam tarih aralığı."""
+    isolar = sorted(set(x for x in isolar if _d(x)))
+    if not isolar:
+        return ""
+    ilk, son = _d(isolar[0]), _d(isolar[-1])
+    if ilk == son:
+        return fmt_date(isolar[-1])
+    if (ilk.year, ilk.month) == (son.year, son.month):
+        return f"{ilk.day}-{son.day} {AY_TR[son.month]} {son.year}"
+    return f"{fmt_gunay(isolar[0])} – {fmt_date(isolar[-1])}"
+
+
+def sinav_cumle(*parcalar, on=""):
+    """Takvimden sınav tarihini alıp BUGÜNE göre çekimli cümle üretir:
+    gelecekse '…14 Haziran tarihinde yapılacaktır.', geçmişse '…yapılmıştır.'"""
+    iso = cal_bul(*parcalar).get("sinav")
+    if not iso:
+        return ""
+    return (f"{on}{yil_lok(iso[:4])} {fmt_gunay(iso)} tarihinde "
+            f"{cekim(iso, 'yapılacaktır', 'yapılmıştır', 'yapılıyor')}.")
+
+
+def yks_oturum_cumle():
+    """YKS iki oturumlu — TYT ve AYT tarihlerini tek cümlede, bugüne göre çekimli verir."""
+    tyt = cal_bul("YKS", "TYT").get("sinav")
+    ayt = cal_bul("YKS", "AYT").get("sinav")
+    if not (tyt and ayt):
+        return ""
+    return (f"{yil_lok(tyt[:4])} TYT {fmt_gunay(tyt)}, AYT {fmt_gunay(ayt)} tarihinde "
+            f"{cekim(ayt, 'yapılacaktır', 'yapılmıştır', 'yapılıyor')}.")
+
+
+def yks_tarih_listesi():
+    """YKS rehberindeki tarih listesi — takvim + ÖSYM duyuru arşivinden üretilir.
+    Tercih dönemi ve yerleştirme sonucu satırları EKSİKTİ (2026-08-19'da eklendi);
+    artık sezonun her aşaması otomatik görünür ve bugüne göre çekimlenir."""
+    tyt, ayt = cal_bul("YKS", "TYT"), cal_bul("YKS", "AYT")
+    if not tyt.get("sinav"):
+        return []
+    yil = int(tyt["sinav"][:4])
+    o = []
+    if tyt.get("basvuru"):
+        o.append(f"Başvuru: {tyt['basvuru']}")
+    o.append(f"TYT: {fmt_date(tyt['sinav'])}")
+    if ayt.get("sinav"):
+        o.append(f"AYT & YDT: {fmt_date(ayt['sinav'])}")
+    sonuc = gercek_tarih("YKS", "sonuc", tyt.get("sonuc"), yil)
+    if sonuc:
+        o.append(f"Sınav sonucu: {fmt_date(sonuc)}")
+    t_bas = tyt.get("tercih_bas") or gercek_tarih("YKS", "tercih", None, yil)
+    t_bit = tyt.get("tercih_bit")
+    if t_bas:
+        o.append(f"Tercih dönemi: {tyt.get('tercih') or fmt_date(t_bas)}"
+                 if t_bit else f"Tercih başlangıcı: {fmt_date(t_bas)}")
+    yer = tyt.get("yerlestirme") or gercek_tarih("YKS", "yerlestirme", None, yil)
+    if yer:
+        o.append(f"Yerleştirme sonuçları: {fmt_date(yer)}")
+    return o
+
+
+def kart_meta(kod, *adlar):
+    """Ana sayfa sınav kartının alt satırı. Kart hiçbir zaman geçmiş bir tarihi 'yaklaşan'
+    gibi göstermez: sınav geçtiyse OTOMATİK sonraki aşamaya (sonuç → yerleştirme) döner.
+    Çok oturumlu sınavlarda (ALES/1-2-3 gibi) SIRADAKİ oturum gösterilir; aynı haftaya
+    düşen oturumlar (YKS TYT+AYT, KPSS GY-GK+ÖABT) tek aralıkta birleştirilir."""
+    kayitlar = [k for k in (cal_bul(a) for a in adlar) if k.get("sinav")]
+    if not kayitlar:
+        return ""
+    isolar = sorted({k["sinav"] for k in kayitlar})
+    gelecek = [x for x in isolar if not gecmis_mi(x)]
+    if gelecek:
+        ilk = _d(gelecek[0])
+        grup = [x for x in gelecek if (_d(x) - ilk).days <= 7]     # aynı oturum bloğu
+        return f"Sınav: {sinav_aralik_metni(grup)} {gun_rozet(max(grup), 'yapıldı')}"
+
+    yil = int(isolar[-1][:4])
+    sonuc = gercek_tarih(kod, "sonuc", kayitlar[-1].get("sonuc"), yil)
+    if sonuc and not gecmis_mi(sonuc):
+        return f"Sonuç: {fmt_date(sonuc)} {gun_rozet(sonuc, 'açıklandı')}"
+    # yerleştirme: önce takvimdeki alan, yoksa duyuru arşivi
+    yer = next((k.get("yerlestirme") for k in kayitlar if k.get("yerlestirme")), None) \
+        or gercek_tarih(kod, "yerlestirme", None, yil)
+    if yer:
+        return f"Yerleştirme sonucu: {fmt_date(yer)} {gun_rozet(yer, 'açıklandı')}"
+    if sonuc:
+        return f"Sonuç: {fmt_date(sonuc)} {gun_rozet(sonuc, 'açıklandı')}"
+    return f"Sınav: {sinav_aralik_metni(isolar)} {gun_rozet(isolar[-1], 'yapıldı')}"
+
+
+def takvim_kart_meta():
+    """'Tüm Takvim' kartı: kaç sınavın geçtiği / kaçının kaldığı — otomatik."""
+    isolar = [sv["sinav"] for sv in CAL["sinavlar"] if _d(sv.get("sinav"))]
+    kalan = sum(1 for x in isolar if not gecmis_mi(x))
+    if kalan:
+        return f"{len(isolar)} sınav · {kalan} tanesi henüz yapılmadı"
+    return f"{len(isolar)} sınav · tümü tamamlandı"
+
+
+def gercek_tarih(sinav, asama, planlanan=None, yil=None):
+    """Fiilî duyuru tarihi varsa onu, yoksa planlanan tarihi döndürür.
+    `yil` verilmezse planlanan tarihin (yoksa bugünün) yılı kullanılır."""
+    if yil is None:
+        yil = int((planlanan or "")[:4]) if (planlanan or "")[:4].isdigit() else BUGUN.year
+    return GERCEKLESEN.get((sinav, int(yil), asama)) or planlanan
+
+
 # ───────────────────────── ANA SAYFA ─────────────────────────
 def page_index():
     # Yaklaşan sınavlar (spotlight) — istemci tarafında bugüne göre filtrelenir (her gün otomatik doğru)
@@ -1189,20 +1535,27 @@ def page_index():
              for s in CAL["sinavlar"] if s["sinav"].count("-") == 2]
     dated_json = json.dumps(dated, ensure_ascii=False)
 
+    # Kart alt satırı SABİT YAZILMAZ — takvim + ÖSYM duyurularından bugüne göre üretilir.
     exams = [
-        ("yks.html", "🎓", "YKS", "Yükseköğretim Kurumları Sınavı", "TYT + AYT ile üniversiteye giriş. ~2 milyon aday.", "20-21 Haziran 2026"),
-        ("lgs.html", "🏫", "LGS", "Liselere Geçiş Sınavı", "8. sınıf merkezi sınavı ile liseye yerleşme.", "14 Haziran 2026"),
-        ("kpss.html", "🏛️", "KPSS", "Kamu Personel Seçme Sınavı", "Kamu kadrolarına atanma için temel sınav.", "6 Eylül 2026"),
-        ("dgs.html", "📈", "DGS", "Dikey Geçiş Sınavı", "Önlisanstan lisansa geçiş sınavı.", "19 Temmuz 2026"),
-        ("ales.html", "📚", "ALES", "Akademik Personel ve Lisansüstü Eğitimi Giriş Sınavı", "Yüksek lisans, doktora ve akademik kadro.", "10 Mayıs 2026"),
-        ("takvim.html", "🗓️", "Tüm Takvim", "2026 Sınav Takvimi", "YKS, LGS, KPSS, DGS, ALES, TUS, YDS ve daha fazlası.", "19 sınav"),
+        ("yks.html", "🎓", "YKS", "Yükseköğretim Kurumları Sınavı", "TYT + AYT ile üniversiteye giriş. ~2 milyon aday.",
+         kart_meta("YKS", "YKS — TYT", "YKS — AYT", "YKS — YDT")),
+        ("lgs.html", "🏫", "LGS", "Liselere Geçiş Sınavı", "8. sınıf merkezi sınavı ile liseye yerleşme.",
+         kart_meta("LGS", "LGS")),
+        ("kpss.html", "🏛️", "KPSS", "Kamu Personel Seçme Sınavı", "Kamu kadrolarına atanma için temel sınav.",
+         kart_meta("KPSS", "KPSS Lisans (GY-GK)", "KPSS Lisans (Alan Bilgisi)")),
+        ("dgs.html", "📈", "DGS", "Dikey Geçiş Sınavı", "Önlisanstan lisansa geçiş sınavı.",
+         kart_meta("DGS", "DGS")),
+        ("ales.html", "📚", "ALES", "Akademik Personel ve Lisansüstü Eğitimi Giriş Sınavı", "Yüksek lisans, doktora ve akademik kadro.",
+         kart_meta("ALES", "ALES/1", "ALES/2", "ALES/3")),
+        ("takvim.html", "🗓️", "Tüm Takvim", f"{BUGUN.year} Sınav Takvimi", "YKS, LGS, KPSS, DGS, ALES, TUS, YDS ve daha fazlası.",
+         takvim_kart_meta()),
     ]
     cards = ""
     for href, icon, t, full, desc, meta in exams:
         cards += f"""<a class="exam-card" href="{href}">
   <div class="ec-top"><span class="ec-icon">{icon}</span><div><div class="ec-title">{t}</div><div class="ec-full">{full}</div></div></div>
   <div class="ec-desc">{desc}</div>
-  <div class="ec-meta"><span><b>2026:</b> {meta}</span><span>İncele →</span></div>
+  <div class="ec-meta"><span>{meta}</span><span>İncele →</span></div>
 </a>"""
 
     tools = [
@@ -1211,7 +1564,7 @@ def page_index():
         ("lise-taban-puanlari.html", "🏫", "LGS Lise Taban Puanları", "81 il · 3.000+ lise"),
         ("tus-taban-puanlari.html", "🩺", "TUS Taban Puanları", "40 uzmanlık dalı · 2025"),
         ("tercih-robotu.html", "🎯", "Tercih Robotu", "Sıralamana göre bölüm bul"),
-        ("takvim.html", "🗓️", "Sınav Takvimi 2026", "Tüm tarihler tek sayfada"),
+        ("takvim.html", "🗓️", f"Sınav Takvimi {TAKVIM_YILI}", "Tüm tarihler tek sayfada"),
     ]
     tool_html = ""
     for href, icon, t, sub in tools:
@@ -1284,7 +1637,7 @@ def page_index():
 }})();
 </script>
 """
-    desc = "Türkiye sınav verileri platformu: YKS, LGS, KPSS, DGS, ALES için 2026 sınav takvimi, puan hesaplama araçları ve sınav rehberleri."
+    desc = f"Türkiye sınav verileri platformu: YKS, LGS, KPSS, DGS, ALES için {TAKVIM_YILI} sınav takvimi, puan hesaplama araçları ve sınav rehberleri."
     return base("index.html", "SınavVeri.com — Türkiye Sınav Verileri Platformu", desc, body)
 
 
@@ -1362,7 +1715,7 @@ def page_takvim():
 </tr>"""
     body = TAKVIM_DURUM_CSS + f"""
 <div class="crumb"><a href="index.html">Ana Sayfa</a> / Sınav Takvimi</div>
-<div class="page-title"><h1>2026 Sınav Takvimi</h1><span class="sub">ÖSYM ve MEB resmî takvimine göre · Güncelleme: {fmt_date(CAL['guncelleme'])}</span></div>
+<div class="page-title"><h1>{TAKVIM_YILI} Sınav Takvimi</h1><span class="sub">ÖSYM ve MEB resmî takvimine göre · Güncelleme: {fmt_date(CAL['guncelleme'])}</span></div>
 <div class="data-table-wrap">
 <table class="data-table">
 <thead><tr><th data-tip="Sınavı düzenleyen kurum / sınav ailesi." data-type="text">Tür</th><th data-tip="Sınavın resmî adı." data-type="text">Sınav</th><th data-tip="Sınav başvurularının alındığı tarih aralığı." data-type="text">Başvuru</th><th data-tip="Sınavın yapılacağı resmî tarih." data-type="date">Sınav Tarihi</th><th data-tip="Sonuçların açıklanma durumu ve geri sayımı. Kesin tarih ilan edilmemişse 'Yaklaşıyor' gösterilir." data-type="text">Sonuç</th></tr></thead>
@@ -1371,7 +1724,7 @@ def page_takvim():
 </tbody>
 </table>
 </div>
-<div class="notice"><b>Not:</b> Tarihler ÖSYM 2026 Yılı Sınav Takvimi ve her sınavın resmî <b>kılavuz/duyurularıyla</b> (YKS, LGS, KPSS, DGS, ALES, TUS, DUS, YDS…) teyit edilmiştir.
+<div class="notice"><b>Not:</b> Tarihler ÖSYM {TAKVIM_YILI} Yılı Sınav Takvimi ve her sınavın resmî <b>kılavuz/duyurularıyla</b> (YKS, LGS, KPSS, DGS, ALES, TUS, DUS, YDS…) teyit edilmiştir.
 Yaklaşmayan sınavların başvuru tarihleri ilgili kılavuz yayımlanınca kesinleşir; güncel bilgi için <a href="https://www.osym.gov.tr" target="_blank" rel="noopener">osym.gov.tr</a> ve <a href="https://www.meb.gov.tr" target="_blank" rel="noopener">meb.gov.tr</a> esastır.
 Sınav sonucu/duyuru geçmişi için <a href="/duyurular.html">ÖSYM Duyuruları</a> sayfamıza bakabilirsiniz.</div>
 """ + TAKVIM_DURUM_JS
@@ -1379,8 +1732,8 @@ Sınav sonucu/duyuru geçmişi için <a href="/duyurular.html">ÖSYM Duyuruları
            "eventAttendanceMode": "https://schema.org/OfflineEventAttendanceMode",
            "location": {"@type": "Country", "name": "Türkiye"}}
           for s in CAL["sinavlar"] if s["sinav"].count("-") == 2]
-    return base("takvim.html", "2026 Sınav Takvimi — YKS, LGS, KPSS, DGS, ALES | SınavVeri",
-                "2026 ÖSYM ve MEB sınav takvimi: YKS (TYT/AYT), LGS, KPSS, DGS, ALES, TUS, YDS başvuru, sınav ve sonuç tarihleri.",
+    return base("takvim.html", f"{TAKVIM_YILI} Sınav Takvimi — YKS, LGS, KPSS, DGS, ALES | SınavVeri",
+                f"{TAKVIM_YILI} ÖSYM ve MEB sınav takvimi: YKS (TYT/AYT), LGS, KPSS, DGS, ALES, TUS, YDS başvuru, sınav ve sonuç tarihleri.",
                 body, extra_ld=ev)
 
 
@@ -1458,7 +1811,7 @@ def page_duyurular():
 <div class="crumb"><a href="/index.html">Ana Sayfa</a> / Duyurular</div>
 <div class="page-title"><h1>Sınav Duyuruları</h1><span class="sub">{len(duyurular)} duyuru · ÖSYM + MEB'den · Güncelleme: {fmt_date(guncelleme) if guncelleme else "—"}</span></div>
 <div class="info-box">ÖSYM ve MEB'in (LGS) resmî duyuru akışları — sınav sonuçları, yerleştirme, tercih ve kılavuz duyuruları. Sınav sonucu açıklandığında burada
-görünür; hangi sınavın sonucunun ne zaman açıklanacağını görmek için <a href="/takvim.html">2026 Sınav Takvimi</a>'ni kullanın.</div>
+görünür; hangi sınavın sonucunun ne zaman açıklanacağını görmek için <a href="/takvim.html">{TAKVIM_YILI} Sınav Takvimi</a>'ni kullanın.</div>
 <div class="msf" style="margin-bottom:14px">
   <input id="dSearch" type="text" placeholder="Duyuru ara…" style="flex:1 1 240px;min-width:0;padding:10px 12px;border:1px solid var(--border);border-radius:9px;background:var(--bg-card-alt);color:var(--fg);font-family:inherit;font-size:14px">
   <select id="dKaynak" class="btn btn-ghost" style="text-align:left"><option value="">ÖSYM + MEB</option><option value="ÖSYM">Yalnız ÖSYM</option><option value="MEB">Yalnız MEB (LGS)</option></select>
@@ -1547,8 +1900,8 @@ Yerleştirme puanına OBP (Okul Başarı Puanı = Diploma Notu × 5) en fazla 60
 <div class="tool-row" style="margin-top:16px"><a class="tool-btn" href="/yks-siralama-hesaplama.html"><span class="tb-icon">📈</span><span class="tb-text"><b>Tahmini Sıralaman ve Gidebileceğin Bölümler</b><span>Puanından başarı sıranı tahmin et → tercih robotuna git</span></span></a></div>
 {calc_js_yks()}
 """
-    return base("yks-puan-hesaplama.html", "YKS Puan Hesaplama 2026 (TYT + AYT Net) | SınavVeri",
-                "2026 YKS puan ve net hesaplama: TYT ve AYT doğru-yanlış gir, dersbazlı net ve toplam netini anında öğren. 4 yanlış 1 doğru.",
+    return base("yks-puan-hesaplama.html", f"YKS Puan Hesaplama {TAKVIM_YILI} (TYT + AYT Net) | SınavVeri",
+                f"{TAKVIM_YILI} YKS puan ve net hesaplama: TYT ve AYT doğru-yanlış gir, dersbazlı net ve toplam netini anında öğren. 4 yanlış 1 doğru.",
                 body)
 
 
@@ -1590,10 +1943,10 @@ def calc_js_yks():
 
 
 def page_yks_siralama():
-    body = """
+    body = f"""
 <div class="crumb"><a href="/index.html">Ana Sayfa</a> / <a href="/puan-hesaplama.html">Puan Hesaplama</a> / YKS Sıralama</div>
-<div class="page-title"><h1>2026 YKS Sıralama Hesaplama — Puan → Tahmini Başarı Sırası</h1><span class="sub">Puanını gir, tahmini sıralamanı ve gidebileceğin bölümleri gör · 2025 YÖK Atlas verisine göre</span></div>
-<div class="info-box">Denemende/ÖSYM sonucunda aldığın <b>yerleştirme puanını</b> ve puan türünü gir → 2025 gerçek yerleştirme verisinden
+<div class="page-title"><h1>{TAKVIM_YILI} YKS Sıralama Hesaplama — Puan → Tahmini Başarı Sırası</h1><span class="sub">Puanını gir, tahmini sıralamanı ve gidebileceğin bölümleri gör · 2025 YÖK Atlas verisine göre</span></div>
+<div class="info-box">Denemende/ÖSYM sonucunda aldığın <b>yerleştirme puanını</b> ve puan türünü gir → {YKS_YIL} gerçek yerleştirme verisinden
 <b>tahmini başarı sıralaman</b> ve o sırayla <b>gidebileceğin bölümler</b>. Puanını bilmiyorsan aşağıdaki net aracıyla kaba tahmin alabilirsin.</div>
 <div class="calc-card" style="margin-bottom:18px">
   <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;align-items:end">
@@ -1680,8 +2033,8 @@ sayısına göre değişebilir.</div>
   });
 })();
 </script>"""
-    return base("yks-siralama-hesaplama.html", "2026 YKS Sıralama Hesaplama — Puanına Göre Tahmini Başarı Sırası | SınavVeri",
-                "2026 YKS sıralama hesaplama: yerleştirme puanını gir, 2025 YÖK Atlas verisine göre tahmini başarı sıralamanı ve gidebileceğin bölümleri anında gör.",
+    return base("yks-siralama-hesaplama.html", f"{TAKVIM_YILI} YKS Sıralama Hesaplama — Puanına Göre Tahmini Başarı Sırası | SınavVeri",
+                f"{TAKVIM_YILI} YKS sıralama hesaplama: yerleştirme puanını gir, 2025 YÖK Atlas verisine göre tahmini başarı sıralamanı ve gidebileceğin bölümleri anında gör.",
                 body, extra_ld=[breadcrumb_ld([("Ana Sayfa", "index.html"), ("Puan Hesaplama", "puan-hesaplama.html"), ("YKS Sıralama", None)])])
 
 
@@ -1878,7 +2231,10 @@ def guide(slug, exam, title_full, icon, calc_slug, intro, sections, has_calc=Tru
         for p in paras:
             if isinstance(p, tuple):
                 if p[0] == "ul":
-                    sec_html += "<ul>" + "".join(f"<li>{x}</li>" for x in p[1]) + "</ul>"
+                    # "… Tarihleri" bölümlerinde her maddeye bugüne göre durum çipi eklenir
+                    # (✓ tamamlandı / ⏳ N gün kaldı). SSS metnine (ans_parts) çip GİRMEZ.
+                    gor = [tarih_durumlu(x) for x in p[1]] if "Tarih" in h else p[1]
+                    sec_html += "<ul>" + "".join(f"<li>{x}</li>" for x in gor) + "</ul>"
                     ans_parts.append("; ".join(_strip_html(x) for x in p[1]))
                 elif p[0] == "ol":
                     sec_html += "<ol>" + "".join(f"<li>{x}</li>" for x in p[1]) + "</ol>"
@@ -1914,7 +2270,7 @@ resmî kaynak <a href="https://www.osym.gov.tr" target="_blank" rel="noopener">�
 
 def page_yks():
     return guide("yks.html", "YKS", "Yükseköğretim Kurumları Sınavı", "🎓", "yks-puan-hesaplama.html",
-        "YKS, Türkiye'de üniversiteye girişin tek yoludur. TYT ve AYT olmak üzere iki temel oturumdan oluşur; 2026'da TYT 20 Haziran, AYT 21 Haziran'da yapılacaktır.",
+        "YKS, Türkiye'de üniversiteye girişin tek yoludur. TYT ve AYT olmak üzere iki temel oturumdan oluşur; " + yks_oturum_cumle(),
         [
             ("YKS Nedir?", [
                 "Yükseköğretim Kurumları Sınavı (YKS), lisans ve önlisans programlarına yerleşmek isteyen adayların girdiği merkezi sınavdır. ÖSYM tarafından yılda bir kez düzenlenir.",
@@ -1940,15 +2296,15 @@ def page_yks():
                 "Yerleştirme puanına <strong>OBP</strong> (Okul Başarı Puanı = Diploma Notu × 5) en fazla 60 puana kadar (OBP × 0,12) katkı sağlar.",
                 "Detaylı hesaplama için <a href='yks-puan-hesaplama.html'>YKS Puan Hesaplama</a> aracını kullanabilirsiniz.",
             ]),
-            ("2026 YKS Tarihleri", [
-                ("ul", ["Başvuru: 6 Şubat – 2 Mart 2026", "TYT: 20 Haziran 2026", "AYT & YDT: 21 Haziran 2026", "Sonuç: 22 Temmuz 2026"]),
+            (f"{TAKVIM_YILI} YKS Tarihleri", [
+                ("ul", yks_tarih_listesi()),
             ]),
         ])
 
 
 def page_lgs():
     return guide("lgs.html", "LGS", "Liselere Geçiş Sınavı", "🏫", "lgs-puan-hesaplama.html",
-        "LGS, 8. sınıf öğrencilerinin fen lisesi, sosyal bilimler lisesi ve nitelikli Anadolu liselerine yerleşmek için girdiği merkezi sınavdır. 2026'da 14 Haziran'da yapılacaktır.",
+        "LGS, 8. sınıf öğrencilerinin fen lisesi, sosyal bilimler lisesi ve nitelikli Anadolu liselerine yerleşmek için girdiği merkezi sınavdır. " + sinav_cumle("LGS"),
         [
             ("LGS Nedir?", [
                 "Liselere Geçiş Sınavı (LGS), MEB tarafından düzenlenen ve merkezi yerleştirmeyle öğrenci alan liselere giriş için uygulanan sınavdır. Katılım zorunlu değildir; isteyen öğrenci girer.",
@@ -1965,9 +2321,11 @@ def page_lgs():
                 "Ders katsayıları: Türkçe, Matematik ve Fen Bilimleri <strong>×4</strong>; İnkılap Tarihi, Din Kültürü ve Yabancı Dil <strong>×1</strong>.",
                 "LGS puanı 100–500 arasında, standart puan yöntemiyle hesaplanır. Tahmini için <a href='lgs-puan-hesaplama.html'>LGS Puan Hesaplama</a> aracını kullanın.",
             ]),
-            ("2026 LGS Tarihleri (MEB resmî kılavuzu)", [
+            (f"{TAKVIM_YILI} LGS Tarihleri (MEB resmî kılavuzu)", [
                 ("ul", ["Başvuru: 23 Mart – 10 Nisan 2026 (e-Okul üzerinden)", "Sınav giriş belgesi: 3 Haziran 2026",
-                        "Sınav: 14 Haziran 2026 (Pazar)", "Sonuç: Haziran 2026 sonu"]),
+                        "Sınav: 14 Haziran 2026 (Pazar)",
+                        f"Sınav sonucu: {fmt_date(gercek_tarih('LGS', 'sonuc', cal_bul('LGS').get('sonuc'), TAKVIM_YILI))}",
+                        f"Merkezi yerleştirme sonucu: {fmt_date(cal_bul('LGS').get('yerlestirme'))}"]),
             ]),
         ])
 
@@ -1990,7 +2348,7 @@ def page_kpss():
                 "Net hesabı: <strong>Net = Doğru − (Yanlış ÷ 4)</strong>.",
                 "Sonuçtan P1, P2, P3 gibi farklı puan türleri üretilir; atamalarda kullanılan puan türü kadroya göre değişir. Net hesabı için <a href='kpss-puan-hesaplama.html'>KPSS Puan Hesaplama</a> aracını kullanın.",
             ]),
-            ("2026 KPSS Tarihleri", [
+            (f"{TAKVIM_YILI} KPSS Tarihleri", [
                 ("ul", ["Lisans GY-GK: 6 Eylül 2026", "Lisans ÖABT: 12-13 Eylül 2026", "Ön Lisans: 4 Ekim 2026", "Ortaöğretim: 25 Ekim 2026"]),
             ]),
         ])
@@ -1998,7 +2356,7 @@ def page_kpss():
 
 def page_dgs():
     return guide("dgs.html", "DGS", "Dikey Geçiş Sınavı", "📈", "",
-        "DGS, ön lisans (2 yıllık) mezunlarının veya son sınıf öğrencilerinin lisans (4 yıllık) programlarına dikey geçiş yapabilmesi için girdiği sınavdır. 2026'da 19 Temmuz'da yapılacaktır.",
+        "DGS, ön lisans (2 yıllık) mezunlarının veya son sınıf öğrencilerinin lisans (4 yıllık) programlarına dikey geçiş yapabilmesi için girdiği sınavdır. " + sinav_cumle("DGS"),
         [
             ("DGS Nedir?", [
                 "Dikey Geçiş Sınavı (DGS), meslek yüksekokulu ve açıköğretim ön lisans programlarından mezun olanların, alanlarıyla ilişkili lisans programlarına geçişini sağlayan ÖSYM sınavıdır.",
@@ -2011,7 +2369,7 @@ def page_dgs():
             ("Kimler Girebilir?", [
                 "Ön lisans programlarından mezun olanlar ve son sınıf öğrencileri başvurabilir. Yerleşilebilecek lisans programları, mezun olunan ön lisans alanına göre ÖSYM kılavuzunda belirtilir.",
             ]),
-            ("2026 DGS Tarihleri", [
+            (f"{TAKVIM_YILI} DGS Tarihleri", [
                 ("ul", ["Başvuru: 15 Mayıs – 2 Haziran 2026", "Sınav: 19 Temmuz 2026", "Sonuç: 13 Ağustos 2026"]),
             ]),
         ], has_calc=False)
@@ -2033,7 +2391,7 @@ def page_ales():
                 ("ul", ["Yüksek lisans / doktora başvuruları", "Araştırma görevlisi ve öğretim görevlisi kadroları",
                         "Sonuçlar açıklandığı tarihten itibaren 5 yıl geçerlidir"]),
             ]),
-            ("2026 ALES Tarihleri", [
+            (f"{TAKVIM_YILI} ALES Tarihleri", [
                 ("ul", ["ALES/1: 10 Mayıs 2026", "ALES/2: 26 Temmuz 2026", "ALES/3: 29 Kasım 2026"]),
             ]),
         ], has_calc=False)
@@ -2059,7 +2417,7 @@ def page_tus_rehber():
                 "Ham puanlar, her test için ortalaması <strong>50</strong>, standart sapması <strong>10</strong> olan <strong>standart puanlara</strong> dönüştürülür. Bu standart puanlardan ağırlık katsayılarıyla <strong>Ağırlıklı Temel (Ağırlıklı T)</strong>, <strong>Ağırlıklı Klinik (Ağırlıklı K)</strong> ve <strong>Ağırlıklı (Ağırlıklı A)</strong> puanları üretilir; her uzmanlık dalı için kullanılan puan türü ÖSYM kılavuzunda belirtilir.",
                 "Yerleştirme, adayın TUS puanı ve tercihlerine göre ÖSYM tarafından yapılır. Kurum ve dal bazında taban puanları için <a href='/tus-taban-puanlari.html'>TUS taban puanları</a> ve <a href='/tus-tercih-robotu.html'>TUS tercih robotu</a>.",
             ]),
-            ("2026 TUS Tarihleri (ÖSYM resmî kılavuzu)", [
+            (f"{TAKVIM_YILI} TUS Tarihleri (ÖSYM resmî kılavuzu)", [
                 "<strong>1. Dönem:</strong>",
                 ("ul", ["Başvuru: 28 Ocak – 5 Şubat 2026 (geç başvuru: 12 Şubat)", "Sınav: 15 Mart 2026"]),
                 "<strong>2. Dönem:</strong>",
@@ -2088,7 +2446,7 @@ def page_dus_rehber():
                 "Ham puanlar ortalaması 50, standart sapması 10 olan standart puanlara dönüştürülür; DUS puanı Temel ve Klinik standart puanların ağırlıklı birleşimidir.",
                 "Kurum ve dal bazında taban puanları için <a href='/dus-taban-puanlari.html'>DUS taban puanları</a> ve <a href='/dus-tercih-robotu.html'>DUS tercih robotu</a>.",
             ]),
-            ("2026 DUS Tarihleri (ÖSYM resmî kılavuzu)", [
+            (f"{TAKVIM_YILI} DUS Tarihleri (ÖSYM resmî kılavuzu)", [
                 "<strong>1. Dönem:</strong>",
                 ("ul", ["Başvuru: 10 – 17 Mart 2026", "Sınav: 26 Nisan 2026"]),
                 "<strong>2. Dönem:</strong>",
@@ -2114,7 +2472,7 @@ def page_yds_rehber():
             ("Dönemler", [
                 "Yılda iki ana dönem (İlkbahar/Sonbahar) yapılır; ayrıca bilgisayar tabanlı <strong>e-YDS</strong> ile yıl içinde ek dönemler açılır.",
             ]),
-            ("2026 YDS Tarihleri (ÖSYM)", [
+            (f"{TAKVIM_YILI} YDS Tarihleri (ÖSYM)", [
                 ("ul", ["<strong>YDS/1 (İlkbahar):</strong> 5 Nisan 2026 — başvuru 18–26 Şubat (geç: 4 Mart), sonuç 28 Nisan 2026",
                         "<strong>YDS/2 (Sonbahar):</strong> 22 Kasım 2026 — başvuru 30 Eylül–8 Ekim (geç: 14 Ekim), sonuç 10 Aralık 2026",
                         "e-YDS: yıl içinde 12 ayrı dönem (İngilizce ve diğer diller) ÖSYM e-sınav merkezlerinde"]),
@@ -2137,7 +2495,7 @@ def page_yokdil_rehber():
             ("Puan Mantığı", [
                 "Her doğru <strong>1,25 puan</strong>, 100 üzerinden; <strong>yanlış doğruyu götürmez</strong>. Geçerlilik ve kullanım YDS'ye benzer (lisansüstü başvuru, akademik kadrolar).",
             ]),
-            ("2026 YÖKDİL Tarihleri (ÖSYM)", [
+            (f"{TAKVIM_YILI} YÖKDİL Tarihleri (ÖSYM)", [
                 ("ul", ["<strong>YÖKDİL/1:</strong> 8 Mart 2026 — başvuru 21–29 Ocak (geç: 4 Şubat), sonuç 18 Mart 2026",
                         "<strong>YÖKDİL/2:</strong> 9 Ağustos 2026 — başvuru 16–24 Haziran (geç: 30 Haziran), sonuç 26 Ağustos 2026",
                         "Ayrıca e-YÖKDİL (elektronik) dönemleri yıl içinde açılır."]),
@@ -2160,7 +2518,7 @@ def page_msu_rehber():
             ("Puan Mantığı", [
                 "Net = Doğru − (Yanlış ÷ 4). Ham puanlar standart puana dönüştürülür ve farklı puan türlerinde ağırlıklı olarak hesaplanır.",
             ]),
-            ("2026 MSÜ Tarihleri (ÖSYM)", [
+            (f"{TAKVIM_YILI} MSÜ Tarihleri (ÖSYM)", [
                 ("ul", ["Başvuru: 5 – 29 Ocak 2026 (geç başvuru: 3 Şubat)", "Sınav: 1 Mart 2026", "Sonuç: 24 Mart 2026"]),
                 "Sınav sonrası fizikî yeterlilik ve mülakat aşamaları MSÜ tarafından ayrıca duyurulur.",
             ]),
@@ -2178,7 +2536,7 @@ def page_ydus_rehber():
                 "İlgili ana dala göre ayrı düzenlenen tek bir testten oluşur; sorular adayın ana dal alanındandır. Net = Doğru − (Yanlış ÷ 4); ham puan standart puana dönüştürülür ve yerleştirme bu puanla yapılır.",
                 "Her ana dalın soru sayısı ve yan dal kontenjanları ÖSYM kılavuzunda belirtilir.",
             ]),
-            ("2026 YDUS Tarihleri (ÖSYM)", [
+            (f"{TAKVIM_YILI} YDUS Tarihleri (ÖSYM)", [
                 ("ul", ["Başvuru: 13 – 23 Mart 2026 (geç başvuru: 2 Nisan)", "Sınav: 2 Mayıs 2026", "Sonuç: 4 Haziran 2026"]),
             ]),
         ], has_calc=False)
@@ -2194,7 +2552,7 @@ def page_sts_rehber():
             ("Format ve Başarı", [
                 "Çoktan seçmeli olup temel ve klinik tıp/diş hekimliği bilgisini ölçer. Denklik için ÖSYM/YÖK tarafından belirlenen <strong>baraj puanının</strong> (genellikle 100 üzerinden 50) aşılması gerekir.",
             ]),
-            ("2026 STS Tarihleri (ÖSYM)", [
+            (f"{TAKVIM_YILI} STS Tarihleri (ÖSYM)", [
                 "<strong>Tıp Doktorluğu:</strong>",
                 ("ul", ["1. Dönem: 15 Mart 2026 (sonuç 15 Nisan)", "2. Dönem: 23 Ağustos 2026 (sonuç 17 Eylül)"]),
                 "<strong>Diş Hekimliği:</strong>",
@@ -2689,9 +3047,9 @@ SEARCH_JS = r"""<script nonce="__NONCE__">
 
 
 def page_taban_index():
-    body = """
+    body = f"""
 <div class="crumb"><a href="/index.html">Ana Sayfa</a> / <a href="/taban-puanlari.html">Taban Puanları</a> / Üniversite</div>
-<div class="page-title"><h1>Üniversite Taban Puanları 2025</h1><span class="sub">YÖK Atlas 2025 yerleştirme verisi · 21.602 program · Gerçek taban puanı ve başarı sırası</span></div>
+<div class="page-title"><h1>Üniversite Taban Puanları {YKS_YIL}</h1><span class="sub">YÖK Atlas {YKS_YIL} yerleştirme verisi · 21.602 program · Gerçek taban puanı ve başarı sırası</span></div>
 
 <div class="calc-card" style="margin-bottom:18px">
   <div class="subj-head" style="grid-template-columns:1fr;border:none;padding:0;margin-bottom:10px"><span>Filtrele</span></div>
@@ -2730,11 +3088,11 @@ def page_taban_index():
 </div>
 <nav id="moreWrap"></nav>
 
-<div class="notice"><b>Kaynak:</b> YÖK Atlas 2025 Tercih Kılavuzu (en güncel tamamlanmış yerleştirme). Taban puanı ve başarı sırası
+<div class="notice"><b>Kaynak:</b> YÖK Atlas {YKS_KILAVUZ_YIL} Tercih Kılavuzu (en güncel tamamlanmış yerleştirme). Taban puanı ve başarı sırası
 o programa <b>en son yerleşen</b> adayın verisidir. Yerleşen olmayan programlarda değer boştur (—).
 2026 taban puanları, yerleştirme sonrası (Ağustos 2026) güncellenecektir.</div>
 """ + SEARCH_JS
-    return base("universite-taban-puanlari.html", "Üniversite Taban Puanları 2025 — YÖK Atlas Verisi | SınavVeri",
+    return base("universite-taban-puanlari.html", f"Üniversite Taban Puanları {YKS_YIL} — YÖK Atlas Verisi | SınavVeri",
                 "2025 üniversite taban puanları ve başarı sıralamaları. 21.602 lisans ve önlisans programını puan türü, il ve üniversite türüne göre filtrele. YÖK Atlas verisi.",
                 body, extra_ld=[breadcrumb_ld([("Ana Sayfa", "index.html"), ("Taban Puanları", "taban-puanlari.html"), ("Üniversite", None)])])
 
@@ -3051,9 +3409,9 @@ def page_tercih_robotu():
   taban puan/sıra verisi bu tablolardaki program kodlarıyla otomatik karşılaştırılır; kılavuzdan kalkan programlar
   aşağıdaki listede <span class="tag tag-other">⛔ Bu yıl alım yapmıyor</span> rozetiyle işaretlenir.</div>
 </div>"""
-    body = """
+    body = f"""
 <div class="crumb"><a href="/index.html">Ana Sayfa</a> / Tercih Robotu</div>
-<div class="page-title"><h1>2026 YKS Tercih Robotu</h1><span class="sub">Başarı sıranı gir, yerleşebileceğin programları gör · 2025 YÖK Atlas yerleştirme verisine göre</span></div>
+<div class="page-title"><h1>{TAKVIM_YILI} YKS Tercih Robotu</h1><span class="sub">Başarı sıranı gir, yerleşebileceğin programları gör · 2025 YÖK Atlas yerleştirme verisine göre</span></div>
 """ + robot_nav("tercih-robotu.html") + kilavuz_box + """
 <div class="fav-bar" id="favBar"><button type="button" class="fav-toggle" id="favBtn">⭐ Tercih Listem (0)</button></div>
 <div class="fav-panel" id="favPanel"></div>
@@ -3141,7 +3499,7 @@ Bu bir tahmindir; 2026 taban sıraları kontenjan ve tercih yoğunluğuna göre 
 </script>"""
     body += fill
     return base("tercih-robotu.html", "2026 YKS Tercih Robotu — Sıralamana Göre Bölüm Bul | SınavVeri",
-                "2026 YKS tercih robotu: başarı sıranı gir, 2025 YÖK Atlas yerleştirme verisine göre yerleşebileceğin üniversite programlarını anında gör. Ücretsiz.",
+                f"{TAKVIM_YILI} YKS tercih robotu: başarı sıranı gir, 2025 YÖK Atlas yerleştirme verisine göre yerleşebileceğin üniversite programlarını anında gör. Ücretsiz.",
                 body, extra_ld=[breadcrumb_ld([("Ana Sayfa", "index.html"), ("Tercih Robotu", None)])])
 
 
@@ -3539,7 +3897,7 @@ def page_lgs_robot(lgs):
         "liseye", 15, 4,
         "LGS puanını girin ve ilini seçin; o puanla yerleşebileceğin (taban ≤ puanın) liseleri en yüksek tabandan başlayarak listeler. "
         "Lise türüne (Fen, Sosyal Bilimler, Anadolu…) göre de filtreleyebilirsin. LGS hesaplama için <a href='/lgs-puan-hesaplama.html'>LGS puan hesaplama</a>.",
-        "MEB 2025 LGS yerleştirme verisi.", "LGS Puanın", "örn. 420,5",
+        f"MEB {LGS_YIL} LGS yerleştirme verisi.", "LGS Puanın", "örn. 420,5",
         hist=[{"yil": 2025, "t": 5}, {"yil": 2024, "t": 7}, {"yil": 2023, "t": 8}],
         maps={3: LISE_TUR_NAME})
 
@@ -3833,7 +4191,7 @@ def gen_bolum_pages(programs):
         pts = sorted(set(r.get("p") for r in recs if r.get("p")))
         summary = (f"<strong>{g}</strong> bölümü 2025'te <strong>{len(recs)}</strong> programda açıldı"
                    + (f", taban puanları <strong>{fmt_puan(en_dusuk)}</strong> – <strong>{fmt_puan(en_yuksek)}</strong> aralığında." if tabans else "."))
-        # Veri-dayalı FAQ (uydurma yok — yalnızca YÖK Atlas 2025 verisinden türetilir)
+        # Veri-dayalı FAQ (uydurma yok — yalnızca YÖK Atlas {YKS_YIL} verisinden türetilir)
         from collections import Counter as _C
         wp = sorted(with_p, key=lambda r: -(r.get("tp") or 0))
         top = wp[0] if wp else None
@@ -3867,7 +4225,7 @@ def gen_bolum_pages(programs):
         head = PLOTLY_CDN if chart else ""
         body = f"""
 <div class="crumb"><a href="/index.html">Ana Sayfa</a> / <a href="/bolumler.html">Bölümler</a> / {g}</div>
-<div class="page-title"><h1>{g} Taban Puanları 2025</h1><span class="sub">YÖK Atlas 2025 · {len(recs)} program · Puan türü: {', '.join(pts)}</span></div>
+<div class="page-title"><h1>{g} Taban Puanları {YKS_YIL}</h1><span class="sub">YÖK Atlas {YKS_YIL} · {len(recs)} program · Puan türü: {', '.join(pts)}</span></div>
 <div class="info-box">{summary} Aşağıdaki tablo başarı sırasına göre sıralıdır (en düşük sıra = en yüksek puan).</div>
 {chart}
 {DETAIL_BAR}
@@ -3880,11 +4238,11 @@ def gen_bolum_pages(programs):
 {DETAIL_PAGER}
 {DETAIL_CMP}
 {DETAIL_TOOLS_JS}
-<div class="notice"><b>Kaynak:</b> YÖK Atlas 2025 Tercih Kılavuzu (geçmiş: 2024/2023). Boş (—) değerler o yıl yerleşen/veri olmadığını gösterir.
+<div class="notice"><b>Kaynak:</b> YÖK Atlas {YKS_KILAVUZ_YIL} Tercih Kılavuzu (geçmiş: {YKS_HIST[0]}/{YKS_HIST[1]}). Boş (—) değerler o yıl yerleşen/veri olmadığını gösterir.
 Doluluk = yerleşen ÷ kontenjan. Daha fazlası: <a href="/taban-puanlari.html">tüm taban puanları</a> · <a href="/tercih-robotu.html">tercih robotu</a> · <a href="/doluluk.html">doluluk analizi</a>.</div>
 {faq_html}
 """
-        html = base(f"bolum/{s}.html", f"{g} Taban Puanları 2025 ve Başarı Sıralaması | SınavVeri",
+        html = base(f"bolum/{s}.html", f"{g} Taban Puanları {YKS_YIL} ve Başarı Sıralaması | SınavVeri",
                     f"{g} bölümü 2025 taban puanları, son 4 yıl trendi, doluluk oranları ve başarı sıralaması. {len(recs)} üniversite programı YÖK Atlas verisiyle.",
                     body, extra_head=head, extra_ld=extra_ld_b)
         write(f"bolum/{s}.html", html)
@@ -3924,7 +4282,7 @@ def gen_universite_pages(programs):
                      '<td style="text-align:center"><input type="checkbox" class="dcmp" aria-label="Karşılaştır"></td></tr>')
         body = f"""
 <div class="crumb"><a href="/index.html">Ana Sayfa</a> / <a href="/universiteler.html">Üniversiteler</a> / {u}</div>
-<div class="page-title uni-title">{uni_logo_html(u, size=48, cls="uni-logo-h1")}<div><h1>{u} Taban Puanları 2025</h1><span class="sub">{il} · {tur} · {len(recs)} program · YÖK Atlas 2025</span></div></div>
+<div class="page-title uni-title">{uni_logo_html(u, size=48, cls="uni-logo-h1")}<div><h1>{u} Taban Puanları {YKS_YIL}</h1><span class="sub">{il} · {tur} · {len(recs)} program · YÖK Atlas {YKS_YIL}</span></div></div>
 {uni_kunye_html(u, recs)}
 {SHARE_BAR}
 {DETAIL_BAR}
@@ -3937,12 +4295,12 @@ def gen_universite_pages(programs):
 {DETAIL_PAGER}
 {DETAIL_CMP}
 {DETAIL_TOOLS_JS}
-<div class="notice"><b>Kaynak:</b> YÖK Atlas 2025 (geçmiş: 2024). Doluluk = yerleşen ÷ kontenjan. Başarı sırasına göre sıralı.
+<div class="notice"><b>Kaynak:</b> YÖK Atlas {YKS_YIL} (geçmiş: {YKS_HIST[0]}). Doluluk = yerleşen ÷ kontenjan. Başarı sırasına göre sıralı.
 <a href="/taban-puanlari.html">Tüm taban puanları</a> · <a href="/tercih-robotu.html">tercih robotu</a> · <a href="/doluluk.html">doluluk analizi</a>.</div>
 {uni_yorum_html(u)}
 """
         og = gen_uni_og(s, u, uni_info(u), recs)
-        html = base(f"universite/{s}.html", f"{u} Taban Puanları 2025 — Tüm Bölümler | SınavVeri",
+        html = base(f"universite/{s}.html", f"{u} Taban Puanları {YKS_YIL} — Tüm Bölümler | SınavVeri",
                     f"{u} 2025 taban puanları ve başarı sıralamaları. {len(recs)} programın taban puanı, kontenjan ve sıralaması YÖK Atlas verisiyle.",
                     body, og_image=og, share=True)
         write(f"universite/{s}.html", html)
@@ -3959,7 +4317,7 @@ def page_bolumler(g_by_slug, programs):
         cards += f'<a class="tool-btn" href="/bolum/{s}.html"><span class="tb-icon">📘</span><span class="tb-text"><b>{g}</b><span>{cnt.get(g,0)} program</span></span></a>'
     body = f"""
 <div class="crumb"><a href="/index.html">Ana Sayfa</a> / Bölümler</div>
-<div class="page-title"><h1>Bölümlere Göre Taban Puanları</h1><span class="sub">{len(items)} bölüm grubu · YÖK Atlas 2025</span></div>
+<div class="page-title"><h1>Bölümlere Göre Taban Puanları</h1><span class="sub">{len(items)} bölüm grubu · YÖK Atlas {YKS_YIL}</span></div>
 <input id="bSearch" type="text" placeholder="Bölüm ara… (örn. tıp, hukuk, bilgisayar)" style="width:100%;max-width:480px;padding:10px 12px;border:1px solid var(--border);border-radius:9px;background:var(--bg-card-alt);color:var(--fg);font-family:inherit;font-size:14px;margin-bottom:18px">
 <div class="tool-row" id="bList">
 {cards}
@@ -3979,7 +4337,7 @@ def page_bolumler(g_by_slug, programs):
 }})();
 </script>
 """
-    return base("bolumler.html", "Bölümlere Göre Üniversite Taban Puanları 2025 | SınavVeri",
+    return base("bolumler.html", f"Bölümlere Göre Üniversite Taban Puanları {YKS_YIL} | SınavVeri",
                 "Tüm üniversite bölümlerinin 2025 taban puanları. Tıp, hukuk, mühendislik, psikoloji ve 600+ bölüm grubu YÖK Atlas verisiyle.",
                 body)
 
@@ -4360,7 +4718,7 @@ def page_universiteler(u_by_slug, programs):
 
     body = MULTI_FILTER_CSS + f"""
 <div class="crumb"><a href="/index.html">Ana Sayfa</a> / Üniversiteler</div>
-<div class="page-title"><h1>Üniversitelere Göre Taban Puanları</h1><span class="sub">{len(items)} üniversite · {len(il_cnt)} il · YÖK Atlas 2025</span></div>
+<div class="page-title"><h1>Üniversitelere Göre Taban Puanları</h1><span class="sub">{len(items)} üniversite · {len(il_cnt)} il · YÖK Atlas {YKS_YIL}</span></div>
 <div class="msf">
 {_ms_group("il", "📍", "Tüm iller", il_cnt)}
 {_ms_group("tur", "🏛️", "Tüm türler", tur_cnt, searchable=False, order=TUR_SIRA)}
@@ -4393,7 +4751,7 @@ def page_universiteler(u_by_slug, programs):
 <div class="ms-empty" id="uEmpty" style="display:none">Seçtiğiniz ölçütlere uyan üniversite bulunamadı. Filtreleri gevşetin veya aramayı temizleyin.</div>
 <nav id="uPagerNav"></nav>
 """ + MULTI_FILTER_JS
-    return base("universiteler.html", "Üniversitelere Göre Taban Puanları 2025 | SınavVeri",
+    return base("universiteler.html", f"Üniversitelere Göre Taban Puanları {YKS_YIL} | SınavVeri",
                 "Tüm üniversitelerin 2025 taban puanları ve bölümleri. 227 devlet ve vakıf üniversitesi YÖK Atlas verisiyle. "
                 "İl, bölge, tür, burs durumu, kuruluş yılı, eğitim dili ve akreditasyona göre filtreleyin.",
                 body)
@@ -4495,7 +4853,7 @@ def page_karsilastir():
   <div id="kStatus" style="margin-top:10px;font-size:13px;color:var(--accent);font-weight:700"></div>
 </div>
 <div id="kResult"></div>
-<div class="notice"><b>Kaynak:</b> YÖK Atlas 2025 (geçmiş: 2024, 2023). Karşılaştırma tahmini değerlendirme amaçlıdır; resmî tercih için <a href="https://www.osym.gov.tr" target="_blank" rel="noopener">ÖSYM</a> esastır.</div>
+<div class="notice"><b>Kaynak:</b> YÖK Atlas {YKS_YIL} (geçmiş: {YKS_HIST[0]}, {YKS_HIST[1]}). Karşılaştırma tahmini değerlendirme amaçlıdır; resmî tercih için <a href="https://www.osym.gov.tr" target="_blank" rel="noopener">ÖSYM</a> esastır.</div>
 {KARSILASTIR_JS}
 """
     return base("karsilastir.html", "Bölüm ve Üniversite Karşılaştırma 2025 — Taban Puanı Kıyasla | SınavVeri",
@@ -4853,13 +5211,13 @@ def gen_sehir_pages(programs, u_by_slug):
                       f'<span class="tb-text"><b>{u}</b><span>{uni_tur.get(u,"")} · {uni_prog[u]} program</span></span></a>')
         body = f"""
 <div class="crumb"><a href="/index.html">Ana Sayfa</a> / <a href="/sehirler.html">Şehirler</a> / {il}</div>
-<div class="page-title"><h1>{il} Üniversiteleri 2025</h1><span class="sub">{len(unis)} üniversite · {dev} devlet · {vak} vakıf · YÖK Atlas 2025</span></div>
+<div class="page-title"><h1>{il} Üniversiteleri {YKS_YIL}</h1><span class="sub">{len(unis)} üniversite · {dev} devlet · {vak} vakıf · YÖK Atlas {YKS_YIL}</span></div>
 <div class="info-box">{il} ilinde bulunan tüm üniversitelerin bölümleri, taban puanları ve başarı sıralamaları. Bir üniversiteye tıklayarak {tr_loc_ki(il)} programların 2025 taban puanlarını inceleyebilirsiniz.</div>
 {SHARE_BAR}
 <div class="tool-row">{cards}</div>
-<div class="notice"><b>Kaynak:</b> YÖK Atlas 2025. <a href="/universite-taban-puanlari.html?il={il}">{il} programlarını ara</a> · <a href="/sehirler.html">tüm şehirler</a>.</div>
+<div class="notice"><b>Kaynak:</b> YÖK Atlas {YKS_YIL}. <a href="/universite-taban-puanlari.html?il={il}">{il} programlarını ara</a> · <a href="/sehirler.html">tüm şehirler</a>.</div>
 """
-        html = base(f"sehir/{s}.html", f"{il} Üniversiteleri 2025 — Taban Puanları ve Bölümler | SınavVeri",
+        html = base(f"sehir/{s}.html", f"{il} Üniversiteleri {YKS_YIL} — Taban Puanları ve Bölümler | SınavVeri",
                     f"{il} ilindeki {len(unis)} üniversitenin 2025 taban puanları, bölümleri ve başarı sıralamaları. Devlet ve vakıf üniversiteleri YÖK Atlas verisiyle.",
                     body, share=True)
         write(f"sehir/{s}.html", html)
@@ -4879,7 +5237,7 @@ def page_sehirler(il_slugs, programs):
                   f'<span class="tb-text"><b>{il}</b><span>{len(cnt.get(il,[]))} üniversite</span></span></a>')
     body = f"""
 <div class="crumb"><a href="/index.html">Ana Sayfa</a> / Şehirler</div>
-<div class="page-title"><h1>Şehirlere Göre Üniversiteler</h1><span class="sub">{len(items)} il · YÖK Atlas 2025</span></div>
+<div class="page-title"><h1>Şehirlere Göre Üniversiteler</h1><span class="sub">{len(items)} il · YÖK Atlas {YKS_YIL}</span></div>
 <input id="cSearch" type="text" placeholder="Şehir ara… (örn. ankara, izmir)" style="width:100%;max-width:480px;padding:10px 12px;border:1px solid var(--border);border-radius:9px;background:var(--bg-card-alt);color:var(--fg);font-family:inherit;font-size:14px;margin-bottom:18px">
 <div class="tool-row" id="cList">{cards}</div>
 <script nonce="__NONCE__">
@@ -4939,7 +5297,7 @@ def page_universite_ucretleri(programs, u_by_slug):
 <thead><tr><th data-tip="Vakıf üniversitesinin resmî adı." data-type="text">Üniversite</th><th data-tip="Üniversitenin bulunduğu şehir." data-type="text">Şehir</th><th data-tip="Üniversitenin programlarındaki en düşük – en yüksek yıllık öğrenim ücreti (₺)." data-type="num" style="text-align:right">Yıllık Ücret Aralığı</th><th data-tip="Üniversitede burslu (tam/kısmi) program bulunup bulunmadığı." data-type="text" style="text-align:center">Burs</th></tr></thead>
 <tbody>{rows}</tbody></table></div>
 <nav id="ufPager"></nav>
-<div class="notice"><b>Kaynak:</b> YÖK Atlas 2025 program ücretleri. <a href="/bolum-ucretleri.html">Bölüm bazında ücretler</a> · <a href="/universiteler.html">tüm üniversiteler</a>.</div>
+<div class="notice"><b>Kaynak:</b> YÖK Atlas {YKS_YIL} program ücretleri. <a href="/bolum-ucretleri.html">Bölüm bazında ücretler</a> · <a href="/universiteler.html">tüm üniversiteler</a>.</div>
 <script nonce="__NONCE__">
 (function(){{
   // Arama + TrVeri STANDART sayfalama (rule 3.17). Sıralama: base() içindeki global
@@ -4990,7 +5348,7 @@ def page_bolum_ucretleri(programs, g_by_slug):
 <thead><tr><th data-tip="Bölüm grubunun adı; tıklayınca üniversite bazında ücret ve taban puanlarına gider." data-type="text">Bölüm</th><th data-tip="Bu bölümün vakıf üniversitelerindeki program sayısı." data-type="num" style="text-align:center">Vakıf Prog.</th><th data-tip="Bölümün vakıf üniversitelerindeki en düşük – en yüksek yıllık öğrenim ücreti (₺)." data-type="num" style="text-align:right">Ücret Aralığı</th><th data-tip="Bölümün vakıf üniversitelerindeki ortanca (medyan) yıllık öğrenim ücreti (₺)." data-type="num" style="text-align:right">Medyan</th></tr></thead>
 <tbody>{rows}</tbody></table></div>
 <nav id="bfPager"></nav>
-<div class="notice"><b>Kaynak:</b> YÖK Atlas 2025. <a href="/universite-ucretleri.html">Üniversite bazında ücretler</a>.</div>
+<div class="notice"><b>Kaynak:</b> YÖK Atlas {YKS_YIL}. <a href="/universite-ucretleri.html">Üniversite bazında ücretler</a>.</div>
 <script nonce="__NONCE__">
 (function(){{
   // Arama + TrVeri STANDART sayfalama (rule 3.17). Sıralama: base() içindeki global
@@ -5180,9 +5538,9 @@ def page_lise_taban_index(lgs, il_slugs):
     il_links = ""
     for sl, il in sorted(il_slugs.items(), key=lambda kv: kv[1].lower()):
         il_links += f'<a href="/lise/{sl}.html" style="display:inline-block;margin:2px 4px;font-size:13px">{il}</a>'
-    body = """
+    body = f"""
 <div class="crumb"><a href="/index.html">Ana Sayfa</a> / LGS Lise Taban Puanları</div>
-<div class="page-title"><h1>LGS Lise Taban Puanları 2025</h1><span class="sub">81 il · 3.000+ sınavla öğrenci alan lise · Taban puanı ve yüzdelik dilim</span></div>
+<div class="page-title"><h1>LGS Lise Taban Puanları {LGS_YIL}</h1><span class="sub">81 il · 3.000+ sınavla öğrenci alan lise · Taban puanı ve yüzdelik dilim</span></div>
 <div class="calc-card" style="margin-bottom:18px">
   <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px">
     <input id="fQ" type="text" placeholder="Lise / ilçe ara…" style="padding:9px 10px;border:1px solid var(--border);border-radius:8px;background:var(--bg-card-alt);color:var(--fg);font-family:inherit;font-size:13px">
@@ -5198,20 +5556,20 @@ def page_lise_taban_index(lgs, il_slugs):
 </div>
 <div class="data-table-wrap">
 <table class="data-table" data-live="1">
-<thead><tr><th data-tip="Sınavla öğrenci alan lisenin resmî adı." data-type="text">Lise</th><th data-tip="Lisenin bulunduğu il ve ilçe." data-type="text">İl / İlçe</th><th data-tip="Lise türü: Fen, Sosyal Bilimler, Anadolu, İmam Hatip, Mesleki ve Teknik vb." data-type="text">Tür</th><th data-tip="Liseye alınacak öğrenci sayısı (kontenjan)." data-type="num">Kont.</th><th data-tip="2025'te liseye yerleşen son öğrencinin LGS merkezi sınav puanı." data-type="num">2025 Taban</th><th data-tip="2024 LGS taban puanı; yıllar arası değişimi görmek için." data-type="num">2024</th><th data-tip="2023 LGS taban puanı; yıllar arası değişimi görmek için." data-type="num">2023</th><th data-tip="2025 tabanının bir önceki yıla göre değişimi (↑ yükseldi, ↓ düştü, → aynı)." data-type="text">Trend</th><th data-tip="Yerleşen son öğrencinin LGS yüzdelik dilimi. Küçük yüzdelik = daha başarılı." data-type="num">Yüzdelik</th></tr></thead>
+<thead><tr><th data-tip="Sınavla öğrenci alan lisenin resmî adı." data-type="text">Lise</th><th data-tip="Lisenin bulunduğu il ve ilçe." data-type="text">İl / İlçe</th><th data-tip="Lise türü: Fen, Sosyal Bilimler, Anadolu, İmam Hatip, Mesleki ve Teknik vb." data-type="text">Tür</th><th data-tip="Liseye alınacak öğrenci sayısı (kontenjan)." data-type="num">Kont.</th><th data-tip="{LGS_YIL}'te liseye yerleşen son öğrencinin LGS merkezi sınav puanı." data-type="num">{LGS_YIL} Taban</th><th data-tip="{LGS_HIST[0]} LGS taban puanı; yıllar arası değişimi görmek için." data-type="num">{LGS_HIST[0]}</th><th data-tip="{LGS_HIST[1]} LGS taban puanı; yıllar arası değişimi görmek için." data-type="num">{LGS_HIST[1]}</th><th data-tip="{LGS_YIL} tabanının bir önceki yıla göre değişimi (↑ yükseldi, ↓ düştü, → aynı)." data-type="text">Trend</th><th data-tip="Yerleşen son öğrencinin LGS yüzdelik dilimi. Küçük yüzdelik = daha başarılı." data-type="num">Yüzdelik</th></tr></thead>
 <tbody id="tbody"></tbody>
 </table>
 </div>
 <nav id="moreWrap"></nav>
-<div class="notice"><b>Kaynak:</b> MEB 2025 LGS merkezi yerleştirme verileri. Taban puanı ve yüzdelik dilim,
+<div class="notice"><b>Kaynak:</b> MEB {LGS_YIL} LGS merkezi yerleştirme verileri. Taban puanı ve yüzdelik dilim,
 o liseye <b>en son yerleşen</b> öğrencinin değeridir. Yalnızca <b>sınavla öğrenci alan</b> liseler listelenir.
 Resmî kayıt için <a href="https://www.meb.gov.tr" target="_blank" rel="noopener">MEB</a>/e-Okul esastır.</div>
 <div class="section" style="margin-top:24px"><h2>İllere Göre Lise Taban Puanları</h2>
 <div class="section-sub">İl sayfasında o ilin tüm liseleri taban puanına göre sıralı.</div>
 <div style="line-height:2">""" + il_links + """</div></div>
 """ + LISE_SEARCH_JS
-    return base("lise-taban-puanlari.html", "LGS Lise Taban Puanları 2025 — İl İl Tüm Liseler | SınavVeri",
-                "2025 LGS lise taban puanları ve yüzdelik dilimleri. 81 ilde 3000+ Fen, Anadolu, İmam Hatip ve Meslek lisesi. İl ve türe göre filtrele.",
+    return base("lise-taban-puanlari.html", f"LGS Lise Taban Puanları {LGS_YIL} — İl İl Tüm Liseler | SınavVeri",
+                f"{LGS_YIL} LGS lise taban puanları ve yüzdelik dilimleri. 81 ilde 3000+ Fen, Anadolu, İmam Hatip ve Meslek lisesi. İl ve türe göre filtrele.",
                 body, extra_ld=[breadcrumb_ld([("Ana Sayfa", "index.html"), ("LGS Lise Taban Puanları", None)])])
 
 
@@ -5239,7 +5597,7 @@ def gen_lise_il_pages(lgs):
                      "<td>" + yuz + "</td></tr>")
         tabans = [r["tp"] for r in recs if r.get("tp")]
         fen = [r for r in recs if r["tur"] == "Fen Lisesi"]
-        summary = (f"<strong>{il}</strong> ilinde 2025 LGS ile öğrenci alan <strong>{len(recs)}</strong> lise listelenmiştir"
+        summary = (f"<strong>{il}</strong> ilinde {LGS_YIL} LGS ile öğrenci alan <strong>{len(recs)}</strong> lise listelenmiştir"
                    + (f"; taban puanları <strong>{fmt_puan(min(tabans))}</strong> – <strong>{fmt_puan(max(tabans))}</strong> aralığında." if tabans else "."))
         body = f"""
 <div class="crumb"><a href="/index.html">Ana Sayfa</a> / <a href="/lise-taban-puanlari.html">LGS Liseler</a> / {il}</div>
@@ -5248,15 +5606,15 @@ def gen_lise_il_pages(lgs):
 {SHARE_BAR}
 <div class="data-table-wrap">
 <table class="data-table" data-tvpager>
-<thead><tr><th data-tip="Sınavla öğrenci alan lisenin resmî adı." data-type="text">Lise</th><th data-tip="Lisenin bulunduğu ilçe." data-type="text">İlçe</th><th data-tip="Lise türü: Fen, Sosyal Bilimler, Anadolu, İmam Hatip, Mesleki ve Teknik vb." data-type="text">Tür</th><th data-tip="Liseye alınacak öğrenci sayısı (kontenjan)." data-type="num">Kont.</th><th data-tip="2025'te liseye yerleşen son öğrencinin LGS merkezi sınav puanı." data-type="num">2025 Taban</th><th data-tip="2024 LGS taban puanı; yıllar arası değişimi görmek için." data-type="num">2024</th><th data-tip="2023 LGS taban puanı; yıllar arası değişimi görmek için." data-type="num">2023</th><th data-tip="2025 tabanının bir önceki yıla göre değişimi (↑ yükseldi, ↓ düştü, → aynı)." data-type="text">Trend</th><th data-tip="Yerleşen son öğrencinin LGS yüzdelik dilimi. Küçük yüzdelik = daha başarılı." data-type="num">Yüzdelik</th></tr></thead>
+<thead><tr><th data-tip="Sınavla öğrenci alan lisenin resmî adı." data-type="text">Lise</th><th data-tip="Lisenin bulunduğu ilçe." data-type="text">İlçe</th><th data-tip="Lise türü: Fen, Sosyal Bilimler, Anadolu, İmam Hatip, Mesleki ve Teknik vb." data-type="text">Tür</th><th data-tip="Liseye alınacak öğrenci sayısı (kontenjan)." data-type="num">Kont.</th><th data-tip="{LGS_YIL}'te liseye yerleşen son öğrencinin LGS merkezi sınav puanı." data-type="num">{LGS_YIL} Taban</th><th data-tip="{LGS_HIST[0]} LGS taban puanı; yıllar arası değişimi görmek için." data-type="num">{LGS_HIST[0]}</th><th data-tip="{LGS_HIST[1]} LGS taban puanı; yıllar arası değişimi görmek için." data-type="num">{LGS_HIST[1]}</th><th data-tip="{LGS_YIL} tabanının bir önceki yıla göre değişimi (↑ yükseldi, ↓ düştü, → aynı)." data-type="text">Trend</th><th data-tip="Yerleşen son öğrencinin LGS yüzdelik dilimi. Küçük yüzdelik = daha başarılı." data-type="num">Yüzdelik</th></tr></thead>
 <tbody>{rows}</tbody>
 </table>
 </div>
-<div class="notice"><b>Kaynak:</b> MEB 2025 LGS merkezi yerleştirme verileri. Yalnızca sınavla öğrenci alan liseler.
+<div class="notice"><b>Kaynak:</b> MEB {LGS_YIL} LGS merkezi yerleştirme verileri. Yalnızca sınavla öğrenci alan liseler.
 Tüm Türkiye: <a href="/lise-taban-puanlari.html">LGS lise taban puanları</a> · <a href="/lgs-puan-hesaplama.html">LGS puan hesaplama</a>.</div>
 """
-        html = base(f"lise/{sl}.html", f"{il} Liseleri Taban Puanları 2025 LGS — Yüzdelik Dilim | SınavVeri",
-                    f"{il} 2025 LGS lise taban puanları ve yüzdelik dilimleri. {len(recs)} sınavla öğrenci alan Fen, Anadolu, İmam Hatip ve Meslek lisesi. MEB verisi.",
+        html = base(f"lise/{sl}.html", f"{il} Liseleri Taban Puanları {LGS_YIL} LGS — Yüzdelik Dilim | SınavVeri",
+                    f"{il} {LGS_YIL} LGS lise taban puanları ve yüzdelik dilimleri. {len(recs)} sınavla öğrenci alan Fen, Anadolu, İmam Hatip ve Meslek lisesi. MEB verisi.",
                     body, share=True)
         write(f"lise/{sl}.html", html)
     return slugs
@@ -5265,8 +5623,8 @@ Tüm Türkiye: <a href="/lise-taban-puanlari.html">LGS lise taban puanları</a> 
 # ───────────────────────── TABAN PUANLARI HUB ─────────────────────────
 def page_taban_hub():
     live = [
-        ("/universite-taban-puanlari.html", "🎓", "Üniversite Taban Puanları", "YKS · 21.602 lisans/önlisans programı · YÖK Atlas 2025"),
-        ("/lise-taban-puanlari.html", "🏫", "LGS Lise Taban Puanları", "81 il · 3.000+ sınavla öğrenci alan lise · MEB 2025"),
+        ("/universite-taban-puanlari.html", "🎓", "Üniversite Taban Puanları", f"YKS · 21.602 lisans/önlisans programı · YÖK Atlas {YKS_YIL}"),
+        ("/lise-taban-puanlari.html", "🏫", "LGS Lise Taban Puanları", f"81 il · 3.000+ sınavla öğrenci alan lise · MEB {LGS_YIL}"),
         ("/tus-taban-puanlari.html", "🩺", "TUS Taban Puanları", "Tıpta uzmanlık · kurum × dal · ÖSYM resmî 2025"),
         ("/dus-taban-puanlari.html", "🦷", "DUS Taban Puanları", "Diş hekimliği uzmanlık · kurum × dal · ÖSYM resmî 2025"),
         ("/dgs-taban-puanlari.html", "📈", "DGS Taban Puanları", "Dikey geçiş · 7.000+ üniversite programı · ÖSYM resmî 2025"),
@@ -5305,7 +5663,7 @@ Kaynaklar: YÖK Atlas (üniversite), MEB (LGS), <strong>ÖSYM resmî 'En Küçü
   <ul style="margin-left:20px;color:var(--fg-muted);line-height:1.9">{rm}</ul>
 </div>
 """
-    return base("taban-puanlari.html", "Taban Puanları 2025 — Üniversite, LGS, TUS, DUS, DGS, KPSS | SınavVeri",
+    return base("taban-puanlari.html", "Taban Puanları — Üniversite, LGS, TUS, DUS, DGS, KPSS | SınavVeri",
                 "2025 taban puanları merkezi: üniversite (YKS), LGS lise, TUS, DUS, DGS ve KPSS atama taban puanları ve başarı sıralamaları tek çatıda.",
                 body)
 
@@ -5538,20 +5896,20 @@ def page_tus(hubs=None):
     if not (ROOT / "veri" / "tus.json").exists():
         return None
     return minmax_page(
-        "tus-taban-puanlari.html", "TUS Taban Puanları 2023-2025 — Kurum ve Uzmanlık Dalı | SınavVeri",
-        "TUS taban ve tavan puanları (2025/1) + 2024 ve 2023 karşılaştırması, her hastane/üniversite ve uzmanlık dalı için. ÖSYM resmî, 3 yıllık trend. Kardiyoloji, radyoloji, genel cerrahi ve tüm branşlar.",
-        "TUS Taban Puanları (3 Yıllık Trend)", "Tıpta Uzmanlık · kurum × uzmanlık dalı · ÖSYM resmî yerleştirme 2023→2025",
+        "tus-taban-puanlari.html", f"TUS Taban Puanları {osym_yil('tus')-2}-{osym_yil('tus')} — Kurum ve Uzmanlık Dalı | SınavVeri",
+        f"TUS taban ve tavan puanları ({osym_yil('tus')}/1) + {osym_yil('tus')-1} ve {osym_yil('tus')-2} karşılaştırması, her hastane/üniversite ve uzmanlık dalı için. ÖSYM resmî, 3 yıllık trend. Kardiyoloji, radyoloji, genel cerrahi ve tüm branşlar.",
+        "TUS Taban Puanları (3 Yıllık Trend)", f"Tıpta Uzmanlık · kurum × uzmanlık dalı · ÖSYM resmî yerleştirme {osym_yil('tus')-2}→{osym_yil('tus')}",
         "/veri/tus.json",
         [(1, "Uzmanlık Dalı", "b"), (0, "Kurum", "t"), (3, "Kont.", "n"),
-         (4, "2025 Taban", "p"), (6, "2024", "pv"), (7, "2023", "pv"), (8, "Trend", "t"), (5, "Tavan", "pv")],
+         (4, f"{osym_yil('tus')} Taban", "p"), (6, f"{osym_yil('tus')-1}", "pv"), (7, f"{osym_yil('tus')-2}", "pv"), (8, "Trend", "t"), (5, "Tavan", "pv")],
         [(9, "Uzmanlık Dalı"), (2, "Kontenjan Türü")], [0, 1],
         "TUS'ta her kurum ve uzmanlık dalı için ÖSYM'nin açıkladığı en düşük (taban) ve en yüksek (tavan) puanlar, "
-        "<b>son 3 yılın (2023-2024-2025) yerleştirme karşılaştırmasıyla</b>. Trend sütunu 2025 tabanının bir önceki yıla göre değişimini gösterir. "
+        f"<b>son 3 yılın ({osym_yil('tus')-2}-{osym_yil('tus')-1}-{osym_yil('tus')}) yerleştirme karşılaştırmasıyla</b>. Trend sütunu {osym_yil('tus')} tabanının bir önceki yıla göre değişimini gösterir. "
         "Dal adının yanındaki parantez <b>kadro türüdür</b> (ÖSYM kontenjan tablosu): "
         "<b>ÜNİ</b> üniversite, <b>SBA</b> Sağlık Bakanlığı Adına, <b>EAH</b> eğitim-araştırma hastanesi, <b>MSB</b> Milli Savunma, "
         "<b>MAP</b> Misafir Askeri Personel, <b>KKTC</b> Kıbrıs, <b>ADL</b> Adalet Bakanlığı, <b>YBU</b> yabancı uyruklu. "
         "Aynı kurum+dalda birden çok kadro ayrı satırdır. Dal veya kurum/şehir arayın, uzmanlık dalına göre filtreleyin.",
-        "ÖSYM 2023, 2024 ve 2025 TUS Yerleştirme 'En Küçük ve En Büyük Puanlar' resmî yayınları (dokuman.osym.gov.tr).",
+        f"ÖSYM {osym_yil('tus')-2}, {osym_yil('tus')-1} ve {osym_yil('tus')} TUS Yerleştirme 'En Küçük ve En Büyük Puanlar' resmî yayınları (dokuman.osym.gov.tr).",
         ph="Dal / kurum / şehir ara…", hub_html=hub_links_html("tus", hubs), spark=[7, 6, 4])
 
 
@@ -5559,16 +5917,16 @@ def page_dus(hubs=None):
     if not (ROOT / "veri" / "dus.json").exists():
         return None
     return minmax_page(
-        "dus-taban-puanlari.html", "DUS Taban Puanları 2023-2025 — Kurum ve Uzmanlık Dalı | SınavVeri",
-        "DUS taban ve tavan puanları (2025/1) + 2024 ve 2023 karşılaştırması, her diş hekimliği fakültesi ve uzmanlık dalı için. ÖSYM resmî, 3 yıllık trend.",
-        "DUS Taban Puanları (3 Yıllık Trend)", "Diş Hekimliği Uzmanlık · kurum × dal · ÖSYM resmî 1. dönem 2023→2025",
+        "dus-taban-puanlari.html", f"DUS Taban Puanları {osym_yil('dus')-2}-{osym_yil('dus')} — Kurum ve Uzmanlık Dalı | SınavVeri",
+        f"DUS taban ve tavan puanları ({osym_yil('dus')}/1) + {osym_yil('dus')-1} ve {osym_yil('dus')-2} karşılaştırması, her diş hekimliği fakültesi ve uzmanlık dalı için. ÖSYM resmî, 3 yıllık trend.",
+        "DUS Taban Puanları (3 Yıllık Trend)", f"Diş Hekimliği Uzmanlık · kurum × dal · ÖSYM resmî 1. dönem {osym_yil('dus')-2}→{osym_yil('dus')}",
         "/veri/dus.json",
         [(1, "Uzmanlık Dalı", "b"), (0, "Kurum", "t"), (3, "Kont.", "n"),
-         (4, "2025 Taban", "p"), (6, "2024", "pv"), (7, "2023", "pv"), (8, "Trend", "t"), (5, "Tavan", "pv")],
+         (4, f"{osym_yil('dus')} Taban", "p"), (6, f"{osym_yil('dus')-1}", "pv"), (7, f"{osym_yil('dus')-2}", "pv"), (8, "Trend", "t"), (5, "Tavan", "pv")],
         [(9, "Uzmanlık Dalı")], [0, 1],
         "DUS'ta her kurum ve diş hekimliği uzmanlık dalı için ÖSYM'nin açıkladığı taban ve tavan puanlar, "
-        "<b>son 3 yılın (2023-2024-2025) karşılaştırmasıyla</b>. Trend sütunu 2025 tabanının bir önceki yıla göre değişimini gösterir.",
-        "ÖSYM 2023, 2024 ve 2025 DUS 'En Küçük ve En Büyük Puanlar' resmî yayınları (dokuman.osym.gov.tr).",
+        f"<b>son 3 yılın ({osym_yil('dus')-2}-{osym_yil('dus')-1}-{osym_yil('dus')}) karşılaştırmasıyla</b>. Trend sütunu {osym_yil('dus')} tabanının bir önceki yıla göre değişimini gösterir.",
+        f"ÖSYM {osym_yil('dus')-2}, {osym_yil('dus')-1} ve {osym_yil('dus')} DUS 'En Küçük ve En Büyük Puanlar' resmî yayınları (dokuman.osym.gov.tr).",
         ph="Dal / kurum ara…", hub_html=hub_links_html("dus", hubs), spark=[7, 6, 4])
 
 
@@ -5576,18 +5934,18 @@ def page_dgs_taban(hubs=None):
     if not (ROOT / "veri" / "dgs.json").exists():
         return None
     return minmax_page(
-        "dgs-taban-puanlari.html", "DGS Taban Puanları 2023-2025 — Üniversite ve Program | SınavVeri",
-        "DGS taban ve tavan puanları (2025) + 2024 ve 2023 karşılaştırması, her üniversite programı için. Dikey geçiş ÖSYM resmî verisi, 7000+ program, 3 yıllık trend.",
-        "DGS Taban Puanları (3 Yıllık Trend)", "Dikey Geçiş · üniversite × program · ÖSYM resmî 2023→2025",
+        "dgs-taban-puanlari.html", f"DGS Taban Puanları {osym_yil('dgs')-2}-{osym_yil('dgs')} — Üniversite ve Program | SınavVeri",
+        f"DGS taban ve tavan puanları (2025) + {osym_yil('dgs')-1} ve {osym_yil('dgs')-2} karşılaştırması, her üniversite programı için. Dikey geçiş ÖSYM resmî verisi, 7000+ program, 3 yıllık trend.",
+        "DGS Taban Puanları (3 Yıllık Trend)", f"Dikey Geçiş · üniversite × program · ÖSYM resmî {osym_yil('dgs')-2}→{osym_yil('dgs')}",
         "/veri/dgs.json",
         [(1, "Program", "b"), (0, "Üniversite", "t"), (2, "Kont.", "n"),
-         (3, "2025 Taban", "p"), (5, "2024", "pv"), (6, "2023", "pv"), (7, "Trend", "t"), (4, "Tavan", "pv")],
+         (3, f"{osym_yil('dgs')} Taban", "p"), (5, f"{osym_yil('dgs')-1}", "pv"), (6, f"{osym_yil('dgs')-2}", "pv"), (7, "Trend", "t"), (4, "Tavan", "pv")],
         [], [0, 1],
         "DGS ile ön lisanstan lisansa geçişte her üniversite programının ÖSYM'nin açıkladığı taban ve tavan puanları, "
-        "<b>son 3 yılın (2023-2024-2025) karşılaştırmasıyla</b>. Trend sütunu 2025 tabanının bir önceki yıla göre değişimini gösterir "
+        f"<b>son 3 yılın ({osym_yil('dgs')-2}-{osym_yil('dgs')-1}-{osym_yil('dgs')}) karşılaştırmasıyla</b>. Trend sütunu {osym_yil('dgs')} tabanının bir önceki yıla göre değişimini gösterir "
         "(↑ yükseliş, ↓ düşüş). Program kodu yıllar arası eşleştirilir; yeni açılan programlarda geçmiş boştur. "
         "Program veya üniversite adı arayın. DGS net hesaplama için <a href='/dgs-puan-hesaplama.html'>DGS puan hesaplama</a>.",
-        "ÖSYM 2023, 2024 ve 2025 'DGS Yerleştirme Sonuçlarına İlişkin En Küçük ve En Büyük Puanlar' resmî yayınları (dokuman.osym.gov.tr).",
+        f"ÖSYM {osym_yil('dgs')-2}, {osym_yil('dgs')-1} ve {osym_yil('dgs')} 'DGS Yerleştirme Sonuçlarına İlişkin En Küçük ve En Büyük Puanlar' resmî yayınları (dokuman.osym.gov.tr).",
         ph="Program / üniversite ara…", hub_html=hub_links_html("dgs", hubs), spark=[6, 5, 3])
 
 
@@ -5595,18 +5953,19 @@ def page_kpss_atama(hubs=None):
     if not (ROOT / "veri" / "kpss.json").exists():
         return None
     return minmax_page(
-        "kpss-atama-taban-puanlari.html", "KPSS Atama Taban Puanları 2025 — Kadro Bazında | SınavVeri",
-        "2025 KPSS atama taban ve tavan puanları, kadro/pozisyon bazında. ÖSYM resmî yerleştirme verisi (KPSS-2025/1 ve Sağlık Bakanlığı).",
-        "KPSS Atama Taban Puanları 2025", "Kadro/pozisyon bazında atama puanları · ÖSYM resmî · 2025 tüm yerleştirmeler",
+        "kpss-atama-taban-puanlari.html", f"KPSS Atama Taban Puanları {osym_yil('kpss')} — Kadro Bazında | SınavVeri",
+        f"{osym_yil('kpss')} KPSS atama taban ve tavan puanları, kadro/pozisyon bazında. ÖSYM resmî yerleştirme verisi (KPSS-{osym_yil('kpss')}/1 ve Sağlık Bakanlığı).",
+        f"KPSS Atama Taban Puanları {osym_yil('kpss')}", f"Kadro/pozisyon bazında atama puanları · ÖSYM resmî · {osym_yil('kpss')} tüm yerleştirmeler",
         "/veri/kpss.json",
         [(1, "Kadro", "b"), (0, "Kurum", "t"), (2, "İl", "t"), (3, "Düzey", "t"), (4, "Dönem", "t"),
-         (6, "2025 Taban", "p"), (8, "2024", "pv"), (9, "Trend", "t"), (7, "Tavan", "pv")],
+         (6, f"{osym_yil('kpss')} Taban", "p"), (8, f"{osym_yil('kpss')-1}", "pv"), (9, "Trend", "t"), (7, "Tavan", "pv")],
         [(2, "İl"), (3, "Düzey"), (4, "Dönem")], [0, 1],
         "KPSS ile atanılan her kadro/pozisyon için ÖSYM'nin açıkladığı taban ve tavan puanlar. "
         "Kadro veya kurum arayın; il, öğrenim düzeyi ve yerleştirme dönemine göre filtreleyin. "
-        "<b>Kapsam:</b> 2025 yılının tüm KPSS yerleştirmeleri (2025/1–2025/5: Genel, Çevre Bak., Sağlık Bak.). "
-        "<b>2024</b> sütunu aynı kurum+il+kadronun bir önceki yıl (aynı tür yerleştirme) tabanıdır; Trend değişimi gösterir. "
-        "KPSS atamaları tek-seferlik ilanlar olduğundan eşleşme kısmidir (Çevre Bak. için 2024 verisi yoktur). "
+        f"<b>Kapsam:</b> {kpss_kapsam_metni()} "
+        f"<b>{osym_yil('kpss')-1}</b> sütunu aynı kurum+il+kadronun bir önceki yıl (aynı tür yerleştirme) tabanıdır; Trend değişimi gösterir. "
+        "KPSS atamaları tek-seferlik ilanlar olduğundan eşleşme kısmidir; bir dönemin karşılığı "
+        "önceki yılda hiç açılmamış olabilir. "
         "<b>Aynı unvanlı birden çok kadro</b> farklı <b>nitelik (aranan şartlar)</b> içerir; ayırmak için kadro adının yanına "
         "<b>(Kadro Kodu: …)</b> eklenir. Bir kadronun tüm niteliklerini görmek için bu kodu, ilgili dönemin "
         "<a href='https://www.osym.gov.tr/TR,62/kpss.html' target='_blank' rel='noopener'>ÖSYM KPSS tercih kılavuzunda</a> aratın.",
@@ -5632,16 +5991,39 @@ _HUB_CFG = {
     "kpss": ("kadro", "kpss-taban", "KPSS", "KPSS Atama", 2, "kadro", "kadrolar"),
 }
 # Dikey başına tablo kolonları: (başlık, alan, tür) tür: t=metin, n=tamsayı, p=puan, trend=hesaplanan
-_HUB_COLS = {
-    "tus": [("Kurum", "kurum", "t"), ("Kadro", "kadro", "t"), ("Tür", "tur", "t"), ("Kont.", "kont", "n"),
-            ("2025 Taban", "tp", "p"), ("2024", "tp24", "p"), ("2023", "tp23", "p"), ("Trend", None, "trend"), ("Tavan", "tavan", "p")],
-    "dus": [("Kurum", "kurum", "t"), ("Kadro", "kadro", "t"), ("Tür", "tur", "t"), ("Kont.", "kont", "n"),
-            ("2025 Taban", "tp", "p"), ("2024", "tp24", "p"), ("2023", "tp23", "p"), ("Trend", None, "trend"), ("Tavan", "tavan", "p")],
-    "dgs": [("Üniversite", "uni", "t"), ("Kont.", "kont", "n"),
-            ("2025 Taban", "tp", "p"), ("2024", "tp24", "p"), ("2023", "tp23", "p"), ("Trend", None, "trend"), ("Tavan", "tavan", "p")],
-    "kpss": [("Kurum", "kurum", "t"), ("İl", "il", "t"), ("Düzey", "duzey", "t"), ("Dönem", "donem", "t"),
-             ("Kont.", "kont", "n"), ("2025 Taban", "tp", "p"), ("2024", "tp24", "p"), ("Trend", None, "trend"), ("Tavan", "tavan", "p")],
-}
+def kpss_kapsam_metni():
+    """KPSS kapsam cümlesi veriden türetilir — '2026/1–2026/5' gibi SABİT aralık yazmak,
+    o yıl henüz tek yerleştirme yapıldığında yanlış bilgi veriyordu."""
+    y = osym_yil("kpss")
+    try:
+        kayit = json.loads((ROOT / "veri" / "kpss.json").read_text(encoding="utf-8"))
+        donemler = sorted({r[4] for r in kayit if len(r) > 4 and r[4]})
+    except Exception:
+        donemler = []
+    if not donemler:
+        return f"{y} yılı KPSS yerleştirmeleri."
+    if len(donemler) == 1:
+        return f"{y} yılı KPSS yerleştirmesi ({donemler[0]})."
+    return f"{y} yılının tüm KPSS yerleştirmeleri ({' · '.join(donemler)})."
+
+
+def hub_cols(exam):
+    """Hub tablosu kolonları — yıl etiketleri o sınavın veri yılından türetilir.
+    (tp24/tp23 alan adları TARİHSEL; anlamı KONUMSALDIR: cari-1, cari-2.)"""
+    y = osym_yil(exam)
+    puan = [(f"{y} Taban", "tp", "p"), (f"{y-1}", "tp24", "p"), (f"{y-2}", "tp23", "p"),
+            ("Trend", None, "trend"), ("Tavan", "tavan", "p")]
+    if exam == "kpss":
+        return ([("Kurum", "kurum", "t"), ("İl", "il", "t"), ("Düzey", "duzey", "t"),
+                 ("Dönem", "donem", "t"), ("Kont.", "kont", "n"),
+                 (f"{y} Taban", "tp", "p"), (f"{y-1}", "tp24", "p"),
+                 ("Trend", None, "trend"), ("Tavan", "tavan", "p")])
+    if exam == "dgs":
+        return [("Üniversite", "uni", "t"), ("Kont.", "kont", "n")] + puan
+    return [("Kurum", "kurum", "t"), ("Kadro", "kadro", "t"), ("Tür", "tur", "t"),
+            ("Kont.", "kont", "n")] + puan
+
+
 _HUB_MAIN = {"tus": "tus-taban-puanlari.html", "dus": "dus-taban-puanlari.html",
              "dgs": "dgs-taban-puanlari.html", "kpss": "kpss-atama-taban-puanlari.html"}
 
@@ -5680,7 +6062,7 @@ def gen_osym_hub_pages():
             while s in slugmap and slugmap[s] != g:
                 s = f"{base_s}-{i}"; i += 1
             slugmap[s] = g
-        cols = _HUB_COLS[exam]
+        cols = hub_cols(exam)
         links = []
         for s, g in slugmap.items():
             recs = groups[g]
@@ -5699,7 +6081,7 @@ def gen_osym_hub_pages():
             main = _HUB_MAIN[exam]
             body = f"""
 <div class="crumb"><a href="/index.html">Ana Sayfa</a> / <a href="/taban-puanlari.html">Taban Puanları</a> / <a href="/{main}">{EX}</a> / {g}</div>
-<div class="page-title"><h1>{g} {EX} Taban Puanları 2025</h1><span class="sub">{sinav} · {len(recs)} {'kadro' if exam=='kpss' else 'kurum'} · ÖSYM resmî{'' if exam=='kpss' else ' · 3 yıllık trend (2023-2025)'}</span></div>
+<div class="page-title"><h1>{g} {EX} Taban Puanları {osym_yil(exam)}</h1><span class="sub">{sinav} · {len(recs)} {'kadro' if exam=='kpss' else 'kurum'} · ÖSYM resmî{'' if exam=='kpss' else ' · 3 yıllık trend (2023-2025)'}</span></div>
 <div class="info-box">{ozet} Tablo 2025 tabanına göre yüksekten düşüğe sıralıdır.{'' if exam=='kpss' else ' Trend sütunu 2025 tabanının bir önceki yıla göre değişimini gösterir (↑/↓).'}</div>
 <div class="data-table-wrap">
 <table class="data-table" data-tvpager><thead><tr>{thead}</tr></thead><tbody>{rws}</tbody></table>
@@ -5707,7 +6089,7 @@ def gen_osym_hub_pages():
 <div class="notice"><b>Kaynak:</b> ÖSYM resmî 'En Küçük ve En Büyük Puanlar' yayını (dokuman.osym.gov.tr).
 Tüm {EX} verisi için <a href="/{main}">{EX} taban puanları arama</a> · <a href="/taban-puanlari.html">tüm taban puanları</a>.</div>
 """
-            title = f"{g} {EX} Taban Puanları 2025 — Kurum Bazında {'ve 3 Yıllık Trend ' if exam!='kpss' else ''}| SınavVeri"
+            title = f"{g} {EX} Taban Puanları {osym_yil(exam)} — Kurum Bazında {'ve 3 Yıllık Trend ' if exam!='kpss' else ''}| SınavVeri"
             desc = (f"{g} {EX.lower()} 2025 taban ve tavan puanları, {len(recs)} {'kadro' if exam=='kpss' else 'kurum'} bazında"
                     + ("" if exam == "kpss" else ", 2023-2024-2025 karşılaştırmasıyla") + ". ÖSYM resmî verisi.")
             write(f"{subdir}/{s}.html", base(f"{subdir}/{s}.html", title, desc, body))
@@ -5806,7 +6188,7 @@ def page_doluluk(programs):
 
     body = f"""
 <div class="crumb"><a href="/index.html">Ana Sayfa</a> / Doluluk Analizi</div>
-<div class="page-title"><h1>Kontenjan ve Doluluk Analizi 2025</h1><span class="sub">YÖK Atlas 2025 · {fmt_sira(len(valid))} program · Doluluk = yerleşen ÷ kontenjan</span></div>
+<div class="page-title"><h1>Kontenjan ve Doluluk Analizi {YKS_YIL}</h1><span class="sub">YÖK Atlas {YKS_YIL} · {fmt_sira(len(valid))} program · Doluluk = yerleşen ÷ kontenjan</span></div>
 <div class="spotlight">
   <div class="spot-card"><div class="sc-label">Toplam Kontenjan</div><div class="sc-exam">{fmt_sira(tk)}</div></div>
   <div class="spot-card"><div class="sc-label">Toplam Yerleşen</div><div class="sc-exam">{fmt_sira(ty)}</div></div>
@@ -5903,10 +6285,10 @@ def page_doluluk(programs):
 <thead><tr><th data-tip="Bölüm grubu adı." data-type="text">Bölüm</th><th data-tip="Bu bölüm grubundaki program sayısı." data-type="num">Program</th><th data-tip="Bölüm grubunun toplam kontenjanı." data-type="num">Kontenjan</th><th data-tip="Doluluk = yerleşen ÷ kontenjan." data-type="num">Doluluk</th></tr></thead>
 <tbody>{grp_table(dolu)}</tbody></table></div></div>
 
-<div class="notice"><b>Kaynak:</b> YÖK Atlas 2025. Doluluk, genel kontenjana yerleşen sayısının oranıdır; ek yerleştirme/dikey
+<div class="notice"><b>Kaynak:</b> YÖK Atlas {YKS_YIL}. Doluluk, genel kontenjana yerleşen sayısının oranıdır; ek yerleştirme/dikey
 geçiş hariçtir. Düşük doluluk talebin az olduğunu, yüksek doluluk programın dolduğunu gösterir.</div>
 """
-    return base("doluluk.html", "Üniversite Kontenjan ve Doluluk Analizi 2025 | SınavVeri",
+    return base("doluluk.html", f"Üniversite Kontenjan ve Doluluk Analizi {YKS_YIL} | SınavVeri",
                 "2025 üniversite kontenjan doluluk oranları: devlet/vakıf, lisans/önlisans karşılaştırması, en dolu ve en boş bölümler. YÖK Atlas verisi.",
                 body, extra_head=PLOTLY_CDN)
 
@@ -6117,13 +6499,13 @@ def page_listeler(programs):
         for n, (tid, lbl, table) in enumerate(tabs))
     body = f"""
 <div class="crumb"><a href="/index.html">Ana Sayfa</a> / Listeler ve Sıralamalar</div>
-<div class="page-title"><h1>Üniversite Listeleri ve Sıralamalar 2025</h1><span class="sub">YÖK Atlas 2025 gerçek yerleştirme verisinden · en yüksek taban, en çok kontenjan</span></div>
+<div class="page-title"><h1>Üniversite Listeleri ve Sıralamalar {YKS_YIL}</h1><span class="sub">YÖK Atlas {YKS_YIL} gerçek yerleştirme verisinden · en yüksek taban, en çok kontenjan</span></div>
 <div class="info-box">Puan türüne göre sekmelerden öne çıkan programları gör. Tüm taban puanları için
 <a href="/universite-taban-puanlari.html">üniversite taban puanları</a>, puanına göre bölüm için
 <a href="/tercih-robotu.html">tercih robotu</a>.</div>
 <div class="ltabs">{btns}</div>
 {panels}
-<div class="notice"><b>Kaynak:</b> YÖK Atlas 2025 Tercih Kılavuzu yerleştirme verisi. Sıralamalar 2025 taban puanı / kontenjanına göredir.</div>
+<div class="notice"><b>Kaynak:</b> YÖK Atlas {YKS_KILAVUZ_YIL} Tercih Kılavuzu yerleştirme verisi. Sıralamalar {YKS_YIL} taban puanı / kontenjanına göredir.</div>
 <script nonce="__NONCE__">
 (function(){{
   var btns=document.querySelectorAll('.ltab-btn');
@@ -6138,7 +6520,7 @@ def page_listeler(programs):
     extra = [breadcrumb_ld([("Ana Sayfa", "index.html"), ("Listeler ve Sıralamalar", None)])]
     if item_list:
         extra.append({"@type": "ItemList", "name": "En Yüksek Taban Puanlı Sayısal Programlar 2025", "itemListElement": item_list})
-    return base("listeler.html", "Üniversite Listeleri ve Sıralamalar 2025 — En Yüksek Taban, En Çok Kontenjan | SınavVeri",
+    return base("listeler.html", f"Üniversite Listeleri ve Sıralamalar {YKS_YIL} — En Yüksek Taban, En Çok Kontenjan | SınavVeri",
                 "2025 üniversite sıralamaları: en yüksek taban puanlı programlar (SAY/EA/SÖZ/DİL) ve en çok kontenjanlı bölümler. YÖK Atlas gerçek yerleştirme verisi.",
                 body, extra_ld=extra)
 
@@ -6374,7 +6756,7 @@ def main():
     # Veri tabanlı sayfalar
     il_slugs = {}
     programs = load_programs()
-    print(f"  {len(programs)} program yüklendi (YÖK Atlas 2025)")
+    print(f"  {len(programs)} program yüklendi (YÖK Atlas {YKS_YIL})")
     write_veri(programs)
     write_puan_sira(programs)
     _km = ROOT / "data" / "kosul_map.json"

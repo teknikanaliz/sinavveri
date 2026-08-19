@@ -1,4 +1,11 @@
 {
-  "yil": 2025,
-  "kaynak": "ÖSYM 2025 'En Küçük ve En Büyük Puanlar' (resmî, dokuman.osym.gov.tr)"
+  "kaynak": "ÖSYM 'En Küçük ve En Büyük Puanlar' (resmî, dokuman.osym.gov.tr)",
+  "yil": 2026,
+  "yillar": {
+    "tus": 2026,
+    "dus": 2026,
+    "dgs": 2025,
+    "kpss": 2026
+  },
+  "guncelleme": "2026-08-19"
 }

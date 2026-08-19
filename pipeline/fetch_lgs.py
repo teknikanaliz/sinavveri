@@ -7,6 +7,7 @@ Sütun sırası varyasyonuna dayanıklı heuristik: taban≥100, yüzdelik<100 (
 """
 import json
 import re
+from datetime import date
 import time
 import urllib.request
 from pathlib import Path
@@ -89,6 +90,10 @@ def _col_map(header_cells):
     return idx
 
 
+_CARI = "0000"          # yıl sütunu hiç yoksa kullanılan yer tutucu
+_GORULEN_YILLAR = set()  # veriden gözlemlenen cari yıllar (meta + sağlık kontrolü için)
+
+
 def parse_il(html, il_fallback):
     m = re.search(r"<table.*?</table>", html, re.S | re.I)
     if not m:
@@ -143,23 +148,34 @@ def parse_il(html, il_fallback):
                 if j < len(konts):
                     ks = re.sub(r"[^\d]", "", konts[j])
                     by_kont[ym] = int(ks) if ks else None
-        else:  # Yıl sütunu yoksa: ilk satır = en güncel
-            by_tp["2025"] = to_float(tps[0]) if tps else None
-            by_yuz["2025"] = to_float(yuzs[0]) if yuzs else None
+        else:  # Yıl sütunu yoksa: ilk satır = en güncel (yıl aşağıda cari kabul edilir)
+            by_tp[_CARI] = to_float(tps[0]) if tps else None
+            by_yuz[_CARI] = to_float(yuzs[0]) if yuzs else None
             if konts:
                 ks = re.sub(r"[^\d]", "", konts[0])
-                by_kont["2025"] = int(ks) if ks else None
-        tp = by_tp.get("2025")
+                by_kont[_CARI] = int(ks) if ks else None
+        # CARİ YIL SABİT YAZILMAZ (2026-08-19): satırda görülen EN BÜYÜK yıl caridir.
+        # Eskiden "2025" sabit okunuyordu → kaynak 2026'ya geçtiğinde yeni veri SESSİZCE
+        # yok sayılıyor, site bir yıl geride kalıyordu.
+        yillar = sorted((y for y in by_tp if y.isdigit()), reverse=True)
+        if not yillar:
+            continue
+        cur = yillar[0]
+        _GORULEN_YILLAR.add(int(cur))
+        onceki = [str(int(cur) - k) for k in (1, 2, 3)]
+        tp = by_tp.get(cur)
         if tp is None or tp < 50 or tp > 500:
-            continue  # geçersiz/boş satır (2025 yerleşmesi yok)
-        yuz = by_yuz.get("2025")
+            continue  # geçersiz/boş satır (cari yıl yerleşmesi yok)
+        yuz = by_yuz.get(cur)
         if yuz is not None and (yuz < 0 or yuz > 100):
             yuz = None
         out.append({
             "il": il, "ilce": ilce, "okul": okul,
             "tur": normalize_tur(tur_raw), "tur_ham": tur_raw, "ydil": ydil,
-            "kont": by_kont.get("2025"), "tp": tp, "yuz": yuz,
-            "tp24": by_tp.get("2024"), "tp23": by_tp.get("2023"), "tp22": by_tp.get("2022"),
+            "kont": by_kont.get(cur), "tp": tp, "yuz": yuz, "yil": int(cur),
+            # tp24/tp23/tp22 adları TARİHSEL — anlamı KONUMSALDIR: cari-1, cari-2, cari-3.
+            # Gerçek yıl etiketleri lgs_meta.json["yillar"] içinde; sayfa başlıkları oradan üretilir.
+            "tp24": by_tp.get(onceki[0]), "tp23": by_tp.get(onceki[1]), "tp22": by_tp.get(onceki[2]),
         })
     return out
 
@@ -187,9 +203,21 @@ def main():
     (DATA / "lgs_liseler.json").write_text(
         json.dumps(all_schools, ensure_ascii=False, separators=(",", ":")), encoding="utf-8")
     n24 = sum(1 for r in all_schools if r.get("tp24") is not None)
-    meta = {"kaynak": "MEB LGS merkezi yerleştirme (resmî; 2022 meb.gov.tr + 2024 eba.gov.tr ile birebir doğrulandı)",
-            "yil": 2025, "yillar": [2025, 2024, 2023, 2022], "tp24_kapsam": n24,
-            "toplam_okul": len(all_schools), "il_sayisi": len(il_count)}
+    # Cari yıl veriden türetilir; çoğunluk hangi yılsa o (tek tük eski satır sürüklemesin).
+    from collections import Counter
+    cur = Counter(r["yil"] for r in all_schools if r.get("yil")).most_common(1)
+    cur = cur[0][0] if cur else max(_GORULEN_YILLAR, default=date.today().year)
+    meta = {"kaynak": "MEB LGS merkezi yerleştirme (resmî)",
+            "yil": cur, "yillar": [cur, cur - 1, cur - 2, cur - 3], "tp24_kapsam": n24,
+            "toplam_okul": len(all_schools), "il_sayisi": len(il_count),
+            "guncelleme": date.today().isoformat()}
+    # SAĞLIK KONTROLÜ — sessiz gerilemeyi bir daha yaşamamak için.
+    bekl = date.today().year if date.today().month >= 8 else date.today().year - 1
+    if cur < bekl:
+        print(f"  ⚠ UYARI: cari LGS yılı {cur}, beklenen ≥ {bekl}. Kaynak henüz "
+              f"güncellenmemiş olabilir — taban puanları BİR YIL GERİDE yayınlanacak.")
+    if len(il_count) < 70 or len(all_schools) < 2000:
+        print(f"  ⚠ UYARI: kapsam düşük ({len(il_count)} il, {len(all_schools)} okul) — kaynak değişmiş olabilir.")
     (DATA / "lgs_meta.json").write_text(json.dumps(meta, ensure_ascii=False, indent=2), encoding="utf-8")
     print(f"\nTOPLAM: {len(all_schools)} okul, {len(il_count)} il → data/lgs_liseler.json")
 

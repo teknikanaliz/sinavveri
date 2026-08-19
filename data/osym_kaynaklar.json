@@ -1,0 +1,291 @@
+{
+ "guncelleme": "2026-08-19T06:07:54+03:00",
+ "kaynaklar": {
+  "tus": {
+   "2026": [
+    {
+     "url": "https://dokuman.osym.gov.tr/pdfdokuman/2026/TUSDONEM-1/EK/ek_minmax02072026.pdf",
+     "duzey": null,
+     "donem": "2026/1 (Genel)",
+     "duyuru": "/2026tus-1-donem-ek-yerlestirme-sonuclarina-iliskin-en-buyuk-ve-en-kucuk-puanlar-genelyabanci-uyruklu",
+     "ek": true,
+     "tip": "ek"
+    },
+    {
+     "url": "https://dokuman.osym.gov.tr/pdfdokuman/2026/TUSDONEM-1/YERLESTIRME/SB/minmax_ts1d21052026.pdf",
+     "duzey": null,
+     "donem": "2026/1 (Genel)",
+     "duyuru": "/2026tus-1-donem-yerlestirme-sonuclarina-iliskin-sayisal-bilgiler",
+     "ek": false,
+     "tip": "ana"
+    }
+   ],
+   "2025": [
+    {
+     "url": "https://dokuman.osym.gov.tr/pdfdokuman/2025/TUSDONEM-1/TERCIH/EK/minmax_ts1ed14072025.pdf",
+     "duzey": null,
+     "donem": "2025/1 (Genel)",
+     "duyuru": "/2025tus-1-donem-ek-yerlestirme-sonuclarina-iliskin-en-buyuk-ve-en-kucuk-puanlar-genelyabanci-uyruklu",
+     "ek": true,
+     "tip": "ek"
+    },
+    {
+     "url": "https://dokuman.osym.gov.tr/pdfdokuman/2025/TUSDONEM-1/TERCIH/DAL/minmax25092025.pdf",
+     "duzey": null,
+     "donem": "2025/1 (Genel)",
+     "duyuru": "/2025tus-1-donem-uzmanlik-dali-degisikligi-yerlestirme-sonuclarina-iliskin-sayisal-bilgiler",
+     "ek": false,
+     "tip": "dal"
+    },
+    {
+     "url": "https://dokuman.osym.gov.tr/pdfdokuman/2025/TUSDONEM-1/TERCIH/minmax03062025.pdf",
+     "duzey": null,
+     "donem": "2025/1 (Genel)",
+     "duyuru": "/2025tus-1-donem-yerlestirme-sonuclarina-iliskin-sayisal-bilgiler",
+     "ek": false,
+     "tip": "ana"
+    },
+    {
+     "url": "https://dokuman.osym.gov.tr/pdfdokuman/2025/TUSDONEM-2/TERCIH/EK/minmax_ts2ed26112025.pdf",
+     "duzey": null,
+     "donem": "2025/2 (Genel)",
+     "duyuru": "/2025tus-2-donem-ek-yerlestirme-sonuclarina-iliskin-sayisal-bilgiler",
+     "ek": true,
+     "tip": "ek"
+    },
+    {
+     "url": "https://dokuman.osym.gov.tr/pdfdokuman/2025/TUSDONEM-2/TERCIH/DALDEG/tus_minmax08042026.pdf",
+     "duzey": null,
+     "donem": "2025/2 (Genel)",
+     "duyuru": "/2025tus-2-donem-uzmanlik-dali-degisikligi-yerlestirme-sonuclarina-iliskin-sayisal-bilgiler",
+     "ek": false,
+     "tip": "dal"
+    },
+    {
+     "url": "https://dokuman.osym.gov.tr/pdfdokuman/2025/TUSDONEM-2/YERLESTIRME/minmax_ts2yd10102025.pdf",
+     "duzey": null,
+     "donem": "2025/2 (Genel)",
+     "duyuru": "/2025tus-2-donem-yerlestirme-sonuclarina-iliskin-sayisal-bilgiler",
+     "ek": false,
+     "tip": "ana"
+    }
+   ]
+  },
+  "dus": {
+   "2026": [
+    {
+     "url": "https://dokuman.osym.gov.tr/web/2026/8/2026-dus-1donem-ek-yerlestirme-sonuclarina-liskin-en-kucuk-ve-en-buyuk-puanlar-genelyabanci-uyruklu-50gdmb-05090237.pdf",
+     "duzey": null,
+     "donem": "2026/8 (Genel)",
+     "duyuru": "/2026-dus-1donem-ek-yerlestirme-sonuclarina-iliskin-sayisal-bilgiler",
+     "ek": true,
+     "tip": "ek"
+    },
+    {
+     "url": "https://dokuman.osym.gov.tr/pdfdokuman/2026/DUSDONEM-1/TERCIH/minmax22062026.pdf",
+     "duzey": null,
+     "donem": "2026/1 (Genel)",
+     "duyuru": "/2026dus-1donem-yerlestirme-sonuclarina-iliskin-sayisal-bilgiler",
+     "ek": false,
+     "tip": "ana"
+    }
+   ],
+   "2025": [
+    {
+     "url": "https://dokuman.osym.gov.tr/pdfdokuman/2025/DUSDONEM-1/TERCIH/minmax_ds1d04072025.pdf",
+     "duzey": null,
+     "donem": "2025/1 (Genel)",
+     "duyuru": "/2025dus-1donem-yerlestirme-sonuclarina-iliskin-sayisal-bilgiler",
+     "ek": false,
+     "tip": "ana"
+    },
+    {
+     "url": "https://dokuman.osym.gov.tr/pdfdokuman/2025/DUSDONEM-2/TERCIH/EK/minmax_ds2ed07012026.pdf",
+     "duzey": null,
+     "donem": "2025/2 (Genel)",
+     "duyuru": "/2025dus-2-donem-ek-yerlestirme-sonuclarina-iliskin-sayisal-bilgiler",
+     "ek": true,
+     "tip": "ek"
+    },
+    {
+     "url": "https://dokuman.osym.gov.tr/pdfdokuman/2025/DUSDONEM-2/TERCIH/dus2_minmax27112025.pdf",
+     "duzey": null,
+     "donem": "2025/2 (Genel)",
+     "duyuru": "/2025dus-2-donem-yerlestirme-sonuclarina-iliskin-sayisal-bilgiler",
+     "ek": false,
+     "tip": "ana"
+    }
+   ]
+  },
+  "dgs": {
+   "2025": [
+    {
+     "url": "https://dokuman.osym.gov.tr/pdfdokuman/2025/DGS/YERLESTIRME/EK/minmax_dged17102025.pdf",
+     "duzey": null,
+     "donem": "2025 (Genel)",
+     "duyuru": "/2025dgs-ek-yerlestirme-sonuclarina-iliskin-sayisal-bilgiler",
+     "ek": true,
+     "tip": "ek"
+    },
+    {
+     "url": "https://dokuman.osym.gov.tr/pdfdokuman/2025/DGS/TERCIH/minmax_dgd08092025.pdf",
+     "duzey": null,
+     "donem": "2025 (Genel)",
+     "duyuru": "/2025dgs-yerlestirme-sonuclarina-iliskin-sayisal-bilgiler",
+     "ek": false,
+     "tip": "ana"
+    }
+   ]
+  },
+  "kpss": {
+   "2026": [
+    {
+     "url": "https://dokuman.osym.gov.tr/web/2026/7/kpss-20261-yerlestirme-sonuclarina-liskin-en-kucuk-ve-en-buyuk-puanlar-lsans-24q42vum.pdf",
+     "duzey": "Lisans",
+     "donem": "2026/1 (Genel)",
+     "duyuru": "/kpss-20261-bazi-kamu-kurum-ve-kuruluslarin-kadro-ve-pozisyonlarina-yerlestirme-sonuclarina-iliskin-sayisal-bilgiler",
+     "ek": false,
+     "tip": "ana"
+    },
+    {
+     "url": "https://dokuman.osym.gov.tr/web/2026/7/kpss-20261-yerlestirme-sonuclarina-liskin-en-kucuk-ve-en-buyuk-puanlar-on-lsans-24zbk8tg.pdf",
+     "duzey": "Önlisans",
+     "donem": "2026/1 (Genel)",
+     "duyuru": "/kpss-20261-bazi-kamu-kurum-ve-kuruluslarin-kadro-ve-pozisyonlarina-yerlestirme-sonuclarina-iliskin-sayisal-bilgiler",
+     "ek": false,
+     "tip": "ana"
+    },
+    {
+     "url": "https://dokuman.osym.gov.tr/web/2026/7/kpss-20261-yerlestirme-sonuclarina-liskin-en-kucuk-ve-en-buyuk-puanlar-ortaogretm-2477sk0t.pdf",
+     "duzey": "Ortaöğretim",
+     "donem": "2026/1 (Genel)",
+     "duyuru": "/kpss-20261-bazi-kamu-kurum-ve-kuruluslarin-kadro-ve-pozisyonlarina-yerlestirme-sonuclarina-iliskin-sayisal-bilgiler",
+     "ek": false,
+     "tip": "ana"
+    }
+   ],
+   "2025": [
+    {
+     "url": "https://dokuman.osym.gov.tr/pdfdokuman/2025/KPSS/TERCIH1/minmaxlisans23072025.pdf",
+     "duzey": "Lisans",
+     "donem": "2025/1 (Genel)",
+     "duyuru": "/kpss20251-bazi-kamu-kurum-ve-kuruluslarin-kadro-ve-pozisyonlarina-yerlestirme-sonuclarina-iliskin-sayisal-bilgiler",
+     "ek": false,
+     "tip": "ana"
+    },
+    {
+     "url": "https://dokuman.osym.gov.tr/pdfdokuman/2025/KPSS/TERCIH1/minmaxonl23072025.pdf",
+     "duzey": "Önlisans",
+     "donem": "2025/1 (Genel)",
+     "duyuru": "/kpss20251-bazi-kamu-kurum-ve-kuruluslarin-kadro-ve-pozisyonlarina-yerlestirme-sonuclarina-iliskin-sayisal-bilgiler",
+     "ek": false,
+     "tip": "ana"
+    },
+    {
+     "url": "https://dokuman.osym.gov.tr/pdfdokuman/2025/KPSS/TERCIH1/minmaxort23072025.pdf",
+     "duzey": "Ortaöğretim",
+     "donem": "2025/1 (Genel)",
+     "duyuru": "/kpss20251-bazi-kamu-kurum-ve-kuruluslarin-kadro-ve-pozisyonlarina-yerlestirme-sonuclarina-iliskin-sayisal-bilgiler",
+     "ek": false,
+     "tip": "ana"
+    },
+    {
+     "url": "https://dokuman.osym.gov.tr/pdfdokuman/2025/KPSS/TERCIH2/minmaxlisans07012026.pdf",
+     "duzey": "Lisans",
+     "donem": "2025/2 (Genel)",
+     "duyuru": "/kpss20252-bazi-kamu-kurum-ve-kuruluslarin-kadro-ve-pozisyonlarina-yerlestirme-sonuclarina-iliskin-sayisal-bilgiler",
+     "ek": false,
+     "tip": "ana"
+    },
+    {
+     "url": "https://dokuman.osym.gov.tr/pdfdokuman/2025/KPSS/TERCIH2/minmaxonl07012026.pdf",
+     "duzey": "Önlisans",
+     "donem": "2025/2 (Genel)",
+     "duyuru": "/kpss20252-bazi-kamu-kurum-ve-kuruluslarin-kadro-ve-pozisyonlarina-yerlestirme-sonuclarina-iliskin-sayisal-bilgiler",
+     "ek": false,
+     "tip": "ana"
+    },
+    {
+     "url": "https://dokuman.osym.gov.tr/pdfdokuman/2025/KPSS/TERCIH2/minmaxort07012025.pdf",
+     "duzey": "Ortaöğretim",
+     "donem": "2025/2 (Genel)",
+     "duyuru": "/kpss20252-bazi-kamu-kurum-ve-kuruluslarin-kadro-ve-pozisyonlarina-yerlestirme-sonuclarina-iliskin-sayisal-bilgiler",
+     "ek": false,
+     "tip": "ana"
+    },
+    {
+     "url": "https://dokuman.osym.gov.tr/pdfdokuman/2025/KPSS/TERCIH3/minmax_lisans20012025.pdf",
+     "duzey": "Lisans",
+     "donem": "2025/3 (Çevre Bak.)",
+     "duyuru": "/kpss20253-cevre-sehircilik-ve-iklim-degisikligi-bakanliginin-sozlesmeli-pozisyonlari-yerlestirme-sonuclarina-iliskin-sayisal-bilgiler",
+     "ek": false,
+     "tip": "ana"
+    },
+    {
+     "url": "https://dokuman.osym.gov.tr/pdfdokuman/2025/KPSS/TERCIH3/minmax_onlisans20012025.pdf",
+     "duzey": "Önlisans",
+     "donem": "2025/3 (Çevre Bak.)",
+     "duyuru": "/kpss20253-cevre-sehircilik-ve-iklim-degisikligi-bakanliginin-sozlesmeli-pozisyonlari-yerlestirme-sonuclarina-iliskin-sayisal-bilgiler",
+     "ek": false,
+     "tip": "ana"
+    },
+    {
+     "url": "https://dokuman.osym.gov.tr/pdfdokuman/2025/KPSS/TERCIH3/minmax_ort20012025.pdf",
+     "duzey": "Ortaöğretim",
+     "donem": "2025/3 (Çevre Bak.)",
+     "duyuru": "/kpss20253-cevre-sehircilik-ve-iklim-degisikligi-bakanliginin-sozlesmeli-pozisyonlari-yerlestirme-sonuclarina-iliskin-sayisal-bilgiler",
+     "ek": false,
+     "tip": "ana"
+    },
+    {
+     "url": "https://dokuman.osym.gov.tr/pdfdokuman/2025/KPSS/TERCIH4/minmaxlisans_sb4d14052025.pdf",
+     "duzey": "Lisans",
+     "donem": "2025/4 (Sağlık Bak.)",
+     "duyuru": "/kpss20254-saglik-bakanliginin-sozlesmeli-saglik-personeli-pozisyonlari-yerlestirme-sonuclarina-iliskin-sayisal-bilgiler",
+     "ek": false,
+     "tip": "ana"
+    },
+    {
+     "url": "https://dokuman.osym.gov.tr/pdfdokuman/2025/KPSS/TERCIH4/minmaxonlisans_sb4d14052025.pdf",
+     "duzey": "Önlisans",
+     "donem": "2025/4 (Sağlık Bak.)",
+     "duyuru": "/kpss20254-saglik-bakanliginin-sozlesmeli-saglik-personeli-pozisyonlari-yerlestirme-sonuclarina-iliskin-sayisal-bilgiler",
+     "ek": false,
+     "tip": "ana"
+    },
+    {
+     "url": "https://dokuman.osym.gov.tr/pdfdokuman/2025/KPSS/TERCIH4/minmaxortaogretim_sb4d14052025.pdf",
+     "duzey": "Ortaöğretim",
+     "donem": "2025/4 (Sağlık Bak.)",
+     "duyuru": "/kpss20254-saglik-bakanliginin-sozlesmeli-saglik-personeli-pozisyonlari-yerlestirme-sonuclarina-iliskin-sayisal-bilgiler",
+     "ek": false,
+     "tip": "ana"
+    },
+    {
+     "url": "https://dokuman.osym.gov.tr/pdfdokuman/2025/KPSS/TERCIH5/minmax_lisanssb5d14052025.pdf",
+     "duzey": "Lisans",
+     "donem": "2025/5 (Sağlık Bak.)",
+     "duyuru": "/kpss20255-saglik-bakanliginin-sozlesmeli-saglik-personeli-pozisyonlarinin-yerlestirme-sonuclarina-iliskin-sayisal-bilgiler",
+     "ek": false,
+     "tip": "ana"
+    },
+    {
+     "url": "https://dokuman.osym.gov.tr/pdfdokuman/2025/KPSS/TERCIH5/minmax_onlisanssb5d14102025.pdf",
+     "duzey": "Önlisans",
+     "donem": "2025/5 (Sağlık Bak.)",
+     "duyuru": "/kpss20255-saglik-bakanliginin-sozlesmeli-saglik-personeli-pozisyonlarinin-yerlestirme-sonuclarina-iliskin-sayisal-bilgiler",
+     "ek": false,
+     "tip": "ana"
+    },
+    {
+     "url": "https://dokuman.osym.gov.tr/pdfdokuman/2025/KPSS/TERCIH5/minmax_ortaogretimsb5d14102025.pdf",
+     "duzey": "Ortaöğretim",
+     "donem": "2025/5 (Sağlık Bak.)",
+     "duyuru": "/kpss20255-saglik-bakanliginin-sozlesmeli-saglik-personeli-pozisyonlarinin-yerlestirme-sonuclarina-iliskin-sayisal-bilgiler",
+     "ek": false,
+     "tip": "ana"
+    }
+   ]
+  }
+ }
+}

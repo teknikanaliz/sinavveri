@@ -1,5 +1,5 @@
 {
- "kaynak": "ÖSYM 2026 Yılı Sınav Takvimi (14.11.2025) ve MEB LGS duyurusu",
+ "kaynak": "ÖSYM 2026 Yılı Sınav Takvimi (14.11.2025) ve MEB LGS duyurusu; gerçekleşen sonuç/tercih/yerleştirme tarihleri ÖSYM duyuru arşivinden doğrulanır",
  "sinavlar": [
   {
    "ad": "MSÜ (Askerî Öğrenci Aday Belirleme)",
@@ -95,43 +95,56 @@
    "sonuc_kesin": true,
    "basvuru": "23 Mar – 10 Nis 2026 (e-Okul)",
    "basvuru_bas": "2026-03-23",
-   "basvuru_bit": "2026-04-10"
+   "basvuru_bit": "2026-04-10",
+   "yerlestirme": "2026-08-05"
   },
   {
    "ad": "YKS — TYT",
    "not": "1. Oturum · Temel Yeterlilik Testi",
    "tur": "yks",
    "sinav": "2026-06-20",
-   "sonuc": "2026-07-22",
-   "sonuc_ham": "2026-07-22",
+   "sonuc": "2026-07-21",
+   "sonuc_ham": "21 Temmuz 2026",
    "sonuc_kesin": true,
    "basvuru": "6 Şub – 2 Mar 2026 (geç: 10-12 Mar)",
    "basvuru_bas": "2026-02-06",
-   "basvuru_bit": "2026-03-02"
+   "basvuru_bit": "2026-03-02",
+   "tercih": "29 Temmuz – 10 Ağustos 2026",
+   "tercih_bas": "2026-07-29",
+   "tercih_bit": "2026-08-10",
+   "yerlestirme": "2026-08-18"
   },
   {
    "ad": "YKS — AYT",
    "not": "2. Oturum · Alan Yeterlilik (10:15)",
    "tur": "yks",
    "sinav": "2026-06-21",
-   "sonuc": "2026-07-22",
-   "sonuc_ham": "2026-07-22",
+   "sonuc": "2026-07-21",
+   "sonuc_ham": "21 Temmuz 2026",
    "sonuc_kesin": true,
    "basvuru": "6 Şub – 2 Mar 2026 (geç: 10-12 Mar)",
    "basvuru_bas": "2026-02-06",
-   "basvuru_bit": "2026-03-02"
+   "basvuru_bit": "2026-03-02",
+   "tercih": "29 Temmuz – 10 Ağustos 2026",
+   "tercih_bas": "2026-07-29",
+   "tercih_bit": "2026-08-10",
+   "yerlestirme": "2026-08-18"
   },
   {
    "ad": "YKS — YDT",
    "not": "3. Oturum · Yabancı Dil Testi (15:45)",
    "tur": "yks",
    "sinav": "2026-06-21",
-   "sonuc": "2026-07-22",
-   "sonuc_ham": "2026-07-22",
+   "sonuc": "2026-07-21",
+   "sonuc_ham": "21 Temmuz 2026",
    "sonuc_kesin": true,
    "basvuru": "6 Şub – 2 Mar 2026 (geç: 10-12 Mar)",
    "basvuru_bas": "2026-02-06",
-   "basvuru_bit": "2026-03-02"
+   "basvuru_bit": "2026-03-02",
+   "tercih": "29 Temmuz – 10 Ağustos 2026",
+   "tercih_bas": "2026-07-29",
+   "tercih_bit": "2026-08-10",
+   "yerlestirme": "2026-08-18"
   },
   {
    "ad": "DGS (Dikey Geçiş)",
@@ -278,5 +291,5 @@
    "basvuru_bit": "2026-10-15"
   }
  ],
- "guncelleme": "2026-06-03"
+ "guncelleme": "2026-08-19"
 }

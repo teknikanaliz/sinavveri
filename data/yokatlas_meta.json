@@ -1,6 +1,13 @@
 {
+  "kaynak": "YÖK Atlas 2026 Tercih Kılavuzu",
   "url": "https://yokatlas.yok.gov.tr/api/tercih-kilavuz/search",
-  "yil": 2025,
-  "kaynak": "YÖK Atlas 2025 Tercih Kılavuzu",
-  "toplam": 21491
+  "yil": 2026,
+  "taban_yili": 2026,
+  "hist_yillari": [
+    2025,
+    2024,
+    2023
+  ],
+  "toplam": 21491,
+  "guncelleme": "2026-08-19T04:01:31+03:00"
 }

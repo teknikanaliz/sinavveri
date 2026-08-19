@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 """SinavVeri veri tazeleme orkestrasyonu — cron entry: `python3 -m pipeline.run`.
 
-Akış: fetch_yokatlas → fetch_osym → fetch_lgs → build.py
+Akış: osym_kesif (kaynak keşfi) → fetch_yokatlas → fetch_osym → fetch_lgs → build.py
 
 FAIL-SAFE tasarım (kötü otomatik deploy'a karşı):
 - Her fetch adımından önce çıktı dosyalarının snapshot'ı alınır.
@@ -20,7 +20,10 @@ import json
 import shutil
 import subprocess
 import sys
+from datetime import date
 from pathlib import Path
+
+from . import osym_kesif as kesif
 
 ROOT = Path(__file__).resolve().parent.parent
 DATA = ROOT / "data"
@@ -88,6 +91,18 @@ def main():
     results = {}
 
     if not build_only:
+        # 0) ÖSYM min-max PDF KEŞFİ — fetch_osym'den ÖNCE. ÖSYM URL'leri artık tahmin
+        #    edilemez hash içeriyor; sicil güncel değilse fetch_osym eski yılda kalır.
+        #    Keşif çökerse pipeline DURMAZ (sicil zaten kalıcı; eski URL'ler kullanılır).
+        print("\n=== ÖSYM KAYNAK KEŞFİ ===", flush=True)
+        try:
+            bu_yil = date.today().year
+            kesif.guncelle([bu_yil, bu_yil - 1], dogrulama=True)
+            results["osym_kesif"] = True
+        except Exception as e:
+            print(f"  ! keşif başarısız ({e}) — mevcut sicil kullanılacak")
+            results["osym_kesif"] = False
+
         for script, outs, mr, ma in STEPS:
             results[script] = run_step(script, outs, mr, ma)
     else:
