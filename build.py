@@ -8,7 +8,10 @@ import json
 import re
 from datetime import date, datetime
 from pathlib import Path
-from ldjson_safe import ld_escape, ld_json   # guvenlik: <script> icine gomerken etiket kacisi
+try:  # paket icinde relative, top-level script olarak duz import
+    from .ldjson_safe import ld_escape, ld_json
+except ImportError:  # generators/ gibi dizinler __init__.py'li olsa da
+    from ldjson_safe import ld_escape, ld_json   # modul top-level import edilebiliyor
 
 
 def html_escape(s):
