@@ -27,6 +27,17 @@ Kullanım:
     python3 -m pipeline.veri_bekcisi --sessiz   # Telegram gönderme (yalnız stdout)
 Çıkış kodu: 0 = güncel · 1 = geride (izleme bunu yakalar)
 """
+try:  # TEK NOKTA Telegram gonderim dogrulamasi — servermimari/assets/tg_guard.py
+    import tg_guard  # noqa: F401
+except ImportError:
+    import sys as _sys, os as _os
+    for _p in ("/root/servermimari/assets", "/home/tekni/VS/servermimari/assets"):
+        if _os.path.isdir(_p) and _p not in _sys.path:
+            _sys.path.append(_p)
+    try:
+        import tg_guard  # noqa: F401
+    except Exception:
+        pass
 import argparse
 import json
 import os
