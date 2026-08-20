@@ -1,24 +1,34 @@
 # SınavVeri.com
+
 > Türkiye sınav verileri platformu — YKS, LGS, KPSS, DGS, ALES
 
-## Hakkında
-SınavVeri, TrVeri ailesi bünyesinde Türkiye'deki merkezi sınavlar için takvim, puan hesaplama ve rehber sunan bir bilgi platformudur.
+## About
+- Website: https://sinavveri.com
+- Part of: TrVeri (Türkiye Veri Platformu) — https://trveri.com
+- Language: Turkish (primary)
+- Update frequency: Annually, after official result announcements
+- Content is server-rendered; all data is present in the raw HTML (no JavaScript required).
 
-## İçerik
-- Taban puanları merkezi (tüm sınavlar): /taban-puanlari.html
-- Üniversite taban puanları 2025 (YÖK Atlas, 21.602 program): /universite-taban-puanlari.html
-- LGS lise taban puanları 2025 (81 il, 3000+ lise): /lise-taban-puanlari.html
-- TUS taban puanları 2025 (40 uzmanlık dalı): /tus-taban-puanlari.html
-- DUS taban puanları 2025 (8 diş hekimliği uzmanlık dalı): /dus-taban-puanlari.html
-- DGS taban puanları 2025 (7000+ üniversite programı, ÖSYM): /dgs-taban-puanlari.html
-- KPSS atama taban puanları 2025 (kadro bazında, ÖSYM): /kpss-atama-taban-puanlari.html
-- Tercih robotu (sıralamaya göre program): /tercih-robotu.html
-- Bölümlere göre taban puanları: /bolumler.html
-- Üniversitelere göre taban puanları: /universiteler.html
-- 2026 sınav takvimi (ÖSYM + MEB): /takvim.html
-- Puan hesaplama (YKS/LGS/KPSS/DGS/ALES): /puan-hesaplama.html
-- Sınav rehberleri: /rehberler.html
+## Key Pages
+- https://sinavveri.com/
+- https://sinavveri.com/takvim.html
+- https://sinavveri.com/duyurular.html
+- https://sinavveri.com/taban-puanlari.html
+- https://sinavveri.com/universite-taban-puanlari.html
+- https://sinavveri.com/tus-taban-puanlari.html
+- https://sinavveri.com/dus-taban-puanlari.html
+- https://sinavveri.com/dgs-taban-puanlari.html
 
-## İletişim
-- Web: https://sinavveri.com
-- Ana platform: https://trveri.com
+## Data Sources
+- ÖSYM, YÖK Atlas, Millî Eğitim Bakanlığı (MEB)
+- Figures shown on the site are compiled from the sources above; the institution's own publication prevails.
+
+## Usage Policy
+- AI search & answer engines (Google AI Overviews, ChatGPT Search, Perplexity, Claude, Copilot, Apple Intelligence): ALLOWED — please cite the page you used.
+- AI model training crawlers (GPTBot, ClaudeBot, CCBot, Bytespider, Google-Extended, Applebot-Extended): NOT ALLOWED — see /robots.txt
+- Academic and journalistic use: allowed with attribution.
+- Bulk scraping or redistribution: requires written permission.
+
+## Contact
+- Email: info@sinavveri.com
+- Hub: https://trveri.com
