@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Çevrimdışı — SınavVeri</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--bg:#fafafa;--card:#ffffff;--text:#1a1a2e;--muted:#6b7280;--accent:#b45309;--border:#e5e7eb}
+body{font-family:system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:2rem;text-align:center}
+.icon{font-size:4rem;margin-bottom:1.5rem}
+h1{font-size:1.5rem;color:var(--accent);margin-bottom:.75rem}
+p{color:var(--muted);font-size:.95rem;max-width:400px;line-height:1.6;margin-bottom:1rem}
+.tip{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:1.5rem;max-width:400px;margin:1.5rem 0;text-align:left}
+.tip h3{font-size:.9rem;margin-bottom:.75rem;color:var(--accent)}
+.tip ul{list-style:none;padding:0}
+.tip ul li{padding:.4rem 0;font-size:.85rem;color:var(--muted);border-bottom:1px solid var(--border)}
+.tip ul li:last-child{border:none}
+.tip ul li strong{color:var(--text)}
+.retry-btn{display:inline-block;margin-top:1.5rem;padding:.75rem 2rem;background:var(--accent);color:#fff;border:none;border-radius:8px;font-size:1rem;cursor:pointer;text-decoration:none}
+.retry-btn:hover{opacity:.9}
+.cached-info{margin-top:2rem;font-size:.75rem;color:var(--muted)}
+</style>
+</head>
+<body>
+<div class="icon">📡</div>
+<h1>İnternet Bağlantısı Yok</h1>
+<p>Şu an çevrimdışısınız. Daha önce ziyaret ettiğiniz sayfalar otomatik olarak kaydedilmiştir.</p>
+
+<div class="tip">
+<h3>Çevrimdışıyken yapabilecekleriniz:</h3>
+<ul>
+<li>Wi-Fi / mobil veri bağlantınızı ve uçak modunu kontrol edin</li>
+<li>Bağlantı geri geldiğinde <strong>Tekrar Dene</strong> düğmesine basın</li>
+<li>Daha önce açtığınız sayfaları tarayıcı geçmişinizden deneyin</li>
+</ul>
+</div>
+
+<a class="retry-btn" onclick="window.location.reload()">Tekrar Dene</a>
+
+<div class="cached-info" id="cached-info"></div>
+
+<script>
+// Cache'de kaç sayfa var göster
+if('caches' in window){
+  caches.open('sinavveri-v3').then(function(cache){
+    cache.keys().then(function(keys){
+      var html=keys.filter(function(k){return k.url.includes('.html')}).length;
+      if(html>0){
+        document.getElementById('cached-info').innerHTML='💾 '+html+' sınav sayfası çevrimdışı kullanılabilir.<br>Tarayıcı adres çubuğuna doğrudan URL yazarak erişebilirsiniz.';
+      }
+    });
+  });
+}
+</script>
+</body>
+</html>
