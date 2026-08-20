@@ -445,6 +445,23 @@ def breadcrumb_ld(items):
     return {"@type": "BreadcrumbList", "itemListElement": el}
 
 
+try:  # ortak SSS bileseni
+    from faq_ld import faq_block, FAQ_CSS
+except ImportError:
+    faq_block, FAQ_CSS = None, ""
+
+ANA_SSS = [
+    ('Taban puan ile başarı sıralaması arasındaki fark nedir?',
+     'Taban puan, bir programa yerleşen son adayın puanıdır ve sınavın zorluğuna göre yıldan yıla değişir. Başarı sıralaması ise adayın tüm sınava girenler içindeki sırasıdır. Yıllar arası karşılaştırmada sıralama daha güvenilirdir; tercih yaparken puandan çok sıralamaya bakılır.'),
+    ('Sınav takvimi ne zaman açıklanır?',
+     "ÖSYM sınav takvimini genellikle bir önceki yılın sonunda yayımlar ve yıl içinde güncelleyebilir. Başvuru, sınav ve sonuç açıklama tarihleri bu takvimde yer alır; kesin ve bağlayıcı bilgi için daima ÖSYM'nin kendi duyurusu esastır."),
+    ('Ham puan ile yerleştirme puanı arasındaki fark nedir?',
+     'Ham puan yalnızca sınavdaki doğru ve yanlışlardan hesaplanır. Yerleştirme puanına ise ortaöğretim başarı puanı (OBP) gibi ek bileşenler katılır. Bu nedenle aynı sınav netine sahip iki adayın yerleştirme puanı farklı olabilir.'),
+    ('Tercih yaparken kaç yıllık veriye bakmak gerekir?',
+     'Tek yılın verisi yanıltıcı olabilir: kontenjan değişimi, yeni program açılışı veya sınavın zorluğu o yılı sıra dışı yapabilir. En az üç yıllık taban puan ve başarı sıralaması eğilimine bakmak, programın gerçek konumunu daha doğru gösterir.'),
+]
+
+
 def _otomatik_kirinti(slug):
     """Slug'dan BreadcrumbList üret — çağrı yerinde ELLE verilmediyse.
 
@@ -1673,7 +1690,9 @@ def page_index():
 </script>
 """
     desc = f"Türkiye sınav verileri platformu: YKS, LGS, KPSS, DGS, ALES için {TAKVIM_YILI} sınav takvimi, puan hesaplama araçları ve sınav rehberleri."
-    return base("index.html", "SınavVeri.com — Türkiye Sınav Verileri Platformu", desc, body)
+    _fh, _fl = faq_block(ANA_SSS, nonce="__NONCE__") if faq_block else ("", "")
+    return base("index.html", "SınavVeri.com — Türkiye Sınav Verileri Platformu", desc,
+                body + _fh + _fl, extra_head=f"<style>{FAQ_CSS}</style>")
 
 
 # ───────────────────────── TAKVİM ─────────────────────────
