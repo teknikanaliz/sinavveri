@@ -488,6 +488,18 @@ def _otomatik_kirinti(slug):
 
 
 def base(slug, title, desc, body, *, extra_head="", extra_ld=None, og_image=None, share=False):
+    # ⚠ META AÇIKLAMA GLOBAL KURALI (150-165 karakter, CJK'da 70-80).
+    # Eşik TEK NOKTADAN gelir: meta_aciklama.py (kanonik kaynak
+    # servermimari/assets). Bu fonksiyon sitenin tek <head> üreticisi →
+    # kural sayfa sayısından bağımsız olarak HER sayfaya uygulanır.
+    try:
+        from .meta_aciklama import duzelt as _meta_duzelt
+    except ImportError:
+        from meta_aciklama import duzelt as _meta_duzelt
+    desc = _meta_duzelt(desc, dolgu=[
+        'Taban puan, başarı sırası ve kontenjan bilgileri yıl yıl karşılaştırılabilir.',
+        'Veriler ÖSYM ve YÖK Atlas kayıtlarından derlenir.',
+    ])
     canonical = SITE + "/" + (slug if slug != "index.html" else "")
     if not any(isinstance(d, dict) and d.get("@type") == "BreadcrumbList" for d in (extra_ld or [])):
         _kirinti = _otomatik_kirinti(slug)
