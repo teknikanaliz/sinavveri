@@ -1,5 +1,5 @@
 {
- "guncelleme": "2026-08-20T16:00:08",
+ "guncelleme": "2026-08-20T16:30:12",
  "kaynak": "ÖSYM",
  "duyurular": [
   {
@@ -25,6 +25,14 @@
    "slug": "2026-yokdil2-sinav-sonuclari-aciklandi",
    "sinav": "YÖKDİL",
    "tip": "sonuc_aciklandi"
+  },
+  {
+   "tarih": "2026-08-20",
+   "baslik": "2026-YÖKDİL/2: Cevap Kâğıtları ve Aday Cevapları Erişime Açıldı",
+   "url": "https://www.osym.gov.tr/2026-yokdil2-cevap-kgitlari-ve-aday-cevaplari-erisime-acildi",
+   "slug": "2026-yokdil2-cevap-kgitlari-ve-aday-cevaplari-erisime-acildi",
+   "sinav": "YÖKDİL",
+   "tip": "diger"
   },
   {
    "tarih": "2026-08-20",
