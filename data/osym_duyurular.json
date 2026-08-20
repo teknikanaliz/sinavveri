@@ -1,5 +1,5 @@
 {
- "guncelleme": "2026-08-20T13:30:13",
+ "guncelleme": "2026-08-20T14:00:08",
  "kaynak": "ÖSYM",
  "duyurular": [
   {
@@ -9,6 +9,22 @@
    "slug": "e-yds-20269-ingilizce-sinava-giris-belgeleri-erisime-acildi",
    "sinav": "e-YDS",
    "tip": "giris_belgesi"
+  },
+  {
+   "tarih": "2026-08-20",
+   "baslik": "2026-TUS 1. Dönem: Uzmanlık Dalı Değişikliği İçin Tercihlerin Alınması",
+   "url": "https://www.osym.gov.tr/2026-tus-1-donem-uzmanlik-dali-degisikligi-icin-tercihlerin-alinmasi",
+   "slug": "2026-tus-1-donem-uzmanlik-dali-degisikligi-icin-tercihlerin-alinmasi",
+   "sinav": "TUS",
+   "tip": "tercih"
+  },
+  {
+   "tarih": "2026-08-20",
+   "baslik": "2026-TUS 1. Dönem Uzmanlık Dalı Değişikliği İçin Tercih Kılavuzu",
+   "url": "https://www.osym.gov.tr/2026-tus-1-donem-uzmanlik-dali-degisikligi-icin-tercih-kilavuzu",
+   "slug": "2026-tus-1-donem-uzmanlik-dali-degisikligi-icin-tercih-kilavuzu",
+   "sinav": "TUS",
+   "tip": "tercih"
   },
   {
    "tarih": "2026-08-18",
