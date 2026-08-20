@@ -1,7 +1,15 @@
 {
- "guncelleme": "2026-08-20T09:30:05",
+ "guncelleme": "2026-08-20T10:00:16",
  "kaynak": "ÖSYM",
  "duyurular": [
+  {
+   "tarih": "2026-08-20",
+   "baslik": "e-YDS 2026/9 (İngilizce): Sınava Giriş Belgeleri Erişime Açıldı",
+   "url": "https://www.osym.gov.tr/e-yds-20269-ingilizce-sinava-giris-belgeleri-erisime-acildi",
+   "slug": "e-yds-20269-ingilizce-sinava-giris-belgeleri-erisime-acildi",
+   "sinav": "e-YDS",
+   "tip": "giris_belgesi"
+  },
   {
    "tarih": "2026-08-18",
    "baslik": "e-TEP 2026/3: Sınav Sonuçları Açıklandı",
