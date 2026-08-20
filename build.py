@@ -445,8 +445,37 @@ def breadcrumb_ld(items):
     return {"@type": "BreadcrumbList", "itemListElement": el}
 
 
+def _otomatik_kirinti(slug):
+    """Slug'dan BreadcrumbList üret — çağrı yerinde ELLE verilmediyse.
+
+    ⚠ 2026-08-20 ölçüldü: breadcrumb_ld() yalnızca 5 sayfa tipinde çağrılıyordu;
+    en kalabalık set olan /tus-taban/*.html dahil çoğu iç sayfa kırıntısızdı.
+    Tek tek çağrı eklemek yerine base() eksikse kendisi üretir — yeni sayfa tipi
+    eklendiğinde de kendiliğinden kapsanır (unutulmaya dayanıklı).
+    Türkçe büyük harf kuralı: i → İ, ı → I (str.title() bunu yanlış yapar).
+    """
+    parcalar = [x for x in slug.replace(".html", "").split("/") if x and x != "index"]
+    if not parcalar:
+        return None
+    buyuk = {"i": "İ", "ı": "I"}
+    def ad(sl):
+        return " ".join((buyuk.get(w[0], w[0].upper()) + w[1:])
+                        for w in sl.replace("-", " ").split() if w) or sl
+    ogeler, yol = [{"@type": "ListItem", "position": 1, "name": "Ana Sayfa", "item": SITE + "/"}], ""
+    for i, par in enumerate(parcalar):
+        yol += "/" + par
+        son = i == len(parcalar) - 1
+        ogeler.append({"@type": "ListItem", "position": i + 2, "name": ad(par),
+                       "item": SITE + yol + (".html" if son and slug.endswith(".html") else "/")})
+    return {"@type": "BreadcrumbList", "itemListElement": ogeler}
+
+
 def base(slug, title, desc, body, *, extra_head="", extra_ld=None, og_image=None, share=False):
     canonical = SITE + "/" + (slug if slug != "index.html" else "")
+    if not any(isinstance(d, dict) and d.get("@type") == "BreadcrumbList" for d in (extra_ld or [])):
+        _kirinti = _otomatik_kirinti(slug)
+        if _kirinti:
+            extra_ld = list(extra_ld or []) + [_kirinti]
     share_js = SHARE_JS if share else ""
     og_url = SITE + (og_image if og_image else "/assets/og.png")
     nav_parts = []
