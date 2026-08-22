@@ -3,7 +3,12 @@
 """YÖK Atlas cari tercih kılavuzu gerçek verisini çeker.
 Kaynak: POST https://yokatlas.yok.gov.tr/api/tercih-kilavuz/search
 Çıktı: data/programs_raw.json (tüm kayıtlar, sadeleştirilmiş alanlar)
-       data/veri/{say,ea,soz,dil,tyt}.json (istemci tarafı arama/tercih robotu için)
+       data/kosul_map.json · data/yokatlas_meta.json
+NOT (2026-08-22): Eskiden ayrıca data/veri/{say,ea,soz,dil,tyt}.json yazılıyordu.
+Site bu dosyaları HİÇ okumuyordu — istemci /veri/*.json (kök) adresini çekiyor ve
+onları build.py::write_veri() programs_raw.json'dan üretiyor. Yani data/veri
+programs_raw.json'un puan-türüne bölünmüş birebir kopyasıydı: 9,9 MB ölü yük,
+git'e izli (her koşumda ~10 MB GitHub'a + webserver'a). Üretim kaldırıldı.
 
 YIL SABİT YAZILMAZ (2026-08-19 kök-neden düzeltmesi): API yanıtının top-level `yil`
 alanı kılavuz yılını verir; taban puanının (minPuan) hangi yerleştirmeye ait olduğu ise
@@ -22,9 +27,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 DATA = ROOT / "data"
-VERI = DATA / "veri"
 DATA.mkdir(exist_ok=True)
-VERI.mkdir(exist_ok=True)
 
 URL = "https://yokatlas.yok.gov.tr/api/tercih-kilavuz/search"
 HEADERS = {"Content-Type": "application/json", "User-Agent": "sinavveri-bot/1.0 (+https://sinavveri.com)"}
@@ -291,9 +294,7 @@ def main():
 
     # 3) YAZ (hepsi başarılıysa)
     for ad, trimmed in cikti.items():
-        f = VERI / f"{ad}.json"
-        f.write_text(json.dumps(trimmed, ensure_ascii=False, separators=(",", ":")), encoding="utf-8")
-        print(f"  → {ad}: {len(trimmed)} kayıt, {f.stat().st_size//1024} KB")
+        print(f"  → {ad}: {len(trimmed)} kayıt (programs_raw.json içinde)")
     (DATA / "programs_raw.json").write_text(
         json.dumps(all_recs, ensure_ascii=False, separators=(",", ":")), encoding="utf-8")
     print(f"\nTOPLAM: {len(all_recs)} program → data/programs_raw.json")

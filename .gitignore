@@ -36,6 +36,13 @@ ARGE-RAPOR.md
 data/_demografi_kaynak.csv
 data/_universiteler_kaynak.csv
 data/_uni_idmap.json
+
+# data/veri/*.json — ÖLÜ YÜK (2026-08-22 kaldırıldı).
+# Site istemcisi /veri/*.json (kök dizin, build.py::write_veri üretir) çekiyor;
+# data/veri hiçbir yerden okunmuyordu (repo geneli 0 tüketici, nginx logunda
+# /data/veri/ için 0 istek). programs_raw.json'un puan-türüne bölünmüş kopyasıydı
+# → 9,9 MB git'e izli ölü yük. Üretici (pipeline/fetch_yokatlas.py) de kaldırıldı.
+data/veri/
 _backend-sinavveri-pay/
 
 # push-server (Node.js) — çalışma zamanı, kod git'te kalır
