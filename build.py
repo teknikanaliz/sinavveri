@@ -1703,7 +1703,7 @@ def page_index():
 """
     desc = f"Türkiye sınav verileri platformu: YKS, LGS, KPSS, DGS, ALES için {TAKVIM_YILI} sınav takvimi, puan hesaplama araçları ve sınav rehberleri."
     _fh, _fl = faq_block(ANA_SSS, nonce="__NONCE__") if faq_block else ("", "")
-    return base("index.html", "Sınav Verileri — YKS, LGS, KPSS Takvim ve Puan Hesabı | SınavVeri", desc,
+    return base("index.html", "Sınav Verileri — Takvim, Puan Hesaplama, Rehber | SınavVeri", desc,
                 body + _fh + _fl, extra_head=f"<style>{FAQ_CSS}</style>")
 
 
@@ -6197,7 +6197,16 @@ Tüm {EX} verisi için <a href="/{main}">{EX} taban puanları arama</a> · <a hr
             # Trend" eki KALDIRILDI: 645 sayfanın hepsinde aynıydı, title'ı 97-121 karaktere
             # çıkarıp SERP'te kestiriyordu; aynı bilgi zaten description'da duruyor.
             _yil = osym_yil(exam)
-            title = f"{g} {EX} Taban Puanları {_yil} | SınavVeri"
+            # ÖSYM'nin resmî bölüm adı tek başına 40-71 kr olabiliyor (ör. "Siyaset Bilimi ve
+            # Uluslararası İlişkiler (İngilizce) (%25 İndirimli) EA"). Parantezli ekler sayfayı
+            # BENZERSİZ yapan bilgi → çıkarılmaz, yalnızca SERP'te okunur biçimde kısaltılır.
+            _g = (g.replace("(İngilizce)", "(İng.)").replace("(Almanca)", "(Alm.)")
+                   .replace("(Fransızca)", "(Fr.)").replace("(Arapça)", "(Ar.)")
+                   .replace("(Rusça)", "(Rus.)").replace("İndirimli)", "İnd.)")
+                   .replace("(Uzaktan Öğretim)", "(Uzaktan)").replace("(Açıköğretim)", "(Açıköğ.)"))
+            title = f"{_g} {EX} Taban Puanları {_yil} | SınavVeri"
+            if len(title) > 65:                      # hâlâ uzunsa jenerik kuyruğu tekile indir
+                title = f"{_g} {EX} Taban Puanı {_yil} | SınavVeri"
             if len(title) > 65:                      # uzun bölüm/kadro adı → tekil biçim
                 _kisa = f"{g} {EX} Taban Puanı {_yil} | SınavVeri"
                 if len(_kisa) <= 65:
