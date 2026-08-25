@@ -796,10 +796,11 @@ def _uni_baslik(u: str, kisa_say=None) -> str:
     if kisa_say and kisa_say.get(kisa, 0) > 1 and " (" in (u or ""):
         ic = u.split(" (", 1)[1].rstrip(")").strip()
         yer = ic.split("-")[-1].split(" ")[0].strip() if ic else ""
-        if "KKTC" in ic.upper() or "KIBRIS" in ic.upper():
-            yer = "KKTC"
-        if yer:
-            kisa = f"{kisa} ({_uni_kisa(yer) if yer.isupper() else yer})"
+        kktc = "KKTC" in ic.upper() or "KIBRIS" in ic.upper()
+        if kktc:
+            kisa = f"{kisa} (KKTC)"          # kısaltma başlık biçimine ÇEVRİLMEZ ("Kktc" olurdu)
+        elif yer:
+            kisa = f"{kisa} ({_uni_kisa(yer)})"
     return kisa
 
 
