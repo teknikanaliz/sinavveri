@@ -767,6 +767,28 @@ def _disambiguate_programs(progs):
     return progs
 
 
+def _uni_kisa(u: str) -> str:
+    """Üniversite adını title için kısalt (TrVeri kural 3.26, <=60 kr hedef).
+
+    ÖSYM/YÖK Atlas adları TAMAMI BÜYÜK HARF ve parantezli konum içeriyor:
+      "HOCA AHMET YESEVİ ULUSLARARASI TÜRK-KAZAK ÜNİVERSİTESİ (TÜRKİSTAN-KAZAKİSTAN)" → 124 kr title.
+    Parantezli konum atılır (il bilgisi sayfa gövdesinde + description'da duruyor) ve ad
+    başlık biçimine çevrilir. ⚠ Türkçe: str.title() "İZMİR"→"İzmi̇r" (birleşik nokta) üretir → temizlenir.
+    """
+    ad = (u or "").split(" (")[0].strip()
+    if not ad.isupper():
+        return ad
+    # ⚠ str.title() Türkçe DEĞİL: "ULUSLARARASI" → "Uluslararasi" (I→i yanlış; Türkçede I→ı)
+    # ve "İZMİR" → "İzmi̇r" (birleşik U+0307). Kelime/tire bazında Türkçe dönüşüm yapılır.
+    def _kelime(w):
+        if not w:
+            return w
+        kucuk = w.replace("I", "ı").replace("İ", "i").lower().replace("\u0307", "")
+        ilk = kucuk[0].replace("i", "İ").replace("ı", "I").upper()
+        return ilk + kucuk[1:]
+    return " ".join("-".join(_kelime(p) for p in kel.split("-")) for kel in ad.split(" "))
+
+
 def load_programs():
     progs = json.loads((ROOT / "data" / "programs_raw.json").read_text(encoding="utf-8"))
     # Türk devlet üniversitelerinin KKTC kampüsleri (ODTÜ/İTÜ/ASBÜ Kıbrıs) normal ücretsiz
@@ -4402,7 +4424,7 @@ def gen_universite_pages(programs):
 {uni_yorum_html(u)}
 """
         og = gen_uni_og(s, u, uni_info(u), recs)
-        html = base(f"universite/{s}.html", f"{u} Taban Puanları {YKS_YIL} — Tüm Bölümler | SınavVeri",
+        html = base(f"universite/{s}.html", f"{_uni_kisa(u)} Taban Puanları {YKS_YIL} | SınavVeri",
                     f"{u} 2025 taban puanları ve başarı sıralamaları. {len(recs)} programın taban puanı, kontenjan ve sıralaması YÖK Atlas verisiyle.",
                     body, og_image=og, share=True)
         write(f"universite/{s}.html", html)
