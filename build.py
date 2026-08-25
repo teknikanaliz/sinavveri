@@ -6193,7 +6193,15 @@ def gen_osym_hub_pages():
 <div class="notice"><b>Kaynak:</b> ÖSYM resmî 'En Küçük ve En Büyük Puanlar' yayını (dokuman.osym.gov.tr).
 Tüm {EX} verisi için <a href="/{main}">{EX} taban puanları arama</a> · <a href="/taban-puanlari.html">tüm taban puanları</a>.</div>
 """
-            title = f"{g} {EX} Taban Puanları {osym_yil(exam)} — Kurum Bazında {'ve 3 Yıllık Trend ' if exam!='kpss' else ''}| SınavVeri"
+            # Title: arama kavramı başta, marka sonda. Sabit "— Kurum Bazında ve 3 Yıllık
+            # Trend" eki KALDIRILDI: 645 sayfanın hepsinde aynıydı, title'ı 97-121 karaktere
+            # çıkarıp SERP'te kestiriyordu; aynı bilgi zaten description'da duruyor.
+            _yil = osym_yil(exam)
+            title = f"{g} {EX} Taban Puanları {_yil} | SınavVeri"
+            if len(title) > 65:                      # uzun bölüm/kadro adı → tekil biçim
+                _kisa = f"{g} {EX} Taban Puanı {_yil} | SınavVeri"
+                if len(_kisa) <= 65:
+                    title = _kisa
             desc = (f"{g} {EX.lower()} 2025 taban ve tavan puanları, {len(recs)} {'kadro' if exam=='kpss' else 'kurum'} bazında"
                     + ("" if exam == "kpss" else ", 2023-2024-2025 karşılaştırmasıyla") + ". ÖSYM resmî verisi.")
             write(f"{subdir}/{s}.html", base(f"{subdir}/{s}.html", title, desc, body))
