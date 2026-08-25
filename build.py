@@ -789,6 +789,20 @@ def _uni_kisa(u: str) -> str:
     return " ".join("-".join(_kelime(p) for p in kel.split("-")) for kel in ad.split(" "))
 
 
+def _uni_baslik(u: str, kisa_say=None) -> str:
+    """Title'da gösterilecek üniversite adı. Kısa ad benzersizse konum atılır; aynı kısa adı
+    taşıyan başka üniversite varsa (KKTC kampüsleri) konum kısa biçimde geri eklenir."""
+    kisa = _uni_kisa(u)
+    if kisa_say and kisa_say.get(kisa, 0) > 1 and " (" in (u or ""):
+        ic = u.split(" (", 1)[1].rstrip(")").strip()
+        yer = ic.split("-")[-1].split(" ")[0].strip() if ic else ""
+        if "KKTC" in ic.upper() or "KIBRIS" in ic.upper():
+            yer = "KKTC"
+        if yer:
+            kisa = f"{kisa} ({_uni_kisa(yer) if yer.isupper() else yer})"
+    return kisa
+
+
 def load_programs():
     progs = json.loads((ROOT / "data" / "programs_raw.json").read_text(encoding="utf-8"))
     # Türk devlet üniversitelerinin KKTC kampüsleri (ODTÜ/İTÜ/ASBÜ Kıbrıs) normal ücretsiz
@@ -4366,7 +4380,7 @@ def gen_bolum_pages(programs):
 Doluluk = yerleşen ÷ kontenjan. Daha fazlası: <a href="/taban-puanlari.html">tüm taban puanları</a> · <a href="/tercih-robotu.html">tercih robotu</a> · <a href="/doluluk.html">doluluk analizi</a>.</div>
 {faq_html}
 """
-        html = base(f"bolum/{s}.html", f"{g} Taban Puanları {YKS_YIL} ve Başarı Sıralaması | SınavVeri",
+        html = base(f"bolum/{s}.html", f"{g} Taban Puanları {YKS_YIL} | SınavVeri",
                     f"{g} bölümü 2025 taban puanları, son 4 yıl trendi, doluluk oranları ve başarı sıralaması. {len(recs)} üniversite programı YÖK Atlas verisiyle.",
                     body, extra_head=head, extra_ld=extra_ld_b)
         write(f"bolum/{s}.html", html)
@@ -4387,6 +4401,10 @@ def gen_universite_pages(programs):
             s = f"{base_s}-{i}"; i += 1
         slugmap[s] = u
     u_by_slug = {s: u for s, u in slugmap.items()}
+    # ⚠ BENZERSİZLİK: parantezli konum atılınca KKTC kampüsleri ana kampüsle aynı title'a
+    # düşüyor (ODTÜ Ankara / ODTÜ KKTC-Güzelyurt). Çakışan kısa adlarda konum KORUNUR.
+    from collections import Counter as _Counter
+    _kisa_say = _Counter(_uni_kisa(x) for x in u_by_slug.values())
     for s, u in u_by_slug.items():
         recs = sorted(unis[u], key=lambda r: (r.get("sira") is None, r.get("sira") or 0))
         il = next((r.get("il") for r in recs if r.get("il")), "")
@@ -4424,7 +4442,7 @@ def gen_universite_pages(programs):
 {uni_yorum_html(u)}
 """
         og = gen_uni_og(s, u, uni_info(u), recs)
-        html = base(f"universite/{s}.html", f"{_uni_kisa(u)} Taban Puanları {YKS_YIL} | SınavVeri",
+        html = base(f"universite/{s}.html", f"{_uni_baslik(u, _kisa_say)} Taban Puanları {YKS_YIL} | SınavVeri",
                     f"{u} 2025 taban puanları ve başarı sıralamaları. {len(recs)} programın taban puanı, kontenjan ve sıralaması YÖK Atlas verisiyle.",
                     body, og_image=og, share=True)
         write(f"universite/{s}.html", html)
