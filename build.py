@@ -1703,7 +1703,7 @@ def page_index():
 """
     desc = f"Türkiye sınav verileri platformu: YKS, LGS, KPSS, DGS, ALES için {TAKVIM_YILI} sınav takvimi, puan hesaplama araçları ve sınav rehberleri."
     _fh, _fl = faq_block(ANA_SSS, nonce="__NONCE__") if faq_block else ("", "")
-    return base("index.html", f"Sınav Takvimi {TAKVIM_YILI} — YKS, LGS, KPSS, DGS, ALES | SınavVeri", desc,
+    return base("index.html", "Sınav Verileri — YKS, LGS, KPSS Takvim ve Puan Hesabı | SınavVeri", desc,
                 body + _fh + _fl, extra_head=f"<style>{FAQ_CSS}</style>")
 
 
