@@ -1,5 +1,5 @@
 {
- "guncelleme": "2026-08-26T11:00:12",
+ "guncelleme": "2026-08-26T11:30:17",
  "kaynak": "ÖSYM",
  "duyurular": [
   {
@@ -9,6 +9,14 @@
    "slug": "2026-meb-ags-sinav-sonuclari-aciklandi",
    "sinav": "MEB-AGS",
    "tip": "sonuc_aciklandi"
+  },
+  {
+   "tarih": "2026-08-26",
+   "baslik": "2026-MEB-AGS: Cevap Kâğıtları ve Aday Cevapları Erişime Açıldı",
+   "url": "https://www.osym.gov.tr/2026-meb-ags-cevap-kgitlari-ve-aday-cevaplari-erisime-acildi",
+   "slug": "2026-meb-ags-cevap-kgitlari-ve-aday-cevaplari-erisime-acildi",
+   "sinav": "MEB-AGS",
+   "tip": "diger"
   },
   {
    "tarih": "2026-08-23",
