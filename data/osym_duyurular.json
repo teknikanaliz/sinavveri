@@ -1,7 +1,15 @@
 {
- "guncelleme": "2026-08-26T10:30:39",
+ "guncelleme": "2026-08-26T11:00:12",
  "kaynak": "ÖSYM",
  "duyurular": [
+  {
+   "tarih": "2026-08-26",
+   "baslik": "2026-MEB-AGS: Sınav Sonuçları Açıklandı",
+   "url": "https://www.osym.gov.tr/2026-meb-ags-sinav-sonuclari-aciklandi",
+   "slug": "2026-meb-ags-sinav-sonuclari-aciklandi",
+   "sinav": "MEB-AGS",
+   "tip": "sonuc_aciklandi"
+  },
   {
    "tarih": "2026-08-23",
    "baslik": "2026-TUS ve 2026-STS Tıp Doktorluğu (2. Dönem) Temel Soru Kitapçıklarının Yayınlanması (% 10)",
