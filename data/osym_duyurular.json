@@ -1,7 +1,23 @@
 {
- "guncelleme": "2026-08-27T09:30:09",
+ "guncelleme": "2026-08-27T10:00:11",
  "kaynak": "ÖSYM",
  "duyurular": [
+  {
+   "tarih": "2026-08-27",
+   "baslik": "2026-KPSS Ortaöğretim: Kılavuz ve Başvuru Bilgileri",
+   "url": "https://www.osym.gov.tr/2026-kpss-ortaogretim-kilavuz-ve-basvuru-bilgileri",
+   "slug": "2026-kpss-ortaogretim-kilavuz-ve-basvuru-bilgileri",
+   "sinav": "KPSS",
+   "tip": "kilavuz"
+  },
+  {
+   "tarih": "2026-08-27",
+   "baslik": "2026-KPSS Ortaöğretim: Başvuruların Alınması",
+   "url": "https://www.osym.gov.tr/2026-kpss-ortaogretim-basvurularin-alinmasi",
+   "slug": "2026-kpss-ortaogretim-basvurularin-alinmasi",
+   "sinav": "KPSS",
+   "tip": "basvuru"
+  },
   {
    "tarih": "2026-08-26",
    "baslik": "2026-MEB-AGS: Sınav Sonuçları Açıklandı",
