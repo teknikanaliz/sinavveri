@@ -1,5 +1,5 @@
 {
- "guncelleme": "2026-08-27T10:30:15",
+ "guncelleme": "2026-08-27T11:00:13",
  "kaynak": "ÖSYM",
  "duyurular": [
   {
@@ -17,6 +17,14 @@
    "slug": "2026-kpss-ortaogretim-basvurularin-alinmasi",
    "sinav": "KPSS",
    "tip": "basvuru"
+  },
+  {
+   "tarih": "2026-08-27",
+   "baslik": "2026-KPSS Lisans Sınavı Genel Yetenek-Genel Kültür Oturumu: Sınava Giriş Belgeleri Erişime Açıldı",
+   "url": "https://www.osym.gov.tr/2026-kpss-lisans-sinavi-genel-yetenek-genel-kultur-oturumu-sinava-giris-belgeleri-erisime-acildi",
+   "slug": "2026-kpss-lisans-sinavi-genel-yetenek-genel-kultur-oturumu-sinava-giris-belgeleri-erisime-acildi",
+   "sinav": "KPSS",
+   "tip": "giris_belgesi"
   },
   {
    "tarih": "2026-08-27",
