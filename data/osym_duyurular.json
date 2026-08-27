@@ -1,5 +1,5 @@
 {
- "guncelleme": "2026-08-27T10:00:11",
+ "guncelleme": "2026-08-27T10:30:15",
  "kaynak": "ÖSYM",
  "duyurular": [
   {
@@ -17,6 +17,22 @@
    "slug": "2026-kpss-ortaogretim-basvurularin-alinmasi",
    "sinav": "KPSS",
    "tip": "basvuru"
+  },
+  {
+   "tarih": "2026-08-27",
+   "baslik": "2026-DGS: Tercihlerin Alınması",
+   "url": "https://www.osym.gov.tr/2026-dgs-tercihlerin-alinmasi",
+   "slug": "2026-dgs-tercihlerin-alinmasi",
+   "sinav": "DGS",
+   "tip": "tercih"
+  },
+  {
+   "tarih": "2026-08-27",
+   "baslik": "2026-DGS: Tercih Bilgileri ve Tablolar",
+   "url": "https://www.osym.gov.tr/2026-dgs-tercih-bilgileri-ve-tablolar",
+   "slug": "2026-dgs-tercih-bilgileri-ve-tablolar",
+   "sinav": "DGS",
+   "tip": "diger"
   },
   {
    "tarih": "2026-08-26",
