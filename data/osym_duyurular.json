@@ -1,7 +1,15 @@
 {
- "guncelleme": "2026-08-31T12:30:19",
+ "guncelleme": "2026-08-31T13:00:07",
  "kaynak": "ÖSYM",
  "duyurular": [
+  {
+   "tarih": "2026-08-31",
+   "baslik": "2026-MEB-AGS Sınav Sonuçlarına İlişkin Sayısal Bilgiler",
+   "url": "https://www.osym.gov.tr/2026-meb-ags-sinav-sonuclarina-iliskin-sayisal-bilgiler",
+   "slug": "2026-meb-ags-sinav-sonuclarina-iliskin-sayisal-bilgiler",
+   "sinav": "MEB-AGS",
+   "tip": "diger"
+  },
   {
    "tarih": "2026-08-27",
    "baslik": "2026-KPSS Ortaöğretim: Kılavuz ve Başvuru Bilgileri",
