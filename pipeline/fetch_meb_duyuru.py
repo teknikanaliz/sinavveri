@@ -253,6 +253,18 @@ def parse_sayfalar(limit: int | None = None) -> list[dict]:
     return kayitlar
 
 
+def mevcut_cikti() -> dict | None:
+    """Diskteki mevcut çıktıyı ham haliyle döndür (yoksa/bozuksa None).
+    birlestir()'den AYRI okur — o kendi kopyasını mutasyona uğrattığı için
+    karşılaştırmada dokunulmamış bir referans gerekir."""
+    if not OUT.exists():
+        return None
+    try:
+        return json.loads(OUT.read_text(encoding="utf-8"))
+    except (json.JSONDecodeError, OSError):
+        return None
+
+
 def birlestir(yeni: list[dict]) -> tuple[list[dict], int, int, list[dict]]:
     """Mevcut arşivle birleştir (url anahtarı). → (liste, eklenen, guncellenen, yeni_kayitlar)
     (fetch_osym_duyuru.birlestir ile birebir aynı mantık — bkz. o dosyadaki NEDEN yorumu.)"""
@@ -328,15 +340,27 @@ def main() -> None:
         print(f"  ! {len(tarihsiz)} kayıtta tarih çözülemedi: {[k['slug'] for k in tarihsiz][:5]}")
 
     liste, eklenen, guncellenen, yeni_kayitlar = birlestir(yeni)
-    cikti = {
-        "guncelleme": datetime.now().replace(microsecond=0).isoformat(),
-        "kaynak": "MEB",
-        "duyurular": liste,
-    }
+
+    # NEDEN içerik karşılaştırması (2026-09-01): bu iş 30 dakikada bir koşuyor. "guncelleme"
+    # damgası her koşuda tazelenince dosya, duyuru listesi BİREBİR AYNIYKEN bile değişmiş
+    # görünüyordu → git commit → push → GitHub Actions deploy. Günde 48 gereksiz deploy
+    # (~1.400 Actions dk/ay) ücretsiz kotayı bitirdi ve 26-28 Ağustos'ta 11 sitenin
+    # deploy'unu birden kilitledi. Damga artık YALNIZ liste gerçekten değişince ilerler;
+    # sayfada zaten guncelleme[:10] (yalnız tarih) gösteriliyor, saat kullanılmıyor.
+    eski = mevcut_cikti()
+    degisti = eski is None or eski.get("duyurular") != liste
 
     if a.dry_run:
         print(f"[dry-run] yazılmadı — toplam {len(liste)}, yeni {eklenen}, güncellenen {guncellenen}")
+    elif not degisti:
+        print(f"= içerik aynı — {OUT} yazılmadı, gereksiz commit/deploy önlendi "
+              f"(toplam {len(liste)} kayıt, damga {eski.get('guncelleme', '?')})")
     else:
+        cikti = {
+            "guncelleme": datetime.now().replace(microsecond=0).isoformat(),
+            "kaynak": "MEB",
+            "duyurular": liste,
+        }
         DATA.mkdir(exist_ok=True)
         OUT.write_text(json.dumps(cikti, ensure_ascii=False, indent=1), encoding="utf-8")
         print(f"✓ {OUT} → toplam {len(liste)} kayıt (yeni {eklenen}, güncellenen {guncellenen})")
