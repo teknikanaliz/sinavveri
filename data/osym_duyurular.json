@@ -1,7 +1,23 @@
 {
- "guncelleme": "2026-09-01T11:30:08",
+ "guncelleme": "2026-09-01T14:00:15",
  "kaynak": "ÖSYM",
  "duyurular": [
+  {
+   "tarih": "2026-09-01",
+   "baslik": "2026-Elektronik Yabancı Dil Olarak Türkçe Sınavı (e-YDTS) Kılavuzu",
+   "url": "https://www.osym.gov.tr/2026elektronik-yabanci-dil-olarak-turkce-sinavi-eydts-kilavuzu",
+   "slug": "2026elektronik-yabanci-dil-olarak-turkce-sinavi-eydts-kilavuzu",
+   "sinav": "e-YDTS",
+   "tip": "kilavuz"
+  },
+  {
+   "tarih": "2026-09-01",
+   "baslik": "2026 Elektronik Yabancı Dil Olarak Türkçe Sınavı (e-YDTS/2 Türkçe): Başvuruların Alınması",
+   "url": "https://www.osym.gov.tr/2026-elektronik-yabanci-dil-olarak-turkce-sinavi-e-ydts2-turkce-basvurularin-alinmasi",
+   "slug": "2026-elektronik-yabanci-dil-olarak-turkce-sinavi-e-ydts2-turkce-basvurularin-alinmasi",
+   "sinav": "e-YDTS",
+   "tip": "basvuru"
+  },
   {
    "tarih": "2026-08-27",
    "baslik": "2026-KPSS Ortaöğretim: Kılavuz ve Başvuru Bilgileri",
@@ -1657,14 +1673,6 @@
    "slug": "2026dibmbsts-sinav-sonuclari-aciklandi",
    "sinav": "MBSTS",
    "tip": "sonuc_aciklandi"
-  },
-  {
-   "tarih": "2026-04-15",
-   "baslik": "2026-Elektronik Yabancı Dil Olarak Türkçe Sınavı (e-YDTS) Kılavuzu",
-   "url": "https://www.osym.gov.tr/2026elektronik-yabanci-dil-olarak-turkce-sinavi-eydts-kilavuzu",
-   "slug": "2026elektronik-yabanci-dil-olarak-turkce-sinavi-eydts-kilavuzu",
-   "sinav": "e-YDTS",
-   "tip": "kilavuz"
   },
   {
    "tarih": "2026-04-15",
