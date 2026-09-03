@@ -1,7 +1,15 @@
 {
- "guncelleme": "2026-09-02T10:00:07",
+ "guncelleme": "2026-09-03T10:30:09",
  "kaynak": "ÖSYM",
  "duyurular": [
+  {
+   "tarih": "2026-09-03",
+   "baslik": "2026-KPSS Lisans Sınavı Alan Bilgisi Oturumları: Sınava Giriş Belgeleri Erişime Açıldı",
+   "url": "https://www.osym.gov.tr/2026-kpss-lisans-sinavi-alan-bilgisi-oturumlari-sinava-giris-belgeleri-erisime-acildi",
+   "slug": "2026-kpss-lisans-sinavi-alan-bilgisi-oturumlari-sinava-giris-belgeleri-erisime-acildi",
+   "sinav": "KPSS",
+   "tip": "giris_belgesi"
+  },
   {
    "tarih": "2026-09-02",
    "baslik": "2026 Tarım ve Orman Bakanlığı Bitki Koruma Ürünleri Bayi ve Toptancılık Yazılı Sınavı (2026-BKUBTS): Başvuruların Alınması",
