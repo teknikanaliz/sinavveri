@@ -2881,6 +2881,7 @@ SınavVeri, TrVeri ailesi bünyesinde Türkiye'deki merkezi sınavlar için takv
 - 2026 sınav takvimi (ÖSYM + MEB): /takvim.html
 - Puan hesaplama (YKS/LGS/KPSS/DGS/ALES): /puan-hesaplama.html
 - Sınav rehberleri: /rehberler.html
+- Veri metodolojisi ve doğruluk denetimi: /metodoloji.html
 
 ## İletişim
 - Web: https://sinavveri.com
@@ -3186,6 +3187,28 @@ SEARCH_JS = r"""<script nonce="__NONCE__">
 
 
 def page_taban_index():
+    # Statik tbody (SSR/SEO, 2026-09-05): varsayılan sekme (SAY) için ilk STATIK_SATIR satır
+    # build-time pişirilir — JS'siz istemci/bot ham HTML'de gerçek veri görür; JS açılınca
+    # SEARCH_JS tbody'yi kendi çıktısıyla değiştirir. ⚠ main() bu sayfayı write_veri()'den
+    # SONRA üretir ki say.json aynı koşumun taze verisi olsun.
+    say = _veri_rows("say") or []
+    _TUR_AD = {"D": "Devlet", "V": "Vakıf", "K": "KKTC", "DK": "Devlet (KKTC Kampüs)",
+               "DU": "Devlet (Ücretli)", "DKU": "Devlet (KKTC Uyruklu)"}
+    tbody_static = ""
+    for r in say[:STATIK_SATIR]:
+        kont, yer = r[9], r[12]
+        kont_h = fmt_sira(kont) + (f" / {fmt_sira(yer)}" if (yer is not None and kont and yer < kont) else "")
+        dol = f"%{round(yer / kont * 100)}" if (kont and yer is not None) else "—"
+        tbody_static += ("<tr><td><strong>" + (r[2] or "") + "</strong> — " + (r[1] or "") + "</td>"
+                         "<td>" + (r[4] or "—") + "</td>"
+                         "<td>" + _TUR_AD.get(r[5], r[5] or "—") + "</td>"
+                         "<td>" + kont_h + "</td>"
+                         "<td><strong>" + fmt_puan(r[10]) + "</strong></td>"
+                         "<td>" + fmt_sira(r[11]) + "</td>"
+                         "<td>" + dol + "</td><td>—</td></tr>")
+    status_ilk = ((f"Sayısal (SAY) puan türünde {fmt_sira(len(say))} programdan ilk "
+                   f"{fmt_sira(min(STATIK_SATIR, len(say)))} satır listeleniyor — filtreler tüm programlarda çalışır.")
+                  if say else "Yükleniyor…")
     body = f"""
 <div class="crumb"><a href="/index.html">Ana Sayfa</a> / <a href="/taban-puanlari.html">Taban Puanları</a> / Üniversite</div>
 <div class="page-title"><h1>Üniversite Taban Puanları {YKS_YIL}</h1><span class="sub">YÖK Atlas {YKS_YIL} yerleştirme verisi · 21.602 program · Gerçek taban puanı ve başarı sırası</span></div>
@@ -3211,13 +3234,13 @@ def page_taban_index():
     <label style="display:flex;align-items:center;gap:6px;font-size:13px;color:var(--fg-muted)"><input type="checkbox" id="fDol"> Sadece kontenjanı dolmamışlar</label>
   </div>
   <div class="filter-chips" id="chips" style="display:none"></div>
-  <div id="status" style="margin-top:12px;font-size:13px;color:var(--accent);font-weight:700">Yükleniyor…</div>
+  <div id="status" style="margin-top:12px;font-size:13px;color:var(--accent);font-weight:700">{status_ilk}</div>
 </div>
 
 <div class="data-table-wrap">
 <table class="data-table cardify" data-live="1">
 <thead><tr><th data-tip="Programın YÖK Atlas'taki tam adı ve bağlı olduğu üniversite." data-type="text">Program / Üniversite</th><th data-tip="Programın bulunduğu il." data-type="text">İl</th><th data-tip="Üniversite türü: Devlet, Vakıf, KKTC veya özel kontenjan türü." data-type="text">Tür</th><th data-tip="2025 genel kontenjanı; dolmadıysa yanında yerleşen sayısı gösterilir." data-type="num">Kont. / Yerleşen</th><th data-tip="Programa en son yerleşen adayın 2025 YKS yerleştirme puanı." data-type="num">Taban Puan</th><th data-tip="En son yerleşen adayın 2025 başarı sırası. Küçük sıra = daha yüksek başarı." data-type="num">Başarı Sırası</th><th data-tip="Doluluk = yerleşen ÷ kontenjan. %100 kontenjanın tamamen dolduğunu gösterir." data-type="num">Doluluk</th><th data-nosort data-tip="En fazla 3 programı işaretleyip yan yana karşılaştırın.">Kıyas</th></tr></thead>
-<tbody id="tbody"></tbody>
+<tbody id="tbody">{tbody_static}</tbody>
 </table>
 </div>
 <div class="fav-panel" id="cmpPanel"></div>
@@ -5681,6 +5704,26 @@ def page_lise_taban_index(lgs, il_slugs):
     il_links = ""
     for sl, il in sorted(il_slugs.items(), key=lambda kv: kv[1].lower()):
         il_links += f'<a href="/lise/{sl}.html" style="display:inline-block;margin:2px 4px;font-size:13px">{il}</a>'
+    # Statik tbody (SSR/SEO, 2026-09-05): gerçek #2 sayfa JS'siz istemciye/bota BOŞ tablo
+    # gösteriyordu. İlk STATIK_SATIR satır build-time pişirilir; JS açılınca istemci render'ı
+    # (LISE_SEARCH_JS skeleton + fetch) tbody'yi kendi çıktısıyla değiştirir. Tam liste il
+    # sayfalarında zaten statik.
+    recs = sorted(lgs, key=lambda r: (r.get("tp") is None, -(r.get("tp") or 0)))
+    tbody_static = ""
+    for r in recs[:STATIK_SATIR]:
+        yuz = ("%" + fmt_puan(r["yuz"])) if r.get("yuz") is not None else "—"
+        ilce = (r.get("il") or "") + (" / " + r["ilce"] if r.get("ilce") else "")
+        tbody_static += ("<tr><td><strong>" + (r.get("okul") or "") + "</strong></td>"
+                         "<td>" + ilce + "</td>"
+                         '<td><span class="tag tag-other">' + (r.get("tur") or "—") + "</span></td>"
+                         "<td>" + fmt_sira(r.get("kont")) + "</td>"
+                         "<td><strong>" + fmt_puan(r.get("tp")) + "</strong></td>"
+                         "<td>" + fmt_puan(r.get("tp24")) + "</td>"
+                         "<td>" + fmt_puan(r.get("tp23")) + "</td>"
+                         "<td>" + _osym_trend(r) + "</td>"
+                         "<td>" + yuz + "</td></tr>")
+    status_ilk = (f"{fmt_sira(len(recs))} liseden ilk {fmt_sira(min(STATIK_SATIR, len(recs)))} satır "
+                  "listeleniyor — arama ve filtre tüm liselerde çalışır; il sayfalarında ilin tamamı yer alır.")
     body = f"""
 <div class="crumb"><a href="/index.html">Ana Sayfa</a> / LGS Lise Taban Puanları</div>
 <div class="page-title"><h1>LGS Lise Taban Puanları {LGS_YIL}</h1><span class="sub">81 il · 3.000+ sınavla öğrenci alan lise · Taban puanı ve yüzdelik dilim</span></div>
@@ -5695,12 +5738,12 @@ def page_lise_taban_index(lgs, il_slugs):
     <select id="fDil" class="btn btn-ghost" style="text-align:left"><option value="">Tüm yabancı diller</option></select>
   </div>
   <div class="filter-chips" id="chips" style="display:none"></div>
-  <div id="status" style="margin-top:12px;font-size:13px;color:var(--accent);font-weight:700">Yükleniyor…</div>
+  <div id="status" style="margin-top:12px;font-size:13px;color:var(--accent);font-weight:700">{status_ilk}</div>
 </div>
 <div class="data-table-wrap">
 <table class="data-table" data-live="1">
 <thead><tr><th data-tip="Sınavla öğrenci alan lisenin resmî adı." data-type="text">Lise</th><th data-tip="Lisenin bulunduğu il ve ilçe." data-type="text">İl / İlçe</th><th data-tip="Lise türü: Fen, Sosyal Bilimler, Anadolu, İmam Hatip, Mesleki ve Teknik vb." data-type="text">Tür</th><th data-tip="Liseye alınacak öğrenci sayısı (kontenjan)." data-type="num">Kont.</th><th data-tip="{LGS_YIL}'te liseye yerleşen son öğrencinin LGS merkezi sınav puanı." data-type="num">{LGS_YIL} Taban</th><th data-tip="{LGS_HIST[0]} LGS taban puanı; yıllar arası değişimi görmek için." data-type="num">{LGS_HIST[0]}</th><th data-tip="{LGS_HIST[1]} LGS taban puanı; yıllar arası değişimi görmek için." data-type="num">{LGS_HIST[1]}</th><th data-tip="{LGS_YIL} tabanının bir önceki yıla göre değişimi (↑ yükseldi, ↓ düştü, → aynı)." data-type="text">Trend</th><th data-tip="Yerleşen son öğrencinin LGS yüzdelik dilimi. Küçük yüzdelik = daha başarılı." data-type="num">Yüzdelik</th></tr></thead>
-<tbody id="tbody"></tbody>
+<tbody id="tbody">{tbody_static}</tbody>
 </table>
 </div>
 <nav id="moreWrap"></nav>
@@ -5923,12 +5966,40 @@ GENERIC_SEARCH_JS = r"""<script nonce="__NONCE__">
 </script>"""
 
 
-def minmax_page(slug, title, desc, h1, sub, file, cols, filters, search_idx, intro, kaynak, ph="Ara…", hub_html="", spark=None):
+STATIK_SATIR = 500  # JS-hub tablolarında build-time pişirilen satır sayısı (SSR/SEO, 2026-09-05)
+
+
+def _statik_hucre(v, kind):
+    """JS render'ıyla aynı biçim: b=kalın metin, t=metin, n=tamsayı, p=taban(kalın), pv=puan."""
+    if kind == "p":
+        return "<strong>" + fmt_puan(v) + "</strong>"
+    if kind == "pv":
+        return fmt_puan(v)
+    if kind == "n":
+        return fmt_sira(v)
+    if kind == "b":
+        return "<strong>" + (v if v not in (None, "") else "—") + "</strong>"
+    return v if v not in (None, "") else "—"
+
+
+def minmax_page(slug, title, desc, h1, sub, file, cols, filters, search_idx, intro, kaynak, ph="Ara…", hub_html="", spark=None, data_rows=None):
     """Generic ÖSYM taban puanı interaktif arama sayfası.
     cols: [(dataIdx, label, kind)] kind: b=kalın metin, t=metin, n=tamsayı, p=taban(kalın), pv=tavan
     filters: [(dataIdx, label)] → dropdown
+    data_rows: veri satırları (liste) → ilk STATIK_SATIR satır build-time <tbody>'ye pişirilir.
+    SSR kuralı (3.18): AI botları/JS'siz istemciler ham HTML'de gerçek veri görür; JS açılınca
+    istemci render'ı (skeleton + fetch) tbody'yi zaten kendi çıktısıyla değiştirir.
     """
     thead = "".join(th_html(c[1]) for c in cols)
+    tbody_static, status_ilk = "", "Yükleniyor…"
+    if data_rows:
+        tbody_static = "".join(
+            "<tr>" + "".join("<td>" + _statik_hucre(r[c[0]], c[2]) + "</td>" for c in cols) + "</tr>"
+            for r in data_rows[:STATIK_SATIR])
+        n_gost = min(STATIK_SATIR, len(data_rows))
+        status_ilk = (f"{fmt_sira(len(data_rows))} kayıttan ilk {fmt_sira(n_gost)} satır listeleniyor — "
+                      "arama ve filtre tüm kayıtlarda çalışır." if len(data_rows) > n_gost
+                      else f"{fmt_sira(len(data_rows))} kayıt listeleniyor.")
     fhtml = (f'<input id="fQ" type="text" placeholder="{ph}" style="padding:9px 10px;border:1px solid var(--border);'
              'border-radius:8px;background:var(--bg-card-alt);color:var(--fg);font-family:inherit;font-size:13px">')
     for n, (idx, label) in enumerate(filters):
@@ -5943,10 +6014,10 @@ def minmax_page(slug, title, desc, h1, sub, file, cols, filters, search_idx, int
 <div class="calc-card" style="margin-bottom:18px">
   <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px">{fhtml}</div>
   <div class="filter-chips" id="chips" style="display:none"></div>
-  <div id="status" style="margin-top:12px;font-size:13px;color:var(--accent);font-weight:700">Yükleniyor…</div>
+  <div id="status" style="margin-top:12px;font-size:13px;color:var(--accent);font-weight:700">{status_ilk}</div>
 </div>
 <div class="data-table-wrap">
-<table class="data-table" data-live="1"><thead><tr>{thead}</tr></thead><tbody id="tbody"></tbody></table>
+<table class="data-table" data-live="1"><thead><tr>{thead}</tr></thead><tbody id="tbody">{tbody_static}</tbody></table>
 </div>
 <nav id="moreWrap"></nav>
 <div class="notice"><b>Kaynak:</b> {kaynak} Taban = o programa/kadroya yerleşen <b>en düşük</b>, tavan = <b>en yüksek</b> puan.
@@ -6035,6 +6106,12 @@ def write_osym_veri():
     return counts
 
 
+def _veri_rows(name):
+    """İstemci JSON'unu statik tbody pişirmek için oku (write_osym_veri az önce üretti)."""
+    p = ROOT / "veri" / f"{name}.json"
+    return json.loads(p.read_text(encoding="utf-8")) if p.exists() else None
+
+
 def page_tus(hubs=None):
     if not (ROOT / "veri" / "tus.json").exists():
         return None
@@ -6053,7 +6130,8 @@ def page_tus(hubs=None):
         "<b>MAP</b> Misafir Askeri Personel, <b>KKTC</b> Kıbrıs, <b>ADL</b> Adalet Bakanlığı, <b>YBU</b> yabancı uyruklu. "
         "Aynı kurum+dalda birden çok kadro ayrı satırdır. Dal veya kurum/şehir arayın, uzmanlık dalına göre filtreleyin.",
         f"ÖSYM {osym_yil('tus')-2}, {osym_yil('tus')-1} ve {osym_yil('tus')} TUS Yerleştirme 'En Küçük ve En Büyük Puanlar' resmî yayınları (dokuman.osym.gov.tr).",
-        ph="Dal / kurum / şehir ara…", hub_html=hub_links_html("tus", hubs), spark=[7, 6, 4])
+        ph="Dal / kurum / şehir ara…", hub_html=hub_links_html("tus", hubs), spark=[7, 6, 4],
+        data_rows=_veri_rows("tus"))
 
 
 def page_dus(hubs=None):
@@ -6070,7 +6148,8 @@ def page_dus(hubs=None):
         "DUS'ta her kurum ve diş hekimliği uzmanlık dalı için ÖSYM'nin açıkladığı taban ve tavan puanlar, "
         f"<b>son 3 yılın ({osym_yil('dus')-2}-{osym_yil('dus')-1}-{osym_yil('dus')}) karşılaştırmasıyla</b>. Trend sütunu {osym_yil('dus')} tabanının bir önceki yıla göre değişimini gösterir.",
         f"ÖSYM {osym_yil('dus')-2}, {osym_yil('dus')-1} ve {osym_yil('dus')} DUS 'En Küçük ve En Büyük Puanlar' resmî yayınları (dokuman.osym.gov.tr).",
-        ph="Dal / kurum ara…", hub_html=hub_links_html("dus", hubs), spark=[7, 6, 4])
+        ph="Dal / kurum ara…", hub_html=hub_links_html("dus", hubs), spark=[7, 6, 4],
+        data_rows=_veri_rows("dus"))
 
 
 def page_dgs_taban(hubs=None):
@@ -6089,7 +6168,8 @@ def page_dgs_taban(hubs=None):
         "(↑ yükseliş, ↓ düşüş). Program kodu yıllar arası eşleştirilir; yeni açılan programlarda geçmiş boştur. "
         "Program veya üniversite adı arayın. DGS net hesaplama için <a href='/dgs-puan-hesaplama.html'>DGS puan hesaplama</a>.",
         f"ÖSYM {osym_yil('dgs')-2}, {osym_yil('dgs')-1} ve {osym_yil('dgs')} 'DGS Yerleştirme Sonuçlarına İlişkin En Küçük ve En Büyük Puanlar' resmî yayınları (dokuman.osym.gov.tr).",
-        ph="Program / üniversite ara…", hub_html=hub_links_html("dgs", hubs), spark=[6, 5, 3])
+        ph="Program / üniversite ara…", hub_html=hub_links_html("dgs", hubs), spark=[6, 5, 3],
+        data_rows=_veri_rows("dgs"))
 
 
 def page_kpss_atama(hubs=None):
@@ -6112,7 +6192,8 @@ def page_kpss_atama(hubs=None):
         "<b>Aynı unvanlı birden çok kadro</b> farklı <b>nitelik (aranan şartlar)</b> içerir; ayırmak için kadro adının yanına "
         "<b>(Kadro Kodu: …)</b> eklenir. Bir kadronun tüm niteliklerini görmek için bu kodu, ilgili dönemin "
         "<a href='https://www.osym.gov.tr/TR,62/kpss.html' target='_blank' rel='noopener'>ÖSYM KPSS tercih kılavuzunda</a> aratın.",
-        OSYM_KAYNAK, ph="Kadro / kurum ara…", hub_html=hub_links_html("kpss", hubs), spark=[8, 6])
+        OSYM_KAYNAK, ph="Kadro / kurum ara…", hub_html=hub_links_html("kpss", hubs), spark=[8, 6],
+        data_rows=_veri_rows("kpss"))
 
 
 # ───────────────────────── ÖSYM KATEGORİ HUB SAYFALARI (SEO) ─────────────────────────
@@ -6184,6 +6265,162 @@ def _hub_cell(r, field, kind):
     return v if v else "—"
 
 
+# Yaygın-ad / eşanlamlı slug'lar → gerçek dal sayfası (2026-09-05, SEO karar tablosu P1).
+# Crawl 404 raporu: /tus-taban/dermatoloji.html, radyoloji-uzmanligi.html, farmakoloji.html
+# gibi yaygın adlar 404 veriyordu. Alias stub = anında yönlendiren sayfa (meta refresh 0 +
+# canonical hedefe) — arama motoru bunu 301 gibi işler, kullanıcı ölü uç görmez.
+# Hedef slug o dönemin verisinde YOKSA stub üretilmez (fail-safe). Sitemap'e GİRMEZ.
+OSYM_HUB_ALIASES = {
+    "tus-taban": {
+        "dermatoloji": "deri-ve-zuhrevi-hastaliklari",
+        "cildiye": "deri-ve-zuhrevi-hastaliklari",
+        "radyoloji-uzmanligi": "radyoloji",
+        "farmakoloji": "tibbi-farmakoloji",
+        "dahiliye": "ic-hastaliklari",
+        "pediatri": "cocuk-sagligi-ve-hastaliklari",
+        "cocuk-hastaliklari": "cocuk-sagligi-ve-hastaliklari",
+        "kadin-dogum": "kadin-hastaliklari-ve-dogum",
+        "jinekoloji": "kadin-hastaliklari-ve-dogum",
+        "goz": "goz-hastaliklari",
+        "kbb": "kulak-burun-bogaz-hastaliklari",
+        "kulak-burun-bogaz": "kulak-burun-bogaz-hastaliklari",
+        "psikiyatri": "ruh-sagligi-ve-hastaliklari",
+        "cocuk-psikiyatrisi": "cocuk-ve-ergen-ruh-sagligi-ve-hastaliklari",
+        "beyin-cerrahisi": "beyin-ve-sinir-cerrahisi",
+        "norosirurji": "beyin-ve-sinir-cerrahisi",
+        "anestezi": "anesteziyoloji-ve-reanimasyon",
+        "anesteziyoloji": "anesteziyoloji-ve-reanimasyon",
+        "ortopedi": "ortopedi-ve-travmatoloji",
+        "fizik-tedavi": "fiziksel-tip-ve-rehabilitasyon",
+        "ftr": "fiziksel-tip-ve-rehabilitasyon",
+        "enfeksiyon-hastaliklari": "enfeksiyon-hastaliklari-ve-klinik-mikrobiyoloji",
+        "patoloji": "tibbi-patoloji",
+        "biyokimya": "tibbi-biyokimya",
+        "mikrobiyoloji": "tibbi-mikrobiyoloji",
+        "genetik": "tibbi-genetik",
+        "plastik-cerrahi": "plastik-rekonstruktif-ve-estetik-cerrahi",
+        "kalp-damar-cerrahisi": "kalp-ve-damar-cerrahisi",
+    },
+    "dus-taban": {
+        "cene-cerrahisi": "agiz-dis-ve-cene-cerrahisi",
+        "pedodonti": "cocuk-dis-hekimligi",
+        "dis-protezi": "protetik-dis-tedavisi",
+    },
+}
+
+
+def _alias_stub(subdir, alias, hedef_slug, hedef_ad, EX):
+    """Yaygın-ad alias sayfası: anında yönlendirme (meta refresh 0) + canonical hedefe."""
+    hedef_url = f"/{subdir}/{hedef_slug}.html"
+    html = f"""<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="refresh" content="0;url={hedef_url}">
+<link rel="canonical" href="{SITE}{hedef_url}">
+<title>{hedef_ad} {EX} Taban Puanları | SınavVeri</title>
+</head>
+<body>
+<p>Bu sayfa taşındı: <a href="{hedef_url}">{hedef_ad} {EX} Taban Puanları</a></p>
+</body>
+</html>
+"""
+    write(f"{subdir}/{alias}.html", html)
+
+
+def _tusdus_detay_paketi(exam, EX, g, kw, kwp, recs, links, self_slug, subdir, main, canonical):
+    """TUS/DUS detay sayfası zenginleştirme paketi (2026-09-05, site raporu 26 #1):
+    kalın cevap pasajı + soru-biçimli H2 + kardeş-dal linkleri + hub geri-bağlantı +
+    FAQ (görünür + FAQPage LD) + Dataset + ItemList JSON-LD.
+    TÜM metinler mevcut ÖSYM verisinden türetilir — uydurma yok; veri yoksa blok üretilmez.
+    Döner: (ust_html, alt_html, extra_ld_list, extra_head)."""
+    yil = osym_yil(exam)
+    tp_recs = [r for r in recs if r.get("tp")]           # recs tp'ye göre azalan sıralı
+    if not tp_recs:
+        return "", "", [], ""
+    enyuk, endus = tp_recs[0], tp_recs[-1]
+    tabans = [r["tp"] for r in tp_recs]
+    ort = fmt_puan(round(sum(tabans) / len(tabans), 2))
+    kurum_n = len({r["kurum"] for r in recs if r.get("kurum")})
+    kont_top = sum(r["kont"] for r in recs if r.get("kont"))
+    cmp_recs = [r for r in tp_recs if r.get("tp24") is not None]
+    artan = sum(1 for r in cmp_recs if r["tp"] - r["tp24"] > 0.005)
+    dusen = sum(1 for r in cmp_recs if r["tp"] - r["tp24"] < -0.005)
+
+    # 1) Kalın cevap pasajı (snippet / AI-Overview hedefi)
+    ust = (f'<p style="font-size:15px;line-height:1.65;margin:14px 0">'
+           f'<strong>{yil} {EX} yerleştirmesinde {g} taban puanları {fmt_puan(endus["tp"])} – '
+           f'{fmt_puan(enyuk["tp"])} aralığında gerçekleşti; en yüksek taban {enyuk["kurum"]} '
+           f'({fmt_puan(enyuk["tp"])}), en düşük taban {endus["kurum"]} ({fmt_puan(endus["tp"])}) '
+           f'kurumundadır.</strong></p>')
+
+    # 2) Soru-biçimli H2 bölümleri — her bölümün ilk cümlesi doğrudan cevap
+    ust += (f'<h2>{g} {EX} Taban Puanı Kaç? ({yil})</h2>'
+            f'<p>{yil} {EX} yerleştirmesinde {g} {kw} için açıklanan {len(tp_recs)} kayıtta taban '
+            f'puanları <strong>{fmt_puan(endus["tp"])}</strong> ile <strong>{fmt_puan(enyuk["tp"])}</strong> '
+            f'arasında değişti; ortalama taban <strong>{ort}</strong>. '
+            + (f'Toplam kontenjan {fmt_sira(kont_top)}. ' if kont_top else '')
+            + f'Aşağıdaki tabloda tüm kurumların taban ve tavan puanları 3 yıllık trendle yer alır.</p>'
+            f'<h2>Hangi Kurumlarda {g} Kadrosu Var? ({yil} {EX})</h2>')
+
+    # 3) Kardeş-dal linkleri + hub geri-bağlantı (iç link akışı — detaylar yetimdi)
+    kardes = " · ".join(
+        f'<a href="/{subdir}/{s}.html">{ad}</a>'
+        for s, ad, _n in links if s != self_slug)
+    alt = (f'<div class="section" style="margin-top:24px"><h2>Diğer {EX} Uzmanlık Dallarının Taban Puanları</h2>'
+           f'<div class="section-sub">Tüm {len(links)} {kw} tek tabloda: '
+           f'<a href="/{main}">{EX} taban puanları arama ve filtre</a></div>'
+           f'<div style="line-height:2;font-size:13px">{kardes}</div></div>')
+
+    # 4) FAQ — veriden türetilmiş soru-cevap (görünür blok + FAQPage LD birlikte)
+    faq_html_str, faq_ld_str, extra_head = "", "", ""
+    if faq_block:
+        sss = [
+            (f"{g} {yil} {EX} taban puanı kaç?",
+             f"{yil} {EX} yerleştirmesinde {g} taban puanları {fmt_puan(endus['tp'])} – "
+             f"{fmt_puan(enyuk['tp'])} aralığındadır; ortalama taban {ort}. Değerler ÖSYM'nin "
+             f"resmî 'En Küçük ve En Büyük Puanlar' yayınından alınmıştır."),
+            (f"{g} için en yüksek taban puanı hangi kurumda?",
+             f"{yil} verisinde en yüksek {g} taban puanı {fmt_puan(enyuk['tp'])} ile {enyuk['kurum']} "
+             f"kurumundadır; en düşük taban {fmt_puan(endus['tp'])} ile {endus['kurum']} kurumundadır."),
+        ]
+        if kont_top:
+            sss.append((f"{yil} {EX} {g} kontenjanı toplam kaç?",
+                        f"{yil} {EX} yerleştirmesinde {g} {kw} için {kurum_n} kurumda toplam "
+                        f"{fmt_sira(kont_top)} kontenjan açıldı. Kurum bazında kontenjanlar "
+                        f"sayfadaki tabloda listelenir."))
+        if cmp_recs:
+            sss.append((f"{g} taban puanları geçen yıla göre yükseldi mi?",
+                        f"Bir önceki yılla karşılaştırılabilen {len(cmp_recs)} kayıttan {artan} tanesinde "
+                        f"{yil} taban puanı yükseldi, {dusen} tanesinde düştü. Kayıt bazındaki değişim "
+                        f"tablodaki Trend sütununda ↑/↓ ile gösterilir."))
+        faq_html_str, faq_ld_str = faq_block(sss, nonce="__NONCE__")
+        extra_head = f"<style>{FAQ_CSS}</style>"
+    alt += faq_html_str + faq_ld_str
+
+    # 5) Dataset + ItemList JSON-LD (base() @graph'ına eklenir; breadcrumb otomatik gelir)
+    extra_ld = [
+        {"@type": "Dataset",
+         "name": f"{g} {EX} Taban Puanları ({yil-2}-{yil})",
+         "description": f"{g} {kw} için kurum bazında {EX} taban ve tavan puanları; "
+                        f"{yil-2}, {yil-1} ve {yil} ÖSYM resmî yerleştirme sonuçları.",
+         "url": canonical,
+         "creator": {"@type": "Organization", "name": "ÖSYM"},
+         "temporalCoverage": f"{yil-2}/{yil}",
+         "inLanguage": "tr",
+         "isAccessibleForFree": True,
+         "keywords": [f"{g} taban puanı", f"{EX} {yil}", f"{g} {EX.lower()}"]},
+        {"@type": "ItemList",
+         "name": f"{g} {EX} En Yüksek Taban Puanlı Kurumlar {yil}",
+         "itemListElement": [
+             {"@type": "ListItem", "position": i + 1,
+              "name": f"{r['kurum']} — {fmt_puan(r['tp'])}"}
+             for i, r in enumerate(tp_recs[:10])]},
+    ]
+    return ust, alt, extra_ld, extra_head
+
+
 def gen_osym_hub_pages():
     """ÖSYM dikeylerinde kategori (uzmanlık dalı / bölüm / kadro) bazlı toplulaştırıcı
     hub sayfaları — SEO için her kategori = 1 zengin sayfa (tüm kurumlar + 3-yıl trend + özet).
@@ -6208,12 +6445,17 @@ def gen_osym_hub_pages():
                 s = f"{base_s}-{i}"; i += 1
             slugmap[s] = g
         cols = hub_cols(exam)
-        links = []
+        # İKİ GEÇİŞ (2026-09-05): önce yayınlanacak kategoriler hesaplanır ki kardeş-dal
+        # linkleri (TUS/DUS detay paketi) sayfa üretiminden ÖNCE bilinsin.
+        valid = []
         for s, g in slugmap.items():
             recs = groups[g]
             if len(recs) < mink:
                 continue
-            recs = sorted(recs, key=lambda r: (r.get("tp") is None, -(r.get("tp") or 0)))
+            valid.append((s, g, sorted(recs, key=lambda r: (r.get("tp") is None, -(r.get("tp") or 0)))))
+        valid.sort(key=lambda x: tr_sort_key(x[1]))
+        links = [(s, g, len(recs)) for s, g, recs in valid]
+        for s, g, recs in valid:
             thead = "".join(th_html(h) for h, _, _ in cols)
             rws = ""
             for r in recs:
@@ -6224,15 +6466,23 @@ def gen_osym_hub_pages():
                     + (f"; taban puanları <strong>{fmt_puan(min(tabans))}</strong> – <strong>{fmt_puan(max(tabans))}</strong> "
                        f"aralığında (ortalama <strong>{fmt_puan(round(sum(tabans)/len(tabans),2))}</strong>)." if tabans else "."))
             main = _HUB_MAIN[exam]
+            # TUS/DUS detay paketi (soru-H2 + cevap pasajı + kardeş dallar + FAQ + Dataset/ItemList)
+            det_ust, det_alt, det_ld, det_head = "", "", [], ""
+            if exam in ("tus", "dus"):
+                canonical_url = f"{SITE}/{subdir}/{s}.html"
+                det_ust, det_alt, det_ld, det_head = _tusdus_detay_paketi(
+                    exam, EX, g, kw, kwp, recs, links, s, subdir, main, canonical_url)
             body = f"""
 <div class="crumb"><a href="/index.html">Ana Sayfa</a> / <a href="/taban-puanlari.html">Taban Puanları</a> / <a href="/{main}">{EX}</a> / {g}</div>
 <div class="page-title"><h1>{g} {EX} Taban Puanları {osym_yil(exam)}</h1><span class="sub">{sinav} · {len(recs)} {'kadro' if exam=='kpss' else 'kurum'} · ÖSYM resmî{'' if exam=='kpss' else ' · 3 yıllık trend (2023-2025)'}</span></div>
+{det_ust}
 <div class="info-box">{ozet} Tablo 2025 tabanına göre yüksekten düşüğe sıralıdır.{'' if exam=='kpss' else ' Trend sütunu 2025 tabanının bir önceki yıla göre değişimini gösterir (↑/↓).'}</div>
 <div class="data-table-wrap">
 <table class="data-table" data-tvpager><thead><tr>{thead}</tr></thead><tbody>{rws}</tbody></table>
 </div>
 <div class="notice"><b>Kaynak:</b> ÖSYM resmî 'En Küçük ve En Büyük Puanlar' yayını (dokuman.osym.gov.tr).
 Tüm {EX} verisi için <a href="/{main}">{EX} taban puanları arama</a> · <a href="/taban-puanlari.html">tüm taban puanları</a>.</div>
+{det_alt}
 """
             # Title: arama kavramı başta, marka sonda. Sabit "— Kurum Bazında ve 3 Yıllık
             # Trend" eki KALDIRILDI: 645 sayfanın hepsinde aynıydı, title'ı 97-121 karaktere
@@ -6254,11 +6504,20 @@ Tüm {EX} verisi için <a href="/{main}">{EX} taban puanları arama</a> · <a hr
                     title = _kisa
             desc = (f"{g} {EX.lower()} 2025 taban ve tavan puanları, {len(recs)} {'kadro' if exam=='kpss' else 'kurum'} bazında"
                     + ("" if exam == "kpss" else ", 2023-2024-2025 karşılaştırmasıyla") + ". ÖSYM resmî verisi.")
-            write(f"{subdir}/{s}.html", base(f"{subdir}/{s}.html", title, desc, body))
+            write(f"{subdir}/{s}.html", base(f"{subdir}/{s}.html", title, desc, body,
+                                             extra_ld=det_ld or None, extra_head=det_head))
             slugs.append(f"{subdir}/{s}.html")
-            links.append((s, g, len(recs)))
-        hub_links[exam] = sorted(links, key=lambda x: tr_sort_key(x[1]))
+        hub_links[exam] = links  # valid zaten tr_sort_key ile sıralı
         print(f"  → {len(links)} {EX} hub sayfası ({subdir}/)")
+        # Yaygın-ad alias stub'ları (404 → yönlendirme; sitemap'e girmez)
+        slug_ad = {s: g for s, g, _n in links}
+        n_alias = 0
+        for alias, hedef in OSYM_HUB_ALIASES.get(subdir, {}).items():
+            if hedef in slug_ad and alias not in slug_ad:
+                _alias_stub(subdir, alias, hedef, slug_ad[hedef], EX)
+                n_alias += 1
+        if n_alias:
+            print(f"  → {n_alias} {EX} yaygın-ad alias stub'ı ({subdir}/)")
     return slugs, hub_links
 
 
@@ -6833,7 +7092,7 @@ def page_hakkimizda():
 </ul>
 
 <h2>Veri Kaynağı ve Güncellik</h2>
-<p>Üniversite taban puanları ve başarı sıralamaları <b>ÖSYM</b> ve <b>YÖK Atlas</b> verilerinden; LGS lise taban puanları <b>MEB</b> merkezi yerleştirme sonuçlarından derlenir. Veriler her yeni yerleştirme dönemi açıklandığında güncellenir; sınav takvimi resmî duyurulara göre düzenli olarak yenilenir. SınavVeri resmî bir kurum değildir; sunulan bilgiler yalnızca yol gösterme amaçlıdır, kesin tercih ve başvuru işlemleri ilgili kurumların resmî sistemleri üzerinden yapılmalıdır.</p>
+<p>Üniversite taban puanları ve başarı sıralamaları <b>ÖSYM</b> ve <b>YÖK Atlas</b> verilerinden; LGS lise taban puanları <b>MEB</b> merkezi yerleştirme sonuçlarından derlenir. Veriler her yeni yerleştirme dönemi açıklandığında güncellenir; sınav takvimi resmî duyurulara göre düzenli olarak yenilenir. Verilerin nasıl derlendiğini ve doğruluğun nasıl denetlendiğini <a href="/metodoloji.html">Metodoloji ve Doğruluk</a> sayfasında açıkça anlatıyoruz. SınavVeri resmî bir kurum değildir; sunulan bilgiler yalnızca yol gösterme amaçlıdır, kesin tercih ve başvuru işlemleri ilgili kurumların resmî sistemleri üzerinden yapılmalıdır.</p>
 
 <h2>İletişim</h2>
 <p>Soru ve önerileriniz, reklam ve işbirliği teklifleriniz için: <a href="mailto:info@sinavveri.com">info@sinavveri.com</a></p>
@@ -6855,6 +7114,113 @@ def page_hakkimizda():
                 body, share=True, extra_head=HAKKIMIZDA_ABOUTPAGE_LD)
 
 
+# ───────────────────────── METODOLOJİ VE DOĞRULUK (E-E-A-T + GEO) ─────────────────────────
+_TR_AYLAR = ["", "Ocak", "Şubat", "Mart", "Nisan", "Mayıs", "Haziran",
+             "Temmuz", "Ağustos", "Eylül", "Ekim", "Kasım", "Aralık"]
+
+
+def page_metodoloji():
+    """Kamuya açık 'Metodoloji ve Doğruluk' sayfası (2026-09-05, site raporu 26 #4).
+    E-E-A-T + GEO alıntı güveni. TÜM rakamlar gerçek veriden: eşleşme oranları build
+    anında data/osym_*.json'dan hesaplanır; 13/13 örneklem denetimi 5 Eylül 2026 iç
+    denetiminin kayıtlı sonucudur. Rakip adı ANILMAZ (kullanıcı kuralı)."""
+    bugun = date.today()
+    bugun_tr = f"{bugun.day} {_TR_AYLAR[bugun.month]} {bugun.year}"
+    # Otomatik denetim çıktısı: TUS/DUS geçmiş-yıl eşleşme oranları (her dönem build'de yenilenir)
+    oran_rows = ""
+    for ex, ad in (("tus", "TUS"), ("dus", "DUS")):
+        d = _load_osym(ex)
+        if not d:
+            continue
+        yil = osym_yil(ex)
+        yerlesen = [r for r in d if r.get("tp") is not None]
+        n = len(yerlesen)
+        m24 = sum(1 for r in yerlesen if r.get("tp24") is not None)
+        m23 = sum(1 for r in yerlesen if r.get("tp23") is not None)
+        if not n:
+            continue
+        oran_rows += (f"<tr><td><strong>{ad}</strong></td><td>{fmt_sira(n)}</td>"
+                      f"<td>{fmt_sira(m24)} (%{round(m24/n*100)})</td>"
+                      f"<td>{fmt_sira(m23)} (%{round(m23/n*100)})</td>"
+                      f"<td>{yil}</td></tr>")
+    oran_tablo = ""
+    if oran_rows:
+        oran_tablo = f"""
+<h2>Güncel Eşleşme Oranları (Otomatik Denetim Çıktısı)</h2>
+<p>Aşağıdaki tablo her yeni dönem verisi işlendiğinde otomatik yeniden hesaplanır. "Eşleşen" sütunları,
+cari dönemde yerleşen kaydı olan programlardan kaçının geçmiş-yıl değerine isim-eşleştirmeyle güvenle
+bağlanabildiğini gösterir. Eşleşmeyen kayıtların büyük bölümü o yıl hiç açılmamış ya da yerleşen
+olmamış programlardır — bunlarda geçmiş değer <b>boş (—) gösterilir, asla tahmin edilmez.</b></p>
+<div class="data-table-wrap"><table class="data-table">
+<thead><tr><th data-tip="Sınav dikeyi." data-type="text">Sınav</th><th data-tip="Cari dönemde yerleşen kaydı olan program/kadro sayısı." data-type="num">Yerleşen Kayıt</th><th data-tip="Bir önceki yılın verisine isim-eşleştirmeyle bağlanan kayıt sayısı ve oranı." data-type="num">Önceki Yıl Eşleşen</th><th data-tip="İki önceki yılın verisine isim-eşleştirmeyle bağlanan kayıt sayısı ve oranı." data-type="num">İki Yıl Önce Eşleşen</th><th data-tip="Cari veri dönemi." data-type="num">Dönem</th></tr></thead>
+<tbody>{oran_rows}</tbody></table></div>"""
+    _sss_html, _sss_ld = ("", "")
+    if faq_block:
+        _sss_html, _sss_ld = faq_block([
+            ("SınavVeri'deki taban puanları resmî mi?",
+             "Taban ve tavan puanlar ÖSYM'nin resmî 'En Küçük ve En Büyük Puanlar' yayınlarından, "
+             "LGS verileri MEB merkezi yerleştirme sonuçlarından, YKS program verileri YÖK Atlas'tan "
+             "derlenir. SınavVeri resmî kurum değildir; kesin işlem için ilgili kurumun sistemi esastır."),
+            ("Geçmiş yıl puanları neden bazı satırlarda boş?",
+             "İki nedenle: program o yıl hiç açılmamış ya da yerleşen olmamıştır; veya isim-eşleştirme "
+             "tekil ve güvenli bir karşılık bulamamıştır. Her iki durumda da değer boş (—) bırakılır — "
+             "yanlış rakam göstermektense boş göstermeyi ilke ediniyoruz."),
+            ("Bir veri hatası bulursam nasıl bildiririm?",
+             "info@sinavveri.com adresine sayfa bağlantısı ve hatalı gördüğünüz değerle yazın. "
+             "Bildirim resmî kaynak yayını ile karşılaştırılır; hata doğrulanırsa veri düzeltilir "
+             "ve ilgili sayfalar yeniden üretilir."),
+        ], nonce="__NONCE__")
+    body = f"""
+<div class="crumb"><a href="/index.html">Ana Sayfa</a> / Metodoloji ve Doğruluk</div>
+<div class="page-title"><h1>Veri Metodolojisi ve Doğruluk</h1><span class="sub">Verinin kaynağı, işlenme yöntemi ve doğruluk denetimi · Son güncelleme: {bugun_tr}</span></div>
+<p style="font-size:15px;line-height:1.65;margin:14px 0"><strong>SınavVeri'deki tüm taban puanı verileri ÖSYM, MEB ve YÖK Atlas resmî yayınlarından otomatik olarak derlenir; geçmiş-yıl kolonları kod değil isim eşleştirmesiyle kurulur ve her dönem hem otomatik hem örneklem denetiminden geçer.</strong></p>
+
+<h2>Veriler Nereden Geliyor?</h2>
+<p>TUS, DUS, DGS ve KPSS taban/tavan puanları ÖSYM'nin resmî "En Küçük ve En Büyük Puanlar"
+yayınlarından (dokuman.osym.gov.tr); üniversite taban puanları ve başarı sıralamaları YÖK Atlas
+tercih kılavuzu verisinden; LGS lise taban puanları MEB merkezi yerleştirme sonuçlarından alınır.
+Sınav takvimi ve duyurular ÖSYM ile MEB'in resmî duyuru kanallarından günlük otomasyonla izlenir.
+Hiçbir değer elle girilmez; tüm sayfalar kaynak veriden otomatik üretilir.</p>
+
+<h2>Geçmiş Yıl Kolonları Nasıl Eşleştiriliyor?</h2>
+<p>ÖSYM, program ve kadro kodlarını her dönem <b>yeniden atar</b> — yani aynı kod bir yıl başka
+bir programı gösterebilir. Kod üzerinden eşleştirme yapan bir sistem, geçmiş-yıl kolonuna sessizce
+<b>yanlış programın puanını</b> yazar. SınavVeri bu tuzağa düşmemek için kod değil
+<b>isim eşleştirmesi</b> kullanır: kurum adı + dal/program adı + kontenjan türü normalize edilir ve
+yıllar arasında bu kimlikle bağlanır. Tekil ve güvenli eşleşme bulunamayan kayıtlarda geçmiş değer
+<b>boş (—) bırakılır</b> — yanlış değer göstermektense boş göstermeyi tercih ediyoruz.</p>
+
+<h2>Doğruluk Nasıl Denetleniyor?</h2>
+<p>Üç katmanlı denetim uygulanır:</p>
+<ul>
+<li><b>Örneklem el denetimi:</b> 5 Eylül 2026'da rastgele seçilen 13 programlık TUS örnekleminde
+geçmiş-yıl kolonları ÖSYM'nin resmî PDF yayınlarıyla tek tek karşılaştırıldı: <b>13/13 birebir doğru.</b>
+Bu denetim her yeni dönem verisinde tekrarlanır.</li>
+<li><b>Otomatik eşleştirme denetimi:</b> Her dönem, tüm kayıtların eşleşme tipi (tam / çekirdek / yok)
+otomatik raporlanır; aşağıdaki güncel oranlar bu denetimin çıktısıdır.</li>
+<li><b>Veri bekçisi:</b> Kaynak yayın biçimi veya içeriği beklenmedik şekilde değişirse otomasyon
+yayını durdurur ve uyarı üretir — bayat ya da bozuk verinin sessizce yayına çıkması engellenir.</li>
+</ul>
+{oran_tablo}
+
+<h2>Hangi İlkelere Uyuyoruz?</h2>
+<ul>
+<li><b>Yalnız resmî kaynak:</b> ÖSYM, MEB, YÖK Atlas dışındaki aracı kaynaklardan veri alınmaz.</li>
+<li><b>Boş, yanlıştan iyidir:</b> Doğrulanamayan değer tahmin edilmez, boş (—) gösterilir.</li>
+<li><b>Dönem şeffaflığı:</b> Her sayfada verinin hangi döneme ait olduğu açıkça yazılır.</li>
+<li><b>Düzeltme politikası:</b> Bildirilen ve doğrulanan hatalar kaynakla karşılaştırılıp düzeltilir.</li>
+</ul>
+{_sss_html}{_sss_ld}
+<div class="notice"><b>Kaynak:</b> ÖSYM · MEB · YÖK Atlas resmî yayınları. SınavVeri resmî kurum değildir;
+kesin bilgi için ilgili kurumun resmî sistemi esastır. Hata bildirimi: <a href="mailto:info@sinavveri.com">info@sinavveri.com</a></div>
+"""
+    return base("metodoloji.html", "Veri Metodolojisi ve Doğruluk Denetimi | SınavVeri",
+                "SınavVeri taban puanı verilerinin kaynağı, isim-eşleştirme metodolojisi ve doğruluk denetimi: "
+                "ÖSYM resmî yayınlarıyla örneklem doğrulaması ve otomatik dönem denetimi.",
+                body, share=True,
+                extra_head=(f"<style>{FAQ_CSS}</style>" if FAQ_CSS else ""))
+
+
 def main():
     print("SınavVeri.com inşa ediliyor...")
     slugs = []  # sitemap için
@@ -6870,7 +7236,8 @@ def main():
     if _duyurular_html:
         W("duyurular.html", _duyurular_html)
     W("taban-puanlari.html", page_taban_hub())
-    W("universite-taban-puanlari.html", page_taban_index())
+    # NOT (2026-09-05): universite-taban-puanlari.html artık write_veri()'den SONRA üretiliyor
+    # (aşağıda) — statik tbody aynı koşumun taze say.json'ından pişiyor.
     # ÖSYM resmî taban puanları (TUS/DUS/DGS/KPSS) — istemci JSON üret + sayfalar
     print("  ÖSYM resmî veri (TUS/DUS/DGS/KPSS) işleniyor...")
     write_osym_veri()
@@ -6892,6 +7259,7 @@ def main():
     W("puan-hesaplama.html", page_puan_hesaplama_hub())
     W("rehberler.html", page_rehberler_hub())
     W("hakkimizda.html", page_hakkimizda())
+    W("metodoloji.html", page_metodoloji())
     W("yks.html", page_yks())
     W("lgs.html", page_lgs())
     W("kpss.html", page_kpss())
@@ -6920,6 +7288,7 @@ def main():
     programs = load_programs()
     print(f"  {len(programs)} program yüklendi (YÖK Atlas {YKS_YIL})")
     write_veri(programs)
+    W("universite-taban-puanlari.html", page_taban_index())  # statik tbody için taze say.json şart
     write_puan_sira(programs)
     _km = ROOT / "data" / "kosul_map.json"
     if _km.exists():
