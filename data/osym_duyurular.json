@@ -1,7 +1,23 @@
 {
- "guncelleme": "2026-09-05T18:30:14",
+ "guncelleme": "2026-09-06T13:30:17",
  "kaynak": "ÖSYM",
  "duyurular": [
+  {
+   "tarih": "2026-09-06",
+   "baslik": "2026-KPSS Lisans Sınavı (Genel Yetenek-Genel Kültür) Temel Soru Kitapçığı ve Cevap Anahtarı (% 10)",
+   "url": "https://www.osym.gov.tr/2026-kpss-lisansgenel-yetenek-genel-kultur-temel-soru-kitapcigi-ve-cevap-anahtari-10",
+   "slug": "2026-kpss-lisansgenel-yetenek-genel-kultur-temel-soru-kitapcigi-ve-cevap-anahtari-10",
+   "sinav": "KPSS",
+   "tip": "cevap_anahtari"
+  },
+  {
+   "tarih": "2026-09-06",
+   "baslik": "2026-KPSS Lisans Sınavı: Genel Yetenek-Genel Kültür Oturumunun Temel Soru Kitapçığı ve Cevap Anahtarı Yayımlandı",
+   "url": "https://www.osym.gov.tr/2026-kpss-lisans-sinavi-genel-yetenek-genel-kultur-oturumunun-temel-soru-kitapcigi-ve-cevap-anahtari-yayimlandi",
+   "slug": "2026-kpss-lisans-sinavi-genel-yetenek-genel-kultur-oturumunun-temel-soru-kitapcigi-ve-cevap-anahtari-yayimlandi",
+   "sinav": "KPSS",
+   "tip": "cevap_anahtari"
+  },
   {
    "tarih": "2026-09-03",
    "baslik": "2026-YKS Millî Sporcuları Yükseköğretim Programlarına Yerleştirme Sonuçları Açıklandı",
