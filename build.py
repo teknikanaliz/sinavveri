@@ -2698,7 +2698,7 @@ def write_support(pages=None):
     for p in pages:
         cf, pr = meta(p)
         loc = SITE + "/" + ("" if p == "index.html" else p)
-        rows.append(f"  <url><loc>{loc}</loc><changefreq>{cf}</changefreq><priority>{pr}</priority></url>")
+        rows.append(f"  <url><loc>{loc}</loc></url>")
     sitemap = '<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n' + "\n".join(rows) + "\n</urlset>\n"
     (ROOT / "sitemap.xml").write_text(sitemap, encoding="utf-8")
 
