@@ -50,6 +50,12 @@ push-server/node_modules/
 push-server/subscriptions.db
 push-server/.env
 
+# sitemap .gz ikizi — BUILD ÇIKTISI, kaynak değil (2026-09-07).
+# Repoya girmez: elle düzenlenmiş bir sitemap.xml ile BAYAT bir .gz birlikte
+# deploy edilirse nginx (gzip_static) bayat olanı servis eder. .gz'yi yalnız
+# build üretir (sitemap_gz.py) → .xml ile her zaman aynı anda tazelenir.
+sitemap*.xml.gz
+
 # Uretilen sayfalar -> shared/ symlink (kanonik, HastaneVeri deseni)
 bolum/
 universite/

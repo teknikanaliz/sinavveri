@@ -12,6 +12,10 @@ try:  # paket icinde relative, top-level script olarak duz import
     from .ldjson_safe import ld_escape, ld_json
 except ImportError:  # generators/ gibi dizinler __init__.py'li olsa da
     from ldjson_safe import ld_escape, ld_json   # modul top-level import edilebiliyor
+try:  # sitemap .gz ikizi — kanonik modul (servermimari/assets/sitemap_gz.py kopyasi)
+    from . import sitemap_gz
+except ImportError:
+    import sitemap_gz
 
 
 def html_escape(s):
@@ -2736,6 +2740,14 @@ def write_support(pages=None):
         rows.append(f"  <url><loc>{loc}</loc></url>")
     sitemap = '<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n' + "\n".join(rows) + "\n</urlset>\n"
     (ROOT / "sitemap.xml").write_text(sitemap, encoding="utf-8")
+    # ⚠ .gz İKİZİ AYNI ANDA YAZILIR — atlanamaz (2026-09-07).
+    # nginx'te `gzip_static on` açık: /sitemap.xml istendiğinde diskte
+    # sitemap.xml.gz varsa nginx ONU servis eder, .xml'in içeriğine HİÇ BAKMAZ.
+    # .xml yeniden üretilip .gz güncellenmezse Googlebot sonsuza kadar ESKİ
+    # sitemap'i görür (silinen URL taranır, yeni sayfa keşfedilmez) — sessiz ve
+    # kalıcı. Bu yüzden .gz elle değil, sitemap'i yazan KOD YOLUNDA üretilir.
+    # esitle() ayrıca .xml'i kalmamış yetim .gz'leri siler.
+    sitemap_gz.esitle(ROOT)
 
     manifest = {
         "name": "SınavVeri.com", "short_name": "SınavVeri",
