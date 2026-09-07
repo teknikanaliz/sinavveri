@@ -1204,6 +1204,41 @@ def uni_analiz(u, info, recs):
     return " ".join(s)
 
 
+
+_WEB_PLACEHOLDER = {"-", "—", "–", "", "yok", "bilinmiyor", "n/a", "na"}
+_WEB_DOMAIN_RE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9.-]*\.[A-Za-z]{2,}(?:[:/?#].*)?$")
+
+
+def _web_link(raw):
+    """Universite 'website' alanini GUVENLI MUTLAK URL'e cevirir.
+
+    ⚠ NEDEN VAR (2026-09-07): data/universiteler.json'daki 67 kayitta website
+    degeri sema'siz ("www.afsu.edu.tr"). Ham deger href'e basilinca RELATIF link
+    oluyor ve /universite/www.afsu.edu.tr adresine cozuluyordu → 404.
+    Ahrefs 3 Eylul "Page has links to broken page: 63 URLs" bulgusunun tam kok
+    nedeni buydu (sunucu logunda 63 adet /universite/... 404 ile birebir eslesti).
+
+    Veri BOZULMADAN, render tarafinda savunmaci normalize edilir; ileride gelen
+    bozuk degerler de sessizce elenir (link hic basilmaz, satir dusurulur).
+
+    Doner: (href, gorunen_metin) veya (None, None) → 'Web' satiri basilmaz.
+    """
+    w = (raw or "").strip()
+    if w.lower() in _WEB_PLACEHOLDER:
+        return None, None
+    if not w.lower().startswith(("http://", "https://")):
+        # "www.hakkari.edu.tr / www.hu.edu.tr" gibi coklu degerde ilkini al
+        w = re.split(r"[\s,;]+", w)[0].strip().strip("/")
+        # "Yüksek İhtisas Üniversitesi" gibi URL OLMAYAN degerleri ele
+        if not _WEB_DOMAIN_RE.match(w):
+            return None, None
+        w = "https://" + w
+    gorunen = re.sub(r"^https?://", "", w).rstrip("/")
+    if not gorunen:
+        return None, None
+    return w, gorunen
+
+
 def uni_kunye_html(u, recs):
     """Üniversite künye kartı: logo + istatistik grid + analiz + kurumsal bilgiler + harita."""
     info = uni_info(u)
@@ -1231,9 +1266,9 @@ def uni_kunye_html(u, recs):
 
     # Kurumsal bilgiler satırları (öğrenci kırılımı tam-genişlik, yan yana)
     rows = []
-    if info.get("website"):
-        w = info["website"].replace("http://", "").replace("https://", "").rstrip("/")
-        rows.append(("Web", f'<a href="{html_escape(info["website"])}" target="_blank" rel="noopener nofollow">{html_escape(w)}</a>', False))
+    _web_href, _web_text = _web_link(info.get("website"))
+    if _web_href:
+        rows.append(("Web", f'<a href="{html_escape(_web_href)}" target="_blank" rel="noopener nofollow">{html_escape(_web_text)}</a>', False))
     if info.get("rektor"):
         rows.append(("Rektör", html_escape(info["rektor"]), False))
     ph = tr_phone(info.get("telefon"))
