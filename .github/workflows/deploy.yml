@@ -47,9 +47,19 @@ jobs:
             git@github.com:teknikanaliz/sinavveri.git .
 
           # 2. Persistent linkler (Cloudflare token shared'da)
-          for f in e77c22b97eb527506d152246be339059.txt; do
-            [ -f "$SITE/shared/$f" ] && ln -sf "../../shared/$f" "./$f"
-          done
+          # .env — köprü deployer (capistrano-deploy.sh) bunu AYRI ele alır; listeye girmez.
+          [ -f "$SITE/shared/.env" ] && ln -sf "$SITE/shared/.env" ./.env || true
+          # shared TEKİL DOSYALAR — `.shared-files` TEK DOĞRULUK KAYNAĞI (köprü-parity).
+          # Detay: servermimari/DEPLOY-STANDARD.md "Shared-Files Standardı".
+          if [ -f .shared-files ]; then
+            while IFS= read -r _l; do _f="${_l%%#*}"; _f="${_f// /}"; [ -z "$_f" ] && continue
+              case "$_f" in */*|*..*) echo "UYARI: .shared-files gecersiz giris: $_f"; continue;; esac
+              for _p in "$SITE/shared/"$_f; do
+                [ -e "$_p" ] || continue
+                ln -sf "$_p" "./$(basename "$_p")"
+              done
+            done < .shared-files
+          fi
 
           # 2.5 Uretilen buyuk dizinler -> shared symlink (release sismesini onler; HastaneVeri deseni)
           # shared dizinler — .shared-dirs tek kaynagi (self-seeding: yoksa clone'dan tohumla)

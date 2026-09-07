@@ -1,0 +1,13 @@
+# TEK DOĞRULUK KAYNAĞI — shared/'dan release'e symlink'lenecek TEKİL DOSYALAR.
+# `.shared-dirs` ile simetrik. İKİ deployer da BU dosyayı okur:
+#   · GitHub Actions → .github/workflows/deploy.yml
+#   · köprü deployer → /root/scripts/capistrano-deploy.sh (git-auto-push tetikler)
+# Sabit liste TUTULMAZ: biri değişip öteki kalırsa köprü/GHA farklı release üretir ve
+# yarışı köprü kazanırsa dosyalar sessizce KAYBOLUR.
+# Standart + olay geçmişi: servermimari/DEPLOY-STANDARD.md "Shared-Files Standardı".
+# Denetim (haftalık): servermimari/scripts/audit-shared-files.sh
+#
+# ⚠️ GIT-TRACKED dosya YAZMA — symlink tracked dosyayı gölgeler, repo düzenlemesi canlıya
+#    yansımaz. İstisna yalnız "tracked AMA üretilen" dosyalar; gerekçesi yorumla yazılır.
+# Glob desteklenir (ör. *.txt · sitemap*.xml).
+e77c22b97eb527506d152246be339059.txt
