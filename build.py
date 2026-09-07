@@ -2739,15 +2739,17 @@ def write_support(pages=None):
         loc = SITE + "/" + ("" if p == "index.html" else p)
         rows.append(f"  <url><loc>{loc}</loc></url>")
     sitemap = '<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n' + "\n".join(rows) + "\n</urlset>\n"
-    (ROOT / "sitemap.xml").write_text(sitemap, encoding="utf-8")
     # ⚠ .gz İKİZİ AYNI ANDA YAZILIR — atlanamaz (2026-09-07).
     # nginx'te `gzip_static on` açık: /sitemap.xml istendiğinde diskte
-    # sitemap.xml.gz varsa nginx ONU servis eder, .xml'in içeriğine HİÇ BAKMAZ.
-    # .xml yeniden üretilip .gz güncellenmezse Googlebot sonsuza kadar ESKİ
-    # sitemap'i görür (silinen URL taranır, yeni sayfa keşfedilmez) — sessiz ve
-    # kalıcı. Bu yüzden .gz elle değil, sitemap'i yazan KOD YOLUNDA üretilir.
-    # esitle() ayrıca .xml'i kalmamış yetim .gz'leri siler.
-    sitemap_gz.esitle(ROOT)
+    # sitemap.xml.gz varsa nginx ONU gönderir ve tazeliğini KONTROL ETMEZ
+    # (mtime karşılaştırması yoktur). .xml yeniden üretilip .gz eski kalırsa
+    # Googlebot AYLARCA eski sitemap'i görür — silinen URL'ler taranır, yeni
+    # sayfalar hiç keşfedilmez ve hiçbir yerde hata görünmez. Bu yüzden ikisi
+    # TEK ÇAĞRIDA yazılır; elle `gzip` çalıştırmak kalıcı çözüm DEĞİLDİR.
+    # yetim_temizle: .xml'i kalmamış .gz artığı nginx tarafından hâlâ servis
+    # edilir → her üretimde süpürülür. Kanonik: servermimari/assets/sitemap_gz.py
+    sitemap_gz.yaz(ROOT / "sitemap.xml", sitemap)
+    sitemap_gz.yetim_temizle(ROOT)
 
     manifest = {
         "name": "SınavVeri.com", "short_name": "SınavVeri",
